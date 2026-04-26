@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Order Tracking - Lumina Care</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#45464d",
+                        "surface": "#fbf8ff",
+                        "on-surface": "#1a1b22",
+                        "outline-variant": "#c6c6cd",
+                        "primary-fixed": "#dae2fd",
+                        "secondary": "#006b5f",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#2a1700",
+                        "on-secondary-container": "#007165",
+                        "surface-container": "#eeedf7",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-tint": "#565e74",
+                        "primary": "#000000",
+                        "surface-container-high": "#e8e7f1",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e3e1ec",
+                        "secondary-container": "#62fae3",
+                        "on-secondary": "#ffffff",
+                        "outline": "#76777d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#00201c",
+                        "on-secondary-fixed-variant": "#005047",
+                        "inverse-surface": "#2f3038",
+                        "primary-fixed-dim": "#bec6e0",
+                        "secondary-fixed-dim": "#3cddc7",
+                        "surface-bright": "#fbf8ff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-primary-container": "#7c839b",
+                        "tertiary": "#000000",
+                        "surface-container-low": "#f4f2fd",
+                        "primary-container": "#131b2e",
+                        "on-background": "#1a1b22",
+                        "on-tertiary-container": "#b87500",
+                        "surface-container-highest": "#e3e1ec",
+                        "surface-dim": "#dad9e3",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f1effa",
+                        "secondary-fixed": "#62fae3",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#bec6e0",
+                        "background": "#fbf8ff",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "tertiary-fixed": "#ffddb8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "unit": "8px",
+                        "stack-sm": "12px",
+                        "margin-desktop": "48px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "stack-lg": "48px",
+                        "stack-md": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "display-xl": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.03em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-sm": ["24px", {"lineHeight": "1.4", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-xl": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #fbf8ff; /* surface */
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="text-on-background min-h-screen relative pb-32 md:pb-0 pt-24 md:pt-32">
+<!-- TopNavBar (Web) -->
+<div class="hidden md:flex fixed top-0 w-full z-50 bg-white/10 dark:bg-slate-900/20 backdrop-blur-lg border-b border-white/20 dark:border-slate-800/50 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+<div class="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto w-full">
+<div class="text-lg font-black tracking-tighter text-slate-900 dark:text-white">LUMINA CARE</div>
+<nav class="flex gap-8 font-['Inter'] tracking-tight antialiased">
+<a class="text-slate-500 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-slate-800/40 transition-colors active:scale-95 duration-200 px-3 py-2 rounded-md" href="#">Home</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-slate-800/40 transition-colors active:scale-95 duration-200 px-3 py-2 rounded-md" href="#">Schedule</a>
+<a class="text-cyan-600 dark:text-cyan-300 font-semibold active:scale-95 duration-200 px-3 py-2 rounded-md" href="#">Track</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-slate-800/40 transition-colors active:scale-95 duration-200 px-3 py-2 rounded-md" href="#">Wallet</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-slate-800/40 transition-colors active:scale-95 duration-200 px-3 py-2 rounded-md" href="#">Profile</a>
+</nav>
+<div class="flex gap-4 text-cyan-500 dark:text-cyan-400">
+<span class="material-symbols-outlined hover:bg-white/20 dark:hover:bg-slate-800/40 transition-colors active:scale-95 duration-200 p-2 rounded-full cursor-pointer">notifications</span>
+<span class="material-symbols-outlined hover:bg-white/20 dark:hover:bg-slate-800/40 transition-colors active:scale-95 duration-200 p-2 rounded-full cursor-pointer">account_circle</span>
+</div>
+</div>
+</div>
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop h-full flex flex-col md:flex-row gap-gutter">
+<!-- Left Column: Map UI -->
+<div class="flex-1 rounded-xl overflow-hidden shadow-lg relative h-[512px] md:h-[calc(100vh-160px)] z-10 glass-panel">
+<img alt="Map View" class="w-full h-full object-cover absolute inset-0 mix-blend-luminosity opacity-80" data-alt="clean modern city map view top down minimal aesthetic pastel tones" data-location="City Map" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAA2sOmKOLjvSArPi3PNKDRLrrEJNycrAC9OaWMWL_rAFwwmhimDwEdGk0OlYA2GdPak5FXjEu8CyY79Vv35oYyu_RS4roNzTO5R2t4a_M3uwYUqTqT-OgrUb5xs2RX-AzSVnRMHtBfgoU9JIFzUW2_zfcEaf2CGvckLKE1cWsbiUGLuIqJrE9nSypCFXJ-st_sK1aJgnjDaXsknqsOGVFjaPhQqd59132hAO5scXO8dHNUwMbuACP602avixu34m8gVAylgmUlC3IE"/>
+<!-- Map Overlay UI -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface/80 via-transparent to-surface/30"></div>
+<!-- Floating Vehicle / Marker -->
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+<div class="bg-secondary-container text-on-secondary-container p-3 rounded-full shadow-lg mb-2 relative animate-pulse">
+<span class="material-symbols-outlined">local_shipping</span>
+<div class="absolute inset-0 border-2 border-secondary-container rounded-full animate-ping opacity-50"></div>
+</div>
+<div class="bg-surface px-4 py-2 rounded-full shadow-md text-label-sm font-label-sm text-on-surface whitespace-nowrap">
+                    Arriving in 12 min
+                </div>
+</div>
+<!-- Overlay Info Card -->
+<div class="absolute top-6 left-6 right-6 md:right-auto md:w-80 glass-panel p-6 rounded-xl">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-2">Order #LC-8924</h2>
+<p class="font-body-md text-body-md text-outline mb-4">Driver: Michael S.</p>
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-lg">
+<img alt="Driver Profile" class="w-12 h-12 rounded-full object-cover" data-alt="professional driver portrait minimal clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh-yCW8vqHuaIfyrsEYkKxqjC4IHM3BBz7_fN66jIK7AGqGRYJuebhwsjiEZyw1ugqZlDjdkqtcnBZJD9kdUQtdlRCTmF3mF-j0AOf78A49q6VYDpzguS1_wy-POd7Bqy7iKGDPNh8GLByASs_0CHmKZkKNA0VXFFs-UNP0gRU8A8d1FIERK4ahfLdx81ZmCCOrF0HUP9Dq7K3zCowouz_ZbeyIxYBdy8R3S_T6bIjaHpdZa6Q1TSSUs9ZbhSqfurMHygpnkeBfjZU"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface">4.9 ★</span>
+<div class="flex gap-2">
+<button class="bg-primary-container text-on-primary-container p-2 rounded-full hover:bg-primary transition-colors hover:text-on-primary">
+<span class="material-symbols-outlined text-sm">call</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Timeline & Details -->
+<div class="w-full md:w-96 flex flex-col gap-stack-md z-10">
+<!-- Status Card -->
+<div class="glass-panel p-6 rounded-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Live Status</h3>
+<!-- Stepper Timeline -->
+<div class="relative pl-6 border-l-2 border-surface-variant space-y-8">
+<!-- Step 1: Pickup -->
+<div class="relative">
+<span class="absolute -left-[35px] top-0 bg-surface border-2 border-secondary text-secondary w-6 h-6 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+<div class="font-label-md text-label-md text-secondary uppercase tracking-wider mb-1">Pickup Complete</div>
+<div class="font-body-md text-body-md text-outline">Items collected from your location.</div>
+</div>
+<!-- Step 2: Processing -->
+<div class="relative">
+<span class="absolute -left-[35px] top-0 bg-surface border-2 border-secondary text-secondary w-6 h-6 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+<div class="font-label-md text-label-md text-secondary uppercase tracking-wider mb-1">Processing</div>
+<div class="font-body-md text-body-md text-outline">Garments inspected and cleaned.</div>
+</div>
+<!-- Step 3: Out for Delivery (Active) -->
+<div class="relative">
+<span class="absolute -left-[35px] top-0 bg-secondary-container border-2 border-secondary-container text-on-secondary-container w-6 h-6 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(98,250,227,0.5)]">
+<span class="material-symbols-outlined text-[14px]">local_shipping</span>
+</span>
+<div class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-1">Out for Delivery</div>
+<div class="font-body-md text-body-md text-on-surface-variant">Driver is en route to your location.</div>
+</div>
+</div>
+</div>
+<!-- Delivery Details -->
+<div class="glass-panel p-6 rounded-xl">
+<h4 class="font-label-md text-label-md text-outline uppercase tracking-wider mb-4">Delivery Details</h4>
+<div class="space-y-4">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-outline">location_on</span>
+<div>
+<div class="font-body-md text-body-md text-on-surface">123 Horizon Avenue</div>
+<div class="font-body-lg text-body-lg text-outline text-sm">Apt 4B, Metro District</div>
+</div>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-outline">schedule</span>
+<div>
+<div class="font-body-md text-body-md text-on-surface">Estimated Arrival</div>
+<div class="font-body-lg text-body-lg text-secondary font-semibold">2:45 PM - 3:00 PM</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<div class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-lg rounded-3xl border border-white/30 dark:border-slate-700/50 bg-white/20 dark:bg-slate-900/40 backdrop-blur-xl shadow-[0_20px_50px_rgba(8,112,184,0.15)] z-50">
+<div class="flex justify-around items-center py-4 px-2">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:scale-110 transition-transform duration-300 ease-out cursor-pointer">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:scale-110 transition-transform duration-300 ease-out cursor-pointer">
+<span class="material-symbols-outlined mb-1">calendar_today</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Schedule</span>
+</div>
+<!-- Active State: Track -->
+<div class="flex flex-col items-center justify-center text-cyan-500 dark:text-cyan-300 relative after:content-[''] after:absolute after:-bottom-2 after:w-1 after:h-1 after:bg-cyan-400 after:rounded-full after:shadow-[0_0_10px_#22d3ee] hover:scale-110 transition-transform duration-300 ease-out cursor-pointer">
+<span class="material-symbols-outlined mb-1">local_shipping</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Track</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:scale-110 transition-transform duration-300 ease-out cursor-pointer">
+<span class="material-symbols-outlined mb-1">account_balance_wallet</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Wallet</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:scale-110 transition-transform duration-300 ease-out cursor-pointer">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Profile</span>
+</div>
+</div>
+</div>
+</body></html>

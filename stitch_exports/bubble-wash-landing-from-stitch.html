@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bubble Wash - Laundry, Simplified.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#62fae3",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f4f2fd",
+                        "surface-dim": "#dad9e3",
+                        "primary": "#000000",
+                        "on-surface": "#1a1b22",
+                        "on-primary-fixed": "#131b2e",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#3cddc7",
+                        "surface-container-highest": "#e3e1ec",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#45464d",
+                        "primary-fixed": "#dae2fd",
+                        "inverse-on-surface": "#f1effa",
+                        "surface-tint": "#565e74",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "inverse-surface": "#2f3038",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-primary-container": "#7c839b",
+                        "on-secondary-container": "#007165",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-variant": "#e3e1ec",
+                        "on-primary": "#ffffff",
+                        "outline": "#76777d",
+                        "outline-variant": "#c6c6cd",
+                        "surface-bright": "#fbf8ff",
+                        "surface-container": "#eeedf7",
+                        "secondary-fixed": "#62fae3",
+                        "background": "#fbf8ff",
+                        "secondary": "#006b5f",
+                        "on-secondary-fixed": "#00201c",
+                        "inverse-primary": "#bec6e0",
+                        "on-tertiary-container": "#b87500",
+                        "surface-container-high": "#e8e7f1",
+                        "on-secondary-fixed-variant": "#005047",
+                        "tertiary": "#000000",
+                        "on-background": "#1a1b22",
+                        "tertiary-container": "#2a1700",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface": "#fbf8ff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#131b2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "margin-desktop": "48px",
+                        "container-max": "1280px",
+                        "margin-mobile": "16px",
+                        "stack-lg": "48px",
+                        "stack-sm": "12px",
+                        "stack-md": "24px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "display-xl": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["32px", { "lineHeight": "1.3", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+                        "display-xl": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "label-md": ["14px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "1.4", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+            border-right: 1px solid rgba(15, 23, 42, 0.1);
+        }
+        .glass-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 0 40px rgba(98, 250, 227, 0.05);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #3cddc7, #006b5f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden selection:bg-secondary-container selection:text-on-secondary-container relative">
+<!-- Top Navigation (Desktop) -->
+<nav class="hidden md:flex justify-between items-center px-8 py-3 z-50 rounded-full mt-6 mx-auto w-[90%] max-w-7xl sticky top-6 bg-white/15 dark:bg-slate-900/20 backdrop-blur-xl border border-white/30 dark:border-slate-700/30 shadow-[0_8px_32px_0_rgba(15,23,42,0.1)] font-sans antialiased tracking-tight">
+<div class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-600">
+            Bubble Wash
+        </div>
+<div class="flex gap-8 items-center">
+<a class="text-cyan-600 dark:text-cyan-400 font-semibold border-b-2 border-cyan-500 hover:scale-105 transition-transform duration-200" href="#">Services</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-cyan-500 transition-colors hover:scale-105 transition-transform duration-200" href="#">Pricing</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-cyan-500 transition-colors hover:scale-105 transition-transform duration-200" href="#">Locations</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-cyan-500 transition-colors hover:scale-105 transition-transform duration-200" href="#">Support</a>
+</div>
+<div class="flex gap-4 items-center text-cyan-500 dark:text-cyan-400">
+<button class="hover:scale-105 transition-transform duration-200"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dark_mode</span></button>
+<button class="hover:scale-105 transition-transform duration-200"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span></button>
+<img alt="User profile" class="w-8 h-8 rounded-full border border-white/30 object-cover hover:scale-105 transition-transform duration-200" data-alt="Close-up portrait of a young woman with natural makeup looking at camera against a neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvyddNqVlnGP2jusFANpTPgnqVkpMnOidtWCI7Zssb-827wRX3IKKLIHOviHIUDgB2KQjwoAA0Ntca4doIYbHZnx2GkhDm5jYqmDc1hCJs_oEl9LxGj2PXKnjKetImCiGZpoCZTYwXsyPHEnUYieyDDetvHylUA04MEOG8jnRS6hLiXlEwAjEqSU84mxL43f_GXlZHUIlBe9zyT29eqhRIKTJdQF0P2juNFE_mmcB2SY3bCtzk99qeG7tCysqALy3_gYrxHZnfnIgS"/>
+</div>
+</nav>
+<!-- Bottom Navigation (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-8 pt-4 rounded-t-[32px] bg-white/10 dark:bg-slate-900/40 backdrop-blur-2xl border-t border-white/20 dark:border-slate-800/50 shadow-[0_-4px_24px_0_rgba(0,255,255,0.05)]">
+<a class="flex flex-col items-center justify-center text-cyan-500 dark:text-cyan-400 relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-cyan-400 after:rounded-full after:shadow-[0_0_8px_#22d3ee] hover:text-cyan-300 transition-all text-[10px] font-bold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">home_max</span>
+            Home
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-300 transition-all text-[10px] font-bold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">local_laundry_service</span>
+            Orders
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-300 transition-all text-[10px] font-bold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">account_balance_wallet</span>
+            Wallet
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-300 transition-all text-[10px] font-bold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">person</span>
+            Profile
+        </a>
+</nav>
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex items-center justify-center px-margin-mobile md:px-margin-desktop overflow-hidden">
+<!-- Abstract Background Shapes -->
+<div class="absolute inset-0 -z-10 bg-background overflow-hidden">
+<div class="absolute top-[-10%] right-[-5%] w-[60vw] h-[60vw] rounded-full bg-secondary-container/20 blur-[100px]"></div>
+<div class="absolute bottom-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary-fixed/30 blur-[120px]"></div>
+</div>
+<div class="max-w-container-max mx-auto text-center z-10 flex flex-col items-center gap-stack-md mt-stack-lg">
+<h1 class="font-display-xl text-display-xl text-on-surface max-w-4xl tracking-tight leading-tight">
+                Laundry, Simplified. <br/> <span class="text-gradient">Clean Delivered.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                Experience the future of garment care. Premium washing, meticulous folding, and precise dry cleaning, picked up and delivered to your door with a tap.
+            </p>
+<div class="flex flex-col sm:flex-row gap-stack-sm mt-stack-sm">
+<button class="bg-gradient-to-r from-secondary-fixed-dim to-secondary text-on-secondary px-8 py-4 rounded-full font-label-md text-label-md hover:scale-[1.02] transition-transform duration-300 shadow-[0_0_20px_rgba(98,250,227,0.3)] flex items-center justify-center gap-2">
+                    Schedule Pickup
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<button class="glass-panel text-on-surface px-8 py-4 rounded-full font-label-md text-label-md hover:scale-[1.02] transition-transform duration-300 flex items-center justify-center gap-2">
+                    View Pricing
+                </button>
+</div>
+<!-- Hero Image/Graphic Placeholder -->
+<div class="mt-stack-lg w-full max-w-5xl aspect-[21/9] rounded-[32px] overflow-hidden glass-panel glass-shadow relative">
+<img alt="Pristine white folded towels" class="w-full h-full object-cover opacity-90" data-alt="Stack of pristine white fluffy folded towels on a clean marble surface with soft natural light streaming in" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeX_5a0UeGHPDhlmm1E6i_ScHzyts4LDW2EF5pw0G7CMoIAU5oKSMF4i7EGkpwAwiK8GUc0PgEKUqMX2JpNFLXrkauCZ8mQBGkQ5M3QmKWq8v4wV-eIdid04z4WJekFL8F_HJBOH8oAu1Xj7wKUz2-oyN6XJOF09xah4dINrdRXH9xwNGihMi-YilUmpayO_fSm4GQ0djXdHFdMslAEscr6zu-4-VbsyYnMZtsNjqxwY34Hixstj5qcIF1Rm44ggKO0BPsxaMkXZ-0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container/20 to-transparent"></div>
+</div>
+</div>
+</section>
+<!-- How it Works Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop relative">
+<div class="absolute inset-0 -z-10 bg-background overflow-hidden">
+<div class="absolute top-[20%] left-[10%] w-[40vw] h-[40vw] rounded-full bg-secondary-container/10 blur-[100px]"></div>
+</div>
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-stack-lg">
+<h2 class="font-display-lg text-display-lg text-on-surface">Effortless Care</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-stack-sm">Three steps to a refreshed wardrobe.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Step 1 -->
+<div class="glass-panel rounded-[24px] p-8 glass-shadow hover:scale-[1.02] transition-transform duration-300 relative overflow-hidden group">
+<div class="w-16 h-16 rounded-full bg-secondary-container/30 flex items-center justify-center mb-6 text-on-secondary-container">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">1. Schedule</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Choose a convenient pickup time through our app or website. We fit into your schedule.</p>
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/10 rounded-bl-[100px] -z-10 transition-all duration-500 group-hover:bg-secondary-container/20"></div>
+</div>
+<!-- Step 2 -->
+<div class="glass-panel rounded-[24px] p-8 glass-shadow hover:scale-[1.02] transition-transform duration-300 relative overflow-hidden group">
+<div class="w-16 h-16 rounded-full bg-secondary-container/30 flex items-center justify-center mb-6 text-on-secondary-container">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">2. Pickup</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Our professional concierge collects your garments in secure, reusable Bubble Wash bags.</p>
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/10 rounded-bl-[100px] -z-10 transition-all duration-500 group-hover:bg-secondary-container/20"></div>
+</div>
+<!-- Step 3 -->
+<div class="glass-panel rounded-[24px] p-8 glass-shadow hover:scale-[1.02] transition-transform duration-300 relative overflow-hidden group">
+<div class="w-16 h-16 rounded-full bg-secondary-container/30 flex items-center justify-center mb-6 text-on-secondary-container">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">3. Clean &amp; Deliver</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Expert cleaning, crisp folding, and prompt delivery back to your door within 48 hours.</p>
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/10 rounded-bl-[100px] -z-10 transition-all duration-500 group-hover:bg-secondary-container/20"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Why Choose Us Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop relative">
+<div class="absolute inset-0 -z-10 bg-background overflow-hidden">
+<div class="absolute bottom-[10%] right-[10%] w-[50vw] h-[50vw] rounded-full bg-primary-fixed/20 blur-[120px]"></div>
+</div>
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-stack-lg">
+<h2 class="font-display-lg text-display-lg text-on-surface">Why Bubble Wash</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-stack-sm">The ultimate standard in fabric care.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="glass-panel rounded-[24px] p-6 glass-shadow hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+<div class="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center mb-4 text-secondary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Eco-Friendly</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">We use sustainable, non-toxic detergents that are tough on stains but gentle on the planet.</p>
+</div>
+<div class="glass-panel rounded-[24px] p-6 glass-shadow hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+<div class="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center mb-4 text-secondary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">timer</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">24h Turnaround</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Need it fast? Enjoy our rapid next-day delivery service without compromising quality.</p>
+</div>
+<div class="glass-panel rounded-[24px] p-6 glass-shadow hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+<div class="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center mb-4 text-secondary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Expert Care</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Our seasoned professionals handle delicate fabrics and intricate details with utmost precision.</p>
+</div>
+<div class="glass-panel rounded-[24px] p-6 glass-shadow hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+<div class="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center mb-4 text-secondary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Fully Insured</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Peace of mind guaranteed. Your garments are fully protected throughout the entire process.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Services Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop relative">
+<div class="absolute inset-0 -z-10 bg-background overflow-hidden">
+<div class="absolute top-[30%] left-[-20%] w-[70vw] h-[70vw] rounded-full bg-secondary-container/15 blur-[150px]"></div>
+</div>
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-stack-lg">
+<h2 class="font-display-lg text-display-lg text-on-surface">Our Services</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-stack-sm">Tailored solutions for every fabric.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<div class="glass-panel rounded-[32px] overflow-hidden glass-shadow hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+<img alt="Washing machines" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYl8dhh3_KgHfu4HCAn53xsjAVCtNNaQNiCNlyTMrOZb9dEhQaXU38RaRLGxSViHPlU6bNFR5qOjAuHErEsixlb2DA7V4OREEG2o2CYs2UCNUfwl60t9MjKHWpDfOmBXlWHxjMPd6o9D-5Yu9M3fqNm-OnmozT1Sq8kkMtgaZPsNHE9WswQwzDmNJUghtHsEGZ7Q6Mfqgzg7MnAhqLmGZcVbWZNu2CoI8XB_98lzQSeEt7oN6uFDweMtK6xD9VsxQRL3HCjj6rys7Q"/>
+<div class="p-6 flex flex-col flex-grow">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Wash &amp; Fold</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 flex-grow">Everyday laundry washed, perfectly dried, and meticulously folded.</p>
+<div class="flex justify-between items-center mt-auto">
+<span class="text-xl font-bold text-on-surface">$1.50 <span class="text-sm font-normal text-on-surface-variant">/ lb</span></span>
+<button class="text-secondary font-medium hover:underline">Select</button>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-[32px] overflow-hidden glass-shadow hover:scale-[1.02] transition-transform duration-300 flex flex-col relative border-2 border-secondary/50">
+<div class="absolute top-4 right-4 bg-secondary text-on-secondary text-xs font-bold px-3 py-1 rounded-full z-10 shadow-lg">Most Popular</div>
+<img alt="Hanging suits" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6cL8kyys2JQDRx6wam9YjGTw50X3h34GJBti8tnfPFTWJ-RwwMUtLCje_D7KalDeYncoSZcc-KvcAJpc_zsUiHmiqgnStLbalx0m-n1n1UZYxQedeVw6aHqNJ-f0PUhSLbolkGzzzejRXy4nc4QtoI__FtVm56N11UoaBccDht4B7lSCpXezUaO5Kvc2FYbarHw_W2wvUEL5XHiGhLSaJUIWamcw3Jv-uyWAB1Lo9YAs1o5g2jAie5tin9zqaL7gs7z6bY5gOENla"/>
+<div class="p-6 flex flex-col flex-grow">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Dry Cleaning</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 flex-grow">Gentle, eco-solvent cleaning for your delicate and structured garments.</p>
+<div class="flex justify-between items-center mt-auto">
+<span class="text-xl font-bold text-on-surface">$6.00 <span class="text-sm font-normal text-on-surface-variant">/ item</span></span>
+<button class="text-secondary font-medium hover:underline">Select</button>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-[32px] overflow-hidden glass-shadow hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+<img alt="Ironing service" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrwRodV7nP_EfVJSiZeg7cIA_CTrPex4GCaz2UIJ3UQgpdpAG_4fmiGywp5-5tFvBUKwlwRPwqq28QzWWg9tOAMRbFZhGrUsY5t-VTzo3XC1qY8p-A-D_yNObFgX4A3Dwx0sAe35hlgvRscKUUvukNN8OHlfJU4hrj7-PwRWhh06GUwEuIelpW1s8tS8MFU5PaAigzeKSl6TV6_EtW6otbac3tZ2WnfwaEjJC_d8S1qZCYKzyXtb-ID5vcLc3KXkH8w7YY8f7AqWzG"/>
+<div class="p-6 flex flex-col flex-grow">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Wash &amp; Iron</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 flex-grow">Crisp, wrinkle-free finish for your shirts, blouses, and trousers.</p>
+<div class="flex justify-between items-center mt-auto">
+<span class="text-xl font-bold text-on-surface">$4.50 <span class="text-sm font-normal text-on-surface-variant">/ item</span></span>
+<button class="text-secondary font-medium hover:underline">Select</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonials Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop relative">
+<div class="absolute inset-0 -z-10 bg-background overflow-hidden">
+<div class="absolute top-[10%] right-[20%] w-[30vw] h-[30vw] rounded-full bg-primary-fixed/20 blur-[80px]"></div>
+</div>
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-stack-lg">
+<h2 class="font-display-lg text-display-lg text-on-surface">Loved by Thousands</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-stack-sm">Don't just take our word for it.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="glass-panel p-8 rounded-[32px] glass-shadow relative">
+<span class="material-symbols-outlined absolute top-6 right-6 text-4xl text-secondary/20">format_quote</span>
+<div class="flex items-center gap-4 mb-6">
+<img alt="User avatar" class="w-14 h-14 rounded-full object-cover border-2 border-secondary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN1Gol3URCVJEr9r8Ot2gQDKFKFJwfST8k6n4Hn1gM_lMV6NKzstYIXmdaxD0l5D8Pp5RMSmd7j9wfP69YRj5Llx75CGDdQyYeYO2s0kvIYjDs_DM487ba8gfrh6oaI-5Oc6SCKhbVNN9BM_Y-vSJNCP0RFw0l5Pu0Eg4f9ETaeABVIHei5zfxquiFifLMCtS9tL0TgsTAVMk0i1OQ828JhRJ4n9iBkzySisv5XdNxi_91mnUxpNK9-pGDN_i5yfSblqIDJ70UKsOK"/>
+<div>
+<h4 class="font-bold text-on-surface">Sarah Jenkins</h4>
+<div class="flex text-yellow-400 text-sm">★★★★★</div>
+</div>
+</div>
+<p class="font-body-md text-on-surface-variant italic">"Bubble Wash has completely changed my weekends. No more spending hours on laundry. The pickup is seamless and my clothes always come back perfectly folded and smelling fresh."</p>
+</div>
+<div class="glass-panel p-8 rounded-[32px] glass-shadow relative">
+<span class="material-symbols-outlined absolute top-6 right-6 text-4xl text-secondary/20">format_quote</span>
+<div class="flex items-center gap-4 mb-6">
+<img alt="User avatar" class="w-14 h-14 rounded-full object-cover border-2 border-secondary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAidDslJENNWGyVrUbVBHLIEoiLYgYkbI0hLl44lKHCw532tPnFd2WRCGL4xykgSsq4KQ0KOUFzUChTdQN6jcl8nSFazr8p6ptMcLuqk-KLMmZVFoRWvvGCuEXAOg5uQv9ZDaevKxUXAIoiwGrsDaitrbiPeU9_VP8UIDJvi9z27G6z2cN_VgNEXwR7IYW3ls8071Q5vSh95o_Upb8pMFLz4x-XLD9DyCfdiXih6_1x9PYm9KDe1FSllV7sthat4nCIg6RvIhKXgdbv"/>
+<div>
+<h4 class="font-bold text-on-surface">Michael Chang</h4>
+<div class="flex text-yellow-400 text-sm">★★★★★</div>
+</div>
+</div>
+<p class="font-body-md text-on-surface-variant italic">"Their dry cleaning service is top-notch. They managed to get a stubborn coffee stain out of my favorite silk tie. The 24h turnaround is a lifesaver for business trips."</p>
+</div>
+<div class="glass-panel p-8 rounded-[32px] glass-shadow relative">
+<span class="material-symbols-outlined absolute top-6 right-6 text-4xl text-secondary/20">format_quote</span>
+<div class="flex items-center gap-4 mb-6">
+<img alt="User avatar" class="w-14 h-14 rounded-full object-cover border-2 border-secondary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOHKFl28CG3LUa808IBGywGGuE-cUlOZm_hODKF5zMZRePuk8G392MlA49pHtma9JvRkd22yspfigiqQmp2s-LmS_8Qm-CGDEeaQJvEG_0WiEoJONcghdBpn76zvWyOY1FysF--o82lW0BCkeW4tSTcXk5jgh36uGxpvWc0K_5vmtcYfkpkrIOJiU8tYeOsfBy2bloXlu-GifQ50HhEkDFYvyBA-yn6X8ogAGIsJfgNXBNhv2TTiEM-PhH5RZgzrVFLpbuI-avL2ho"/>
+<div>
+<h4 class="font-bold text-on-surface">Emily Rodriguez</h4>
+<div class="flex text-yellow-400 text-sm">★★★★★</div>
+</div>
+</div>
+<p class="font-body-md text-on-surface-variant italic">"I love the eco-friendly approach. It's great knowing my clothes are clean without harsh chemicals. The app is super intuitive and tracking my orders is a breeze."</p>
+</div>
+</div>
+</div>
+</section>
+<!-- App Download Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop relative overflow-hidden">
+<div class="absolute inset-0 -z-10 bg-background overflow-hidden">
+<div class="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-secondary-container/20 blur-[120px]"></div>
+</div>
+<div class="max-w-container-max mx-auto glass-panel rounded-[40px] glass-shadow p-8 md:p-16 flex flex-col md:flex-row items-center gap-12 relative overflow-hidden">
+<div class="absolute top-[-50%] right-[-10%] w-[400px] h-[400px] bg-gradient-to-br from-cyan-400/30 to-blue-600/30 blur-[80px] rounded-full -z-10"></div>
+<div class="flex-1 text-center md:text-left z-10">
+<h2 class="font-display-lg text-display-lg text-on-surface mb-6">Laundry at your fingertips.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8 max-w-lg mx-auto md:mx-0">
+                Download the Bubble Wash app to schedule pickups, track your orders in real-time, and manage your preferences seamlessly from your phone.
+            </p>
+<div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
+<button class="bg-black text-white px-6 py-3 rounded-xl flex items-center gap-3 hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-3xl">apple</span>
+<div class="text-left">
+<div class="text-[10px] leading-tight">Download on the</div>
+<div class="text-sm font-semibold leading-tight">App Store</div>
+</div>
+</button>
+<button class="bg-black text-white px-6 py-3 rounded-xl flex items-center gap-3 hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-3xl">shop</span>
+<div class="text-left">
+<div class="text-[10px] leading-tight">GET IT ON</div>
+<div class="text-sm font-semibold leading-tight">Google Play</div>
+</div>
+</button>
+</div>
+</div>
+<div class="flex-1 flex justify-center z-10">
+<div class="relative w-64 h-[500px] bg-white rounded-[40px] border-[8px] border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+<div class="h-6 bg-slate-800 w-32 absolute top-0 left-1/2 -translate-x-1/2 rounded-b-2xl z-20"></div>
+<div class="flex-1 bg-surface-container p-4 pt-10">
+<div class="flex justify-between items-center mb-6">
+<div class="font-bold text-lg">Hi, Sarah 👋</div>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center"><span class="material-symbols-outlined text-sm">notifications</span></div>
+</div>
+<div class="bg-white p-4 rounded-2xl shadow-sm mb-4">
+<div class="text-xs text-on-surface-variant mb-1">Current Order</div>
+<div class="font-bold text-secondary mb-2">Washing in progress</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="w-1/2 bg-secondary h-full rounded-full"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mb-4">
+<div class="bg-white p-3 rounded-2xl shadow-sm text-center">
+<span class="material-symbols-outlined text-secondary mb-1">local_shipping</span>
+<div class="text-xs font-semibold">Schedule</div>
+</div>
+<div class="bg-white p-3 rounded-2xl shadow-sm text-center">
+<span class="material-symbols-outlined text-secondary mb-1">dry_cleaning</span>
+<div class="text-xs font-semibold">Services</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-white/5 backdrop-blur-xl border-t border-white/10 pt-16 pb-24 md:pb-8 px-margin-mobile md:px-margin-desktop relative overflow-hidden mt-12">
+<div class="absolute inset-0 -z-10 bg-background overflow-hidden">
+<div class="absolute bottom-[-50%] left-[50%] w-[100vw] h-[50vw] rounded-[100%] bg-primary-fixed/20 blur-[100px] -translate-x-1/2"></div>
+</div>
+<div class="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
+<div class="lg:col-span-2">
+<div class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-600 mb-4 inline-block">
+                Bubble Wash
+            </div>
+<p class="font-body-md text-on-surface-variant mb-6 max-w-sm">
+                Premium garment care delivered to your door. Simplifying laundry so you can focus on what matters most.
+            </p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface-variant hover:text-secondary hover:scale-110 transition-all" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+<a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface-variant hover:text-secondary hover:scale-110 transition-all" href="#">
+<span class="material-symbols-outlined">camera_alt</span>
+</a>
+<a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface-variant hover:text-secondary hover:scale-110 transition-all" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+</div>
+</div>
+<div>
+<h4 class="font-bold text-on-surface mb-4">Services</h4>
+<ul class="space-y-3 font-body-md text-on-surface-variant">
+<li><a class="hover:text-secondary transition-colors" href="#">Wash &amp; Fold</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Dry Cleaning</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Ironing</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Alterations</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-on-surface mb-4">Company</h4>
+<ul class="space-y-3 font-body-md text-on-surface-variant">
+<li><a class="hover:text-secondary transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Locations</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Pricing</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Careers</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-on-surface mb-4">Support</h4>
+<ul class="space-y-3 font-body-md text-on-surface-variant">
+<li><a class="hover:text-secondary transition-colors" href="#">Help Center</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Contact Us</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-secondary transition-colors" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-container-max mx-auto pt-8 border-t border-slate-200/50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-on-surface-variant">
+<p>© 2024 Bubble Wash Inc. All rights reserved.</p>
+<div class="flex gap-6">
+<span>Made with <span class="text-red-500">♥</span> for clean clothes</span>
+</div>
+</div>
+</footer>
+</body></html>

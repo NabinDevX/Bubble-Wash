@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Delivery List - Linen &amp; Logic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#f8f9ff",
+                        "outline-variant": "#c4c6cf",
+                        "on-secondary-fixed": "#001f24",
+                        "inverse-primary": "#adc7f7",
+                        "surface-container": "#e5eeff",
+                        "secondary-fixed": "#9cf0ff",
+                        "background": "#f8f9ff",
+                        "secondary": "#006875",
+                        "tertiary-fixed": "#e0e3e5",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "inverse-surface": "#213145",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "surface-variant": "#d3e4fe",
+                        "outline": "#74777f",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#00616d",
+                        "on-primary-container": "#86a0cd",
+                        "on-background": "#0b1c30",
+                        "surface": "#f8f9ff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#1a365d",
+                        "tertiary-container": "#333638",
+                        "primary-fixed-dim": "#adc7f7",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "tertiary": "#1d2123",
+                        "on-tertiary-container": "#9c9fa1",
+                        "surface-container-high": "#dce9ff",
+                        "on-secondary-fixed-variant": "#004f58",
+                        "surface-container-low": "#eff4ff",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#cbdbf5",
+                        "primary": "#002045",
+                        "secondary-container": "#00e3fd",
+                        "on-tertiary-fixed": "#191c1e",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#d6e3ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-tint": "#455f88",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#43474e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#0b1c30",
+                        "on-primary-fixed": "#001b3c",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary-fixed-dim": "#00daf3",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "margin": "32px",
+                        "xl": "48px",
+                        "lg": "32px",
+                        "gutter": "24px",
+                        "sm": "16px",
+                        "base": "4px",
+                        "xs": "8px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface-bright text-on-surface font-body-md text-body-md min-h-screen">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full h-16 border-b z-50 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 font-['Inter'] antialiased">
+<div class="flex items-center gap-8">
+<div class="text-xl font-black tracking-tight text-[#1A365D] dark:text-cyan-400">Linen &amp; Logic</div>
+<div class="relative hidden md:block w-72">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 h-10 border border-outline-variant rounded bg-surface-container-lowest text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary font-body-md text-body-md outline-none" placeholder="Search orders..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer active:opacity-80 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer active:opacity-80 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Rider Profile" class="w-full h-full object-cover" data-alt="Close-up professional portrait of a delivery driver in a clean blue uniform, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSv5urZdJOU29sFNeujZF2K0_2DwAjdJAc7GF01yhLDtg5jl7BdEstlJzbWtcGi2bFnbi0cfZ-kOuvHuEhSrYC9qTYZBYD0CDis9mEl3FmIxxKKkhOpkwcgjYGHU1oDeRLT9H22CknUVgGJmJQ8CUFli-Ljq5rh5Ue6JF0oyLq0JdsCGBYxpKNtgvreZ6KA8aEDpslgnUXcdC0CFNyq5WrXyEklg5RYJXllQPARaoF0N-WE4kdOp4V_cTHQ4GjEcaFjov4qPRsMFXL"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 border-r bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex flex-col py-4 font-['Inter'] text-sm font-medium">
+<div class="px-6 mb-6">
+<h2 class="text-lg font-bold text-[#1A365D] dark:text-cyan-400">Rider Portal</h2>
+<p class="text-xs text-slate-500 mt-1">Operational Excellence</p>
+</div>
+<nav class="flex-1 flex flex-col">
+<a class="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#1A365D] dark:hover:text-cyan-300 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#1A365D] dark:hover:text-cyan-300 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+                Pickup List
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 bg-slate-50 dark:bg-slate-800/50 text-[#1A365D] dark:text-cyan-400 border-r-4 border-cyan-500 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">package_2</span>
+                Delivery List
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#1A365D] dark:hover:text-cyan-300 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                Rate Card
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#1A365D] dark:hover:text-cyan-300 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">card_membership</span>
+                Subscriptions
+            </a>
+</nav>
+<div class="mt-auto border-t border-slate-200 dark:border-slate-800 pt-2">
+<a class="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#1A365D] dark:hover:text-cyan-300 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#1A365D] dark:hover:text-cyan-300 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="pt-16 pl-64 w-full">
+<div class="p-margin max-w-[1400px] mx-auto flex flex-col gap-md">
+<!-- Page Header -->
+<header class="flex items-center justify-between">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Deliveries Overview</h1>
+<p class="font-body-md text-body-md text-outline mt-1">Manage and track today's scheduled deliveries.</p>
+</div>
+</header>
+<!-- Table Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded shadow-sm overflow-hidden flex flex-col">
+<div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
+<h2 class="font-label-lg text-label-lg text-on-surface">Scheduled Deliveries</h2>
+<span class="bg-primary-fixed text-on-primary-fixed px-3 py-1 rounded-full font-label-md text-label-md">12 Pending</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-6 py-3 font-label-md text-label-md text-outline">Order ID</th>
+<th class="px-6 py-3 font-label-md text-label-md text-outline">Customer Name</th>
+<th class="px-6 py-3 font-label-md text-label-md text-outline">Number</th>
+<th class="px-6 py-3 font-label-md text-label-md text-outline">Delivery Slot</th>
+<th class="px-6 py-3 font-label-md text-label-md text-outline text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<!-- Active Row (Selected) -->
+<tr class="border-b border-outline-variant bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer relative">
+<td class="px-6 py-4 font-data-mono text-data-mono text-primary">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                                    ORD-8842
+                                </td>
+<td class="px-6 py-4 font-medium text-on-surface">Sarah Jenkins</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 019-2834</td>
+<td class="px-6 py-4 text-on-surface-variant">09:00 AM - 11:00 AM</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer">
+<td class="px-6 py-4 font-data-mono text-data-mono text-on-surface-variant">ORD-8843</td>
+<td class="px-6 py-4 font-medium text-on-surface">Michael Chang</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 847-1029</td>
+<td class="px-6 py-4 text-on-surface-variant">11:00 AM - 01:00 PM</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface-bright hover:bg-surface-container-low transition-colors cursor-pointer">
+<td class="px-6 py-4 font-data-mono text-data-mono text-on-surface-variant">ORD-8844</td>
+<td class="px-6 py-4 font-medium text-on-surface">TechCorp Campus</td>
+<td class="px-6 py-4 text-on-surface-variant">+1 (555) 223-9000</td>
+<td class="px-6 py-4 text-on-surface-variant">02:00 PM - 04:00 PM</td>
+<td class="px-6 py-4 text-right">
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Details Panel -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded shadow-sm p-6 grid grid-cols-1 md:grid-cols-12 gap-gutter mt-2">
+<div class="col-span-12 border-b border-outline-variant pb-4 mb-2 flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-on-surface">Delivery Details</h3>
+<span class="font-data-mono text-data-mono text-outline">ORD-8842</span>
+</div>
+<!-- Customer Details -->
+<div class="col-span-12 md:col-span-4 flex flex-col gap-sm">
+<h4 class="font-label-lg text-label-lg text-outline">Customer</h4>
+<div class="flex flex-col gap-1">
+<span class="font-body-lg text-body-lg font-medium text-on-surface">Sarah Jenkins</span>
+<span class="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">call</span>
+                            +1 (555) 019-2834
+                        </span>
+<span class="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+                            s.jenkins@example.com
+                        </span>
+</div>
+</div>
+<!-- Address Details -->
+<div class="col-span-12 md:col-span-4 flex flex-col gap-sm">
+<h4 class="font-label-lg text-label-lg text-outline">Destination</h4>
+<div class="flex flex-col gap-1 font-body-md text-body-md text-on-surface-variant">
+<span class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] mt-1 text-primary">location_on</span>
+<span>
+                                4822 Highland Avenue,<br/>
+                                Suite 4B, River North<br/>
+                                Chicago, IL 60654
+                            </span>
+</span>
+</div>
+</div>
+<!-- Logistics & Payment -->
+<div class="col-span-12 md:col-span-4 flex flex-col gap-sm">
+<h4 class="font-label-lg text-label-lg text-outline">Logistics &amp; Billing</h4>
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<span class="font-body-md text-body-md text-on-surface-variant">Delivery Slot</span>
+<span class="font-label-lg text-label-lg text-on-surface">09:00 AM - 11:00 AM</span>
+</div>
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<span class="font-body-md text-body-md text-on-surface-variant">Payment Mode</span>
+<span class="font-label-lg text-label-lg text-on-surface">UPI</span>
+</div>
+<div class="flex items-center justify-between pb-2">
+<span class="font-body-md text-body-md text-on-surface-variant">Payment Status</span>
+<span class="inline-flex items-center gap-1 bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                Paid
+                            </span>
+</div>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="col-span-12 mt-4 flex justify-end">
+<button class="h-[40px] px-6 bg-primary text-on-primary font-label-lg text-label-lg rounded hover:bg-primary/90 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">receipt</span>
+                        Create Invoice
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>
