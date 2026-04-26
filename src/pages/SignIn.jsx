@@ -163,6 +163,14 @@ export default function SignIn() {
 
       <Footer />
 
+      <div className="fixed inset-0 pointer-events-none opacity-15 mix-blend-overlay -z-10">
+        <img
+          className="w-full h-full object-cover"
+          alt="Bubbles background"
+          src="/stitch/bubble-wash/auth/bubbles-bg.png"
+        />
+      </div>
+
       <div className="fixed top-20 left-[10%] w-64 h-64 bg-secondary-fixed/10 rounded-full blur-[120px] -z-10" />
       <div className="fixed bottom-20 right-[10%] w-96 h-96 bg-primary-fixed/5 rounded-full blur-[150px] -z-10" />
     </div>

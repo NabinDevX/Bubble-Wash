@@ -14,15 +14,15 @@ const whyUs = [
 ];
 
 const services = [
-  { title: "Wash & Fold", desc: "Everyday laundry washed, perfectly dried, and meticulously folded.", price: "$1.50", unit: "/ lb", popular: false },
-  { title: "Dry Cleaning", desc: "Gentle, eco-solvent cleaning for your delicate and structured garments.", price: "$6.00", unit: "/ item", popular: true },
-  { title: "Wash & Iron", desc: "Crisp, wrinkle-free finish for your shirts, blouses, and trousers.", price: "$4.50", unit: "/ item", popular: false },
+  { title: "Wash & Fold", desc: "Everyday laundry washed, perfectly dried, and meticulously folded.", price: "$1.50", unit: "/ lb", popular: false, img: "/stitch/bubble-wash/service-wash-fold.jpg" },
+  { title: "Dry Cleaning", desc: "Gentle, eco-solvent cleaning for your delicate and structured garments.", price: "$6.00", unit: "/ item", popular: true, img: "/stitch/bubble-wash/service-dry-cleaning.jpg" },
+  { title: "Wash & Iron", desc: "Crisp, wrinkle-free finish for your shirts, blouses, and trousers.", price: "$4.50", unit: "/ item", popular: false, img: "/stitch/bubble-wash/service-wash-iron.jpg" },
 ];
 
 const testimonials = [
-  { name: "Sarah Jenkins", text: "Bubble Wash has completely changed my weekends. No more spending hours on laundry. The pickup is seamless and my clothes always come back perfectly folded and smelling fresh." },
-  { name: "Michael Chang", text: "Their dry cleaning service is top-notch. They managed to get a stubborn coffee stain out of my favorite silk tie. The 24h turnaround is a lifesaver for business trips." },
-  { name: "Emily Rodriguez", text: "I love the eco-friendly approach. It's great knowing my clothes are clean without harsh chemicals. The app is super intuitive and tracking my orders is a breeze." },
+  { name: "Sarah Jenkins", text: "Bubble Wash has completely changed my weekends. No more spending hours on laundry. The pickup is seamless and my clothes always come back perfectly folded and smelling fresh.", img: "/stitch/bubble-wash/testimonial-sarah.jpg" },
+  { name: "Michael Chang", text: "Their dry cleaning service is top-notch. They managed to get a stubborn coffee stain out of my favorite silk tie. The 24h turnaround is a lifesaver for business trips.", img: "/stitch/bubble-wash/testimonial-michael.jpg" },
+  { name: "Emily Rodriguez", text: "I love the eco-friendly approach. It's great knowing my clothes are clean without harsh chemicals. The app is super intuitive and tracking my orders is a breeze.", img: "/stitch/bubble-wash/testimonial-emily.jpg" },
 ];
 
 export default function Landing() {
@@ -46,6 +46,8 @@ export default function Landing() {
       {/* Hero */}
       <section className="relative min-h-[85vh] flex items-center justify-center px-4 md:px-12 overflow-hidden">
         <div className="absolute inset-0 -z-10 overflow-hidden">
+          <img src="/stitch/bubble-wash/hero-towels.jpg" alt="Fresh clean towels" className="absolute inset-0 w-full h-full object-cover opacity-15" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-background" />
           <div className="absolute top-[-10%] right-[-5%] w-[60vw] h-[60vw] rounded-full bg-secondary-container/20 blur-[100px]" />
           <div className="absolute bottom-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary-fixed/30 blur-[120px]" />
         </div>
@@ -122,10 +124,10 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {services.map((s) => (
-              <div key={s.title} className={`glass-card rounded-3xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 flex flex-col relative ${s.popular ? "border-2 border-secondary/50" : ""}`}>
+              <div key={s.title} className={`glass-card rounded-3xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 flex flex-col relative group ${s.popular ? "border-2 border-secondary/50" : ""}`}>
                 {s.popular && <div className="absolute top-4 right-4 bg-secondary text-on-secondary text-xs font-bold px-3 py-1 rounded-full z-10 shadow-lg">Most Popular</div>}
-                <div className="h-48 bg-gradient-to-br from-surface-container to-surface-container-high flex items-center justify-center">
-                  <span className="material-symbols-outlined text-6xl text-outline-variant/30">local_laundry_service</span>
+                <div className="h-48 overflow-hidden">
+                  <img src={s.img} alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
                   <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">{s.title}</h3>
@@ -154,9 +156,7 @@ export default function Landing() {
               <div key={t.name} className="glass-card p-8 rounded-3xl relative">
                 <span className="material-symbols-outlined absolute top-6 right-6 text-4xl text-secondary/20">format_quote</span>
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-full bg-secondary-container/30 flex items-center justify-center text-secondary border-2 border-secondary-container">
-                    <span className="material-symbols-outlined">person</span>
-                  </div>
+                  <img src={t.img} alt={t.name} className="w-14 h-14 rounded-full object-cover border-2 border-secondary-container shadow-md" />
                   <div>
                     <h4 className="font-bold text-on-surface">{t.name}</h4>
                     <div className="flex text-yellow-400 text-sm">★★★★★</div>
