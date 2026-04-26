@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+const calendarDays = [29, 30, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const timeSlots = [
   { label: "08:00 AM - 10:00 AM", available: true },
   { label: "10:00 AM - 12:00 PM", available: true },
@@ -7,128 +8,83 @@ const timeSlots = [
   { label: "04:00 PM - 06:00 PM", available: false },
 ];
 
-const daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"];
-const calendarDays = [
-  { day: 29, current: false }, { day: 30, current: false },
-  { day: 1, current: true }, { day: 2, current: true },
-  { day: 3, current: true }, { day: 4, current: true },
-  { day: 5, current: true }, { day: 6, current: true },
-  { day: 7, current: true }, { day: 8, current: true },
-  { day: 9, current: true }, { day: 10, current: true },
-  { day: 11, current: true }, { day: 12, current: true },
+const services = [
+  { id: "wash", icon: "local_laundry_service", name: "Wash & Fold", desc: "Everyday garments, perfectly folded.", popular: true },
+  { id: "dry", icon: "iron", name: "Dry Cleaning", desc: "Delicate items requiring special care.", popular: false },
 ];
 
 export default function SchedulePickup() {
-  const [selectedDate, setSelectedDate] = useState(4);
+  const [selectedDay, setSelectedDay] = useState(4);
   const [selectedSlot, setSelectedSlot] = useState(1);
-  const [selectedServices, setSelectedServices] = useState({ washFold: true, dryCleaning: false });
+  const [selectedServices, setSelectedServices] = useState(["wash"]);
 
-  const toggleService = (key) => {
-    setSelectedServices((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  function toggleService(id) {
+    setSelectedServices((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  }
 
   return (
-    <div className="px-margin-mobile md:px-margin-desktop max-w-[1280px] mx-auto min-h-screen flex flex-col">
+    <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto">
       {/* Header */}
-      <header className="mb-stack-lg text-center md:text-left mt-8 md:mt-0">
+      <header className="text-center md:text-left">
         <p className="font-label-md text-label-md text-secondary mb-2 uppercase tracking-widest">Step 2 of 3</p>
-        <h1 className="font-display-lg text-display-lg text-primary">Schedule Pickup</h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">
-          When and where should we collect your items?
-        </p>
+        <h1 className="font-display-lg text-display-lg text-on-surface">Schedule Pickup</h1>
+        <p className="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">When and where should we collect your items?</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter pb-stack-lg flex-grow">
-        {/* Left Column: Location & Services */}
-        <div className="lg:col-span-7 flex flex-col gap-stack-md">
-          {/* Location Card */}
-          <section className="glass-card rounded-2xl p-6 md:p-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left: Address & Services */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Address */}
+          <section className="glass-card rounded-3xl p-6 md:p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                style={{ background: "linear-gradient(135deg, #0f8d65, #25c48f)" }}>
+              <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
                 <span className="material-symbols-outlined">location_on</span>
               </div>
               <h2 className="font-headline-sm text-headline-sm">Pickup Address</h2>
             </div>
             <div className="flex flex-col gap-4">
-              <input
-                className="glass-input font-body-md text-body-md w-full rounded-lg px-4 py-3"
-                placeholder="Street Address"
-                type="text"
-                defaultValue="123 Ocean View Drive, Apt 4B"
-              />
+              <input className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface" placeholder="Street Address" defaultValue="123 Ocean View Drive, Apt 4B" />
               <div className="grid grid-cols-2 gap-4">
-                <input
-                  className="glass-input font-body-md text-body-md w-full rounded-lg px-4 py-3"
-                  placeholder="City"
-                  type="text"
-                  defaultValue="San Francisco"
-                />
-                <input
-                  className="glass-input font-body-md text-body-md w-full rounded-lg px-4 py-3"
-                  placeholder="ZIP Code"
-                  type="text"
-                  defaultValue="94105"
-                />
+                <input className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface" placeholder="City" defaultValue="San Francisco" />
+                <input className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface" placeholder="ZIP Code" defaultValue="94105" />
               </div>
-              <textarea
-                className="glass-input font-body-md text-body-md w-full resize-none h-24 mt-2 rounded-lg px-4 py-3"
-                placeholder="Delivery Instructions (Optional, e.g., 'Leave with doorman')"
-              />
+              <textarea className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface resize-none h-24 mt-2" placeholder="Delivery Instructions (Optional, e.g., 'Leave with doorman')" />
             </div>
           </section>
 
-          {/* Services Selection */}
-          <section className="glass-card rounded-2xl p-6 md:p-8">
+          {/* Services */}
+          <section className="glass-card rounded-3xl p-6 md:p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                style={{ background: "linear-gradient(135deg, #0f8d65, #25c48f)" }}>
+              <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
                 <span className="material-symbols-outlined">dry_cleaning</span>
               </div>
               <h2 className="font-headline-sm text-headline-sm">Select Services</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Wash & Fold */}
-              <label className="relative flex cursor-pointer group" onClick={() => toggleService("washFold")}>
-                <div className={`w-full p-4 rounded-xl transition-all duration-300 ${
-                  selectedServices.washFold
-                    ? "border-2 border-secondary bg-secondary/5"
-                    : "border border-outline-variant/30 bg-white/20 hover:bg-white/40"
-                }`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="material-symbols-outlined text-secondary">local_laundry_service</span>
-                    <span className="font-label-sm text-label-sm text-secondary px-2 py-1 rounded-full"
-                      style={{ background: "rgba(138, 240, 205, 0.3)" }}>Popular</span>
-                  </div>
-                  <h3 className="font-label-md text-label-md mb-1 text-primary">Wash & Fold</h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant text-sm">Everyday garments, perfectly folded.</p>
-                </div>
-              </label>
-
-              {/* Dry Cleaning */}
-              <label className="relative flex cursor-pointer group" onClick={() => toggleService("dryCleaning")}>
-                <div className={`w-full p-4 rounded-xl transition-all duration-300 ${
-                  selectedServices.dryCleaning
-                    ? "border-2 border-secondary bg-secondary/5"
-                    : "border border-outline-variant/30 bg-white/20 hover:bg-white/40"
-                }`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="material-symbols-outlined text-on-surface-variant">iron</span>
-                  </div>
-                  <h3 className="font-label-md text-label-md mb-1 text-primary">Dry Cleaning</h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant text-sm">Delicate items requiring special care.</p>
-                </div>
-              </label>
+              {services.map((s) => {
+                const active = selectedServices.includes(s.id);
+                return (
+                  <button key={s.id} type="button" onClick={() => toggleService(s.id)} className={`w-full p-4 rounded-xl text-left transition-all ${active ? "border-2 border-secondary bg-secondary-container/10" : "border border-white/40 bg-white/20 hover:bg-white/40"}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className={`material-symbols-outlined ${active ? "text-secondary" : "text-on-surface-variant"}`}>{s.icon}</span>
+                      {s.popular && <span className="font-label-sm text-label-sm text-secondary bg-secondary-container/20 px-2 py-1 rounded-full">Popular</span>}
+                    </div>
+                    <h3 className="font-label-md text-label-md mb-1 text-on-surface">{s.name}</h3>
+                    <p className="text-sm text-on-surface-variant">{s.desc}</p>
+                  </button>
+                );
+              })}
             </div>
           </section>
         </div>
 
-        {/* Right Column: Calendar & Time */}
-        <div className="lg:col-span-5 flex flex-col gap-stack-md">
-          <section className="glass-card rounded-2xl p-6 md:p-8 flex-grow flex flex-col">
+        {/* Right: Calendar & Time */}
+        <div className="lg:col-span-5 space-y-6">
+          <section className="glass-card rounded-3xl p-6 md:p-8 flex flex-col">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                style={{ background: "linear-gradient(135deg, #0f8d65, #25c48f)" }}>
+              <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
                 <span className="material-symbols-outlined">calendar_month</span>
               </div>
               <h2 className="font-headline-sm text-headline-sm">Schedule Time</h2>
@@ -137,36 +93,23 @@ export default function SchedulePickup() {
             {/* Calendar */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-4">
-                <button className="text-on-surface-variant hover:text-primary transition-colors">
-                  <span className="material-symbols-outlined">chevron_left</span>
-                </button>
-                <span className="font-label-md text-label-md">April 2026</span>
-                <button className="text-on-surface-variant hover:text-primary transition-colors">
-                  <span className="material-symbols-outlined">chevron_right</span>
-                </button>
+                <button className="text-on-surface-variant hover:text-on-surface"><span className="material-symbols-outlined">chevron_left</span></button>
+                <span className="font-label-md text-label-md">October 2023</span>
+                <button className="text-on-surface-variant hover:text-on-surface"><span className="material-symbols-outlined">chevron_right</span></button>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center font-label-sm text-label-sm text-on-surface-variant mb-2">
-                {daysOfWeek.map((d, i) => (
-                  <div key={i}>{d}</div>
-                ))}
+                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i}>{d}</div>)}
               </div>
-              <div className="grid grid-cols-7 gap-1 text-center font-body-md text-body-md">
-                {calendarDays.map((d, i) => (
-                  <div
-                    key={i}
-                    onClick={() => d.current && setSelectedDate(d.day)}
-                    className={`p-2 rounded-full cursor-pointer transition-all duration-200 ${
-                      !d.current
-                        ? "text-on-surface-variant/30 cursor-default"
-                        : d.day === selectedDate
-                        ? "text-white shadow-[0_0_15px_rgba(37,196,143,0.4)]"
-                        : "hover:bg-white/40"
-                    }`}
-                    style={d.day === selectedDate && d.current ? { background: "linear-gradient(135deg, #0f8d65, #25c48f)" } : {}}
-                  >
-                    {d.day}
-                  </div>
-                ))}
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {calendarDays.map((day) => {
+                  const isPrev = day > 20;
+                  const isSelected = day === selectedDay && !isPrev;
+                  return (
+                    <button key={day} type="button" onClick={() => !isPrev && setSelectedDay(day)} className={`p-2 rounded-full text-sm transition-all ${isPrev ? "text-on-surface-variant/30 cursor-default" : isSelected ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]" : "hover:bg-white/40 cursor-pointer"}`}>
+                      {day}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -174,19 +117,8 @@ export default function SchedulePickup() {
             <div className="mt-auto">
               <h3 className="font-label-md text-label-md mb-3 text-on-surface-variant">Available Windows</h3>
               <div className="grid grid-cols-2 gap-3">
-                {timeSlots.map((slot, idx) => (
-                  <button
-                    key={idx}
-                    disabled={!slot.available}
-                    onClick={() => setSelectedSlot(idx)}
-                    className={`py-3 px-4 rounded-lg font-body-md text-body-md text-sm transition-all duration-200 ${
-                      !slot.available
-                        ? "border border-outline-variant/20 bg-white/10 text-on-surface-variant/40 cursor-not-allowed"
-                        : idx === selectedSlot
-                        ? "border-2 border-secondary bg-secondary/5 text-primary"
-                        : "border border-outline-variant/30 bg-white/20 hover:bg-white/40"
-                    }`}
-                  >
+                {timeSlots.map((slot, i) => (
+                  <button key={i} type="button" disabled={!slot.available} onClick={() => setSelectedSlot(i)} className={`py-3 px-4 rounded-lg text-sm transition-colors ${!slot.available ? "border border-white/40 bg-white/20 text-on-surface-variant/50 cursor-not-allowed" : i === selectedSlot ? "border-2 border-secondary bg-secondary-container/10 text-on-surface" : "border border-white/40 bg-white/20 hover:bg-white/40"}`}>
                     {slot.label}
                   </button>
                 ))}
@@ -194,9 +126,9 @@ export default function SchedulePickup() {
             </div>
           </section>
 
-          {/* CTA */}
-          <div className="mt-4 flex justify-end">
-            <button className="cta-gradient text-white w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-label-md text-label-md hover:scale-[1.02] transition-transform duration-300">
+          {/* Action */}
+          <div className="flex justify-end">
+            <button className="w-full md:w-auto bg-gradient-to-r from-secondary to-secondary-container text-on-secondary px-8 py-4 rounded-full font-label-md text-label-md hover:shadow-[0_0_20px_rgba(98,250,227,0.4)] transition-shadow duration-300 flex items-center justify-center gap-2">
               Continue to Payment
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>

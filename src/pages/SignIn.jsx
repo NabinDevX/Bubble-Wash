@@ -157,18 +157,7 @@ export default function SignIn() {
             </div>
           </div>
 
-          <div className="mt-stack-md flex justify-center gap-8 opacity-40">
-            <img
-              alt="Trusted Partner"
-              className="h-6 grayscale"
-              src="/stitch/bubble-wash/auth/trusted-partner.png"
-            />
-            <img
-              alt="Encrypted"
-              className="h-6 grayscale"
-              src="/stitch/bubble-wash/auth/encrypted.png"
-            />
-          </div>
+
         </div>
       </main>
 

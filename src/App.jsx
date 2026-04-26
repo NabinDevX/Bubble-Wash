@@ -4,6 +4,7 @@ import Landing from "./pages/Landing.jsx";
 import AdminLayout from "./pages/Admin/Dashboard.jsx";
 import DashboardHome from "./pages/Admin/DashboardHome.jsx";
 import Customers from "./pages/Admin/Customers.jsx";
+
 import Workshops from "./pages/Admin/Workshops.jsx";
 import Staff from "./pages/Admin/Staff.jsx";
 import ServicesRateCard from "./pages/Admin/ServicesRateCard.jsx";
@@ -11,6 +12,7 @@ import DeliverySlots from "./pages/Admin/DeliverySlots.jsx";
 import Tickets from "./pages/Admin/Tickets.jsx";
 import Riders from "./pages/Admin/Riders.jsx";
 import ServiceAreas from "./pages/Admin/ServiceAreas.jsx";
+
 import Reports from "./pages/Admin/Reports.jsx";
 import RiderLayout from "./pages/Rider/Layout.jsx";
 import RiderDashboard from "./pages/Rider/Dashboard.jsx";
@@ -39,6 +41,7 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<DashboardHome />} />
           <Route path="customers" element={<Customers />} />
+
           <Route path="workshops" element={<Workshops />} />
           <Route path="staff" element={<Staff />} />
           <Route path="services-rate-card" element={<ServicesRateCard />} />
@@ -46,6 +49,7 @@ function App() {
           <Route path="tickets" element={<Tickets />} />
           <Route path="riders" element={<Riders />} />
           <Route path="service-areas" element={<ServiceAreas />} />
+
           <Route path="reports" element={<Reports />} />
         </Route>
         <Route path="/rider" element={<RiderLayout />}>
