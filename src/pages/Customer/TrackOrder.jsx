@@ -9,12 +9,12 @@ export default function TrackOrder() {
     <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row gap-6 min-h-[calc(100vh-200px)]">
         {/* Map */}
-        <div className="flex-1 glass-card rounded-3xl overflow-hidden relative min-h-[400px] md:min-h-0">
+        <div className="flex-1 glass-card rounded-3xl overflow-hidden relative min-h-100 md:min-h-0">
           {/* Map placeholder */}
-          <div className="absolute inset-0 bg-gradient-to-br from-surface-container-low to-surface-container flex items-center justify-center">
+          <div className="absolute inset-0 bg-linear-to-br from-surface-container-low to-surface-container flex items-center justify-center">
             <span className="material-symbols-outlined text-8xl text-outline-variant/30">map</span>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-surface/80 via-transparent to-surface/30" />
+          <div className="absolute inset-0 bg-linear-to-t from-surface/80 via-transparent to-surface/30" />
 
           {/* Vehicle marker */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10">
@@ -56,7 +56,7 @@ export default function TrackOrder() {
             <div className="relative pl-6 border-l-2 border-surface-variant space-y-8">
               {steps.map((step) => (
                 <div key={step.label} className="relative">
-                  <span className={`absolute -left-[35px] top-0 w-6 h-6 rounded-full flex items-center justify-center ${step.active ? "bg-secondary-container border-2 border-secondary-container text-on-secondary-container shadow-[0_0_15px_rgba(98,250,227,0.5)]" : "bg-surface border-2 border-secondary text-secondary"}`}>
+                  <span className={`absolute -left-8.75 top-0 w-6 h-6 rounded-full flex items-center justify-center ${step.active ? "bg-secondary-container border-2 border-secondary-container text-on-secondary-container shadow-[0_0_15px_rgba(98,250,227,0.5)]" : "bg-surface border-2 border-secondary text-secondary"}`}>
                     <span className="material-symbols-outlined text-[14px]">{step.icon}</span>
                   </span>
                   <div className={`font-label-md text-label-md uppercase tracking-wider mb-1 ${step.active ? "text-on-surface" : "text-secondary"}`}>{step.label}</div>

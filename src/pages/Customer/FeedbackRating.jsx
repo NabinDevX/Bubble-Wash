@@ -61,7 +61,7 @@ export default function FeedbackRating() {
         </div>
 
         {/* Submit */}
-        <button className="w-full py-4 px-6 bg-gradient-to-r from-secondary to-secondary-fixed-dim text-white rounded-lg font-label-md text-label-md uppercase tracking-widest hover:shadow-[0_0_20px_rgba(98,250,227,0.4)] transition-all duration-300 transform hover:scale-[1.02]">
+        <button className="w-full py-4 px-6 bg-linear-to-r from-secondary to-secondary-fixed-dim text-white rounded-lg font-label-md text-label-md uppercase tracking-widest hover:shadow-[0_0_20px_rgba(98,250,227,0.4)] transition-all duration-300 transform hover:scale-[1.02]">
           Submit Feedback
         </button>
         <button className="font-label-md text-label-md text-outline hover:text-secondary transition-colors">

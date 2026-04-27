@@ -20,7 +20,7 @@ export default function LoyaltyWallet() {
             <div className="mb-6 md:mb-0 z-10">
               <h2 className="font-label-md text-label-md text-on-surface-variant mb-2">Current Balance</h2>
               <div className="flex items-baseline space-x-2">
-                <span className="font-display-xl text-display-xl bg-gradient-to-r from-secondary to-secondary-container bg-clip-text text-transparent">2,450</span>
+                <span className="font-display-xl text-display-xl bg-linear-to-r from-secondary to-secondary-container bg-clip-text text-transparent">2,450</span>
                 <span className="text-on-surface-variant">pts</span>
               </div>
               <p className="font-label-sm text-label-sm text-secondary mt-2 flex items-center">
@@ -40,8 +40,8 @@ export default function LoyaltyWallet() {
                 </div>
               </div>
               <div className="w-full bg-surface-variant rounded-full h-3 mb-2 overflow-hidden relative">
-                <div className="bg-gradient-to-r from-secondary to-secondary-container h-3 rounded-full relative" style={{ width: "75%" }}>
-                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2s_infinite]" />
+                <div className="bg-linear-to-r from-secondary to-secondary-container h-3 rounded-full relative" style={{ width: "75%" }}>
+                  <div className="absolute top-0 left-0 w-full h-full bg-linear-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2s_infinite]" />
                 </div>
               </div>
               <div className="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
@@ -78,7 +78,7 @@ export default function LoyaltyWallet() {
 
         {/* Right: Refer & Earn */}
         <div className="md:col-span-4">
-          <div className="glass-card rounded-3xl p-6 h-full flex flex-col justify-between bg-gradient-to-b from-white/10 to-primary-container/5 relative overflow-hidden">
+          <div className="glass-card rounded-3xl p-6 h-full flex flex-col justify-between bg-linear-to-b from-white/10 to-primary-container/5 relative overflow-hidden">
             <div className="z-10">
               <div className="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center text-secondary mb-4">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>group_add</span>
@@ -94,7 +94,7 @@ export default function LoyaltyWallet() {
                 </button>
               </div>
             </div>
-            <button className="z-10 w-full py-4 bg-gradient-to-r from-secondary to-secondary-fixed-dim text-white rounded-lg font-label-md text-label-md shadow-[0_0_20px_rgba(98,250,227,0.3)] hover:shadow-[0_0_25px_rgba(98,250,227,0.5)] transition-all active:scale-95">
+            <button className="z-10 w-full py-4 bg-linear-to-r from-secondary to-secondary-fixed-dim text-white rounded-lg font-label-md text-label-md shadow-[0_0_20px_rgba(98,250,227,0.3)] hover:shadow-[0_0_25px_rgba(98,250,227,0.5)] transition-all active:scale-95">
               Share Invite Link
             </button>
             <div className="absolute bottom-0 right-0 w-48 h-48 bg-primary-fixed-dim/20 rounded-tl-full blur-2xl pointer-events-none" />

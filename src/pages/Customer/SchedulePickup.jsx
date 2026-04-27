@@ -128,7 +128,7 @@ export default function SchedulePickup() {
 
           {/* Action */}
           <div className="flex justify-end">
-            <button className="w-full md:w-auto bg-gradient-to-r from-secondary to-secondary-container text-on-secondary px-8 py-4 rounded-full font-label-md text-label-md hover:shadow-[0_0_20px_rgba(98,250,227,0.4)] transition-shadow duration-300 flex items-center justify-center gap-2">
+            <button className="w-full md:w-auto bg-linear-to-r from-secondary to-secondary-container text-on-secondary px-8 py-4 rounded-full font-label-md text-label-md hover:shadow-[0_0_20px_rgba(98,250,227,0.4)] transition-shadow duration-300 flex items-center justify-center gap-2">
               Continue to Payment
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>

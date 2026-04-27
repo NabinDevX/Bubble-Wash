@@ -31,7 +31,7 @@ export default function InvoiceDetails() {
               {serviceItems.map((item) => (
                 <div key={item.name} className="flex justify-between items-start">
                   <div className="flex gap-4">
-                    <div className="w-16 h-16 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0">
+                    <div className="w-16 h-16 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
                       <span className="material-symbols-outlined text-on-surface-variant">{item.icon}</span>
                     </div>
                     <div>
@@ -69,7 +69,7 @@ export default function InvoiceDetails() {
 
         {/* Right: Summary */}
         <div className="lg:col-span-4">
-          <div className="glass-card rounded-3xl p-6 sticky top-[120px]">
+          <div className="glass-card rounded-3xl p-6 sticky top-30">
             <h2 className="font-headline-sm text-headline-sm text-on-surface mb-6">Summary</h2>
             <div className="space-y-3 mb-6 border-b border-outline-variant pb-6">
               <div className="flex justify-between"><span className="text-on-surface-variant">Subtotal</span><span className="font-label-md text-label-md text-on-surface">$94.50</span></div>
@@ -80,7 +80,7 @@ export default function InvoiceDetails() {
               <span className="font-headline-sm text-headline-sm text-on-surface">Total</span>
               <span className="font-display-lg text-display-lg text-secondary">$107.41</span>
             </div>
-            <button className="w-full bg-gradient-to-r from-secondary to-secondary-container text-on-secondary font-label-md text-label-md py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,107,95,0.3)] transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
+            <button className="w-full bg-linear-to-r from-secondary to-secondary-container text-on-secondary font-label-md text-label-md py-4 rounded-xl hover:shadow-[0_0_20px_rgba(0,107,95,0.3)] transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
               Proceed to Payment
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>

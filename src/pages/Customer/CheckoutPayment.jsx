@@ -98,7 +98,7 @@ export default function CheckoutPayment() {
                 <span>Total</span><span>$64.50</span>
               </div>
             </div>
-            <button className="w-full py-4 rounded-lg bg-gradient-to-r from-primary-container to-surface-tint text-on-primary font-label-md text-label-md tracking-widest uppercase hover:shadow-[0_0_20px_rgba(98,250,227,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+            <button className="w-full py-4 rounded-lg bg-linear-to-r from-primary-container to-surface-tint text-on-primary font-label-md text-label-md tracking-widest uppercase hover:shadow-[0_0_20px_rgba(98,250,227,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-2">
               <span className="material-symbols-outlined text-sm">lock</span>
               Pay Securely
             </button>
