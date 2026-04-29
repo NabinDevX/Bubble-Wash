@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 const steps = [
@@ -98,12 +98,15 @@ export default function Landing() {
     }
   };
 
-  const navItems = [
-    { id: "services", label: "Services" },
-    { id: "pricing", label: "Pricing" },
-    { id: "locations", label: "Locations" },
-    { id: "support", label: "Support" },
-  ];
+  const navItems = useMemo(
+    () => [
+      { id: "services", label: "Services" },
+      { id: "pricing", label: "Pricing" },
+      { id: "locations", label: "Locations" },
+      { id: "support", label: "Support" },
+    ],
+    [],
+  );
 
   useEffect(() => {
     const sectionIds = navItems.map((item) => item.id);
@@ -138,7 +141,7 @@ export default function Landing() {
       sections.forEach((section) => observer.unobserve(section));
       observer.disconnect();
     };
-  }, []);
+  }, [navItems]);
 
   return (
     <div className="bg-background text-on-background font-body-md overflow-x-hidden relative">

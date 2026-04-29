@@ -37,6 +37,30 @@ export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [maxPageButtons, setMaxPageButtons] = useState(5);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    function updatePaginationForViewport() {
+      const w = window.innerWidth;
+      if (w < 640) {
+        setPageSize(5);
+        setMaxPageButtons(3);
+      } else if (w < 1024) {
+        setPageSize(7);
+        setMaxPageButtons(5);
+      } else {
+        setPageSize(10);
+        setMaxPageButtons(7);
+      }
+    }
+
+    updatePaginationForViewport();
+    window.addEventListener("resize", updatePaginationForViewport);
+    return () =>
+      window.removeEventListener("resize", updatePaginationForViewport);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -124,6 +148,49 @@ export default function Customers() {
     }
     fetchData();
   }, []);
+
+  const totalItems = Math.max(totalCount || 0, customers.length);
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  function clampPage(next) {
+    return Math.min(Math.max(1, next), totalPages);
+  }
+
+  const safePage = clampPage(page);
+
+  const startIndex = (safePage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, customers.length);
+  const visibleCustomers = customers.slice(startIndex, endIndex);
+
+  function getPageWindow() {
+    const max = Math.max(1, maxPageButtons);
+    if (totalPages <= max) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const half = Math.floor(max / 2);
+    let start = safePage - half;
+    let end = safePage + half;
+
+    if (max % 2 === 0) {
+      end -= 1;
+    }
+
+    if (start < 1) {
+      start = 1;
+      end = max;
+    }
+    if (end > totalPages) {
+      end = totalPages;
+      start = totalPages - max + 1;
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  const pageNumbers = getPageWindow();
+  const canPrev = safePage > 1;
+  const canNext = safePage < totalPages;
 
   async function handleExport() {
     try {
@@ -260,7 +327,7 @@ export default function Customers() {
                   </td>
                 </tr>
               ) : (
-                customers.map((c, i) => (
+                visibleCustomers.map((c, i) => (
                   <tr
                     key={c.id}
                     className={`border-t border-outline-variant/20 hover:bg-white/30 transition-colors cursor-pointer ${i === 0 ? "bg-white/20 border-l-2 border-l-secondary" : ""}`}
@@ -295,25 +362,43 @@ export default function Customers() {
         </div>
         <div className="px-5 py-3 border-t border-outline-variant/30 bg-white/30 flex items-center justify-between text-xs text-on-surface-variant">
           <span>
-            Showing 1 to {customers.length} of {totalCount || customers.length}{" "}
+            Showing {totalItems === 0 ? 0 : startIndex + 1} to{" "}
+            {Math.min(startIndex + pageSize, totalItems)} of {totalItems}{" "}
             entries
           </span>
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
             <button
               className="p-1.5 border border-outline-variant/50 rounded bg-white/40 hover:bg-white/60 disabled:opacity-50"
-              disabled
+              disabled={!canPrev}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              type="button"
             >
               <span className="material-symbols-outlined text-base">
                 chevron_left
               </span>
             </button>
-            <button className="px-2.5 py-1 rounded text-white bg-secondary text-xs font-bold">
-              1
-            </button>
-            <button className="px-2.5 py-1 rounded border border-outline-variant/50 bg-white/40 hover:bg-white/60 text-xs font-bold">
-              2
-            </button>
-            <button className="p-1.5 border border-outline-variant/50 rounded bg-white/40 hover:bg-white/60">
+
+            {pageNumbers.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPage(clampPage(p))}
+                className={
+                  p === safePage
+                    ? "px-2.5 py-1 rounded text-white bg-secondary text-xs font-bold"
+                    : "px-2.5 py-1 rounded border border-outline-variant/50 bg-white/40 hover:bg-white/60 text-xs font-bold"
+                }
+              >
+                {p}
+              </button>
+            ))}
+
+            <button
+              className="p-1.5 border border-outline-variant/50 rounded bg-white/40 hover:bg-white/60 disabled:opacity-50"
+              disabled={!canNext}
+              onClick={() => setPage((p) => clampPage(p + 1))}
+              type="button"
+            >
               <span className="material-symbols-outlined text-base">
                 chevron_right
               </span>
