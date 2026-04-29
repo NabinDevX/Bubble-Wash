@@ -1,51 +1,114 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const services = [
-  {
-    icon: "local_laundry_service",
-    title: "Wash & Fold",
-    desc: "Everyday garments, perfectly folded.",
-    tag: "Popular",
-  },
-  {
-    icon: "iron",
-    title: "Dry Cleaning",
-    desc: "Delicate items requiring special care.",
-    tag: null,
-  },
-  {
-    icon: "checkroom",
-    title: "Premium Press",
-    desc: "Crisp, wrinkle-free finish for formals.",
-    tag: "New",
-  },
-];
-
-const recentOrders = [
-  {
-    id: "#BW-8924",
-    status: "Delivered",
-    date: "Apr 22, 2026",
-    amount: "$64.50",
-    color: "text-secondary",
-  },
-  {
-    id: "#BW-8901",
-    status: "Processing",
-    date: "Apr 20, 2026",
-    amount: "$45.00",
-    color: "text-amber-600",
-  },
-  {
-    id: "#BW-8879",
-    status: "Completed",
-    date: "Apr 18, 2026",
-    amount: "$107.41",
-    color: "text-secondary",
-  },
-];
+import api from "../../lib/api.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
 
 export default function CustomerDashboard() {
+  const { user } = useAuth();
+  const [services, setServices] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [walletData, setWalletData] = useState({
+    points: "—",
+    savedThisMonth: "—",
+    totalSaved: "—",
+  });
+  const [activeOrderCount, setActiveOrderCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [ordersRes, servicesRes, walletRes] = await Promise.allSettled([
+          api.get("/orders/my-orders"),
+          api.get("/services"),
+          api.get("/wallet"),
+        ]);
+
+        if (ordersRes.status === "fulfilled") {
+          const data = ordersRes.value;
+          const list = data.orders ?? data.data ?? data ?? [];
+          setActiveOrderCount(
+            list.filter((o) =>
+              ["Pending", "Processing", "Picked Up", "In Transit"].includes(
+                o.status,
+              ),
+            ).length,
+          );
+          setRecentOrders(
+            list.slice(0, 3).map((o) => ({
+              id: o.orderId ?? o._id ?? o.id,
+              status: o.status ?? "Pending",
+              date: o.createdAt
+                ? new Date(o.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })
+                : "—",
+              amount: o.totalAmount ? `$${o.totalAmount}` : "—",
+              color: ["Delivered", "Completed"].includes(o.status)
+                ? "text-secondary"
+                : "text-amber-600",
+            })),
+          );
+        }
+
+        if (servicesRes.status === "fulfilled") {
+          const data = servicesRes.value;
+          const list = data.services ?? data.data ?? data ?? [];
+          const iconMap = {
+            wash: "local_laundry_service",
+            iron: "iron",
+            wash_and_iron: "checkroom",
+            "wash & iron": "checkroom",
+            dry_clean: "dry_cleaning",
+            "dry clean": "dry_cleaning",
+          };
+          setServices(
+            list.map((s) => {
+              const categoryKey = String(s.category ?? s.name ?? "")
+                .toLowerCase()
+                .trim();
+              return {
+                id: s._id ?? s.id ?? s.name,
+                icon: iconMap[categoryKey] ?? "dry_cleaning",
+                title: s.name ?? "—",
+                desc: s.description ?? "—",
+                category: s.category ?? "—",
+                isActive: Boolean(s.isActive ?? true),
+                pricePerKg: s.pricePerKg,
+                estimatedDeliveryDays: s.estimatedDeliveryDays,
+              };
+            }),
+          );
+        }
+
+        if (walletRes.status === "fulfilled") {
+          const w = walletRes.value;
+          setWalletData({
+            points: String(w.balance ?? w.points ?? 0).replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ",",
+            ),
+            savedThisMonth:
+              (w.savedThisMonth ?? w.monthlyEarnings)
+                ? `+${w.monthlyEarnings ?? 0}`
+                : "+0",
+            totalSaved: w.totalSaved ? `$${w.totalSaved}` : "$0",
+          });
+        }
+      } catch {
+        // fallback to empty
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Fallback display name
+  const displayName = user?.name?.split(" ")[0] ?? "there";
+
   return (
     <div className="px-margin-mobile md:px-margin-desktop max-w-[1280px] mx-auto">
       {/* Hero Header */}
@@ -53,8 +116,8 @@ export default function CustomerDashboard() {
         <p className="font-label-md text-label-md text-secondary mb-2 uppercase tracking-widest">
           Welcome back
         </p>
-        <h1 className="font-display-lg text-display-lg text-primary">
-          Hello, <span className="text-gradient">Nabin</span>
+        <h1 className="font-display-lg text-headline-md md:text-display-lg text-primary">
+          Hello, <span className="text-gradient">{displayName}</span>
         </h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">
           Your premium laundry service is just a tap away. Schedule a pickup or
@@ -63,13 +126,13 @@ export default function CustomerDashboard() {
       </header>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-gutter mb-stack-lg">
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter mb-stack-lg">
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group md:hover:scale-[1.02] transition-transform duration-300">
           <div
             className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none"
             style={{ background: "rgba(37, 196, 143, 0.25)" }}
           />
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3 min-w-0">
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center text-white"
               style={{
@@ -80,21 +143,21 @@ export default function CustomerDashboard() {
                 shopping_bag
               </span>
             </div>
-            <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+            <span className="font-label-sm text-label-sm md:font-label-md md:text-label-md text-on-surface-variant uppercase tracking-wider whitespace-normal break-words leading-tight">
               Active Orders
             </span>
           </div>
-          <p className="font-display-lg text-display-lg text-primary leading-none">
-            2
+          <p className="font-display-lg text-headline-md md:text-display-lg text-primary leading-none">
+            {loading ? "—" : activeOrderCount}
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group md:hover:scale-[1.02] transition-transform duration-300">
           <div
             className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none"
             style={{ background: "rgba(138, 240, 205, 0.3)" }}
           />
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3 min-w-0">
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center text-white"
               style={{
@@ -103,27 +166,27 @@ export default function CustomerDashboard() {
             >
               <span className="material-symbols-outlined text-sm">stars</span>
             </div>
-            <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+            <span className="font-label-sm text-label-sm md:font-label-md md:text-label-md text-on-surface-variant uppercase tracking-wider whitespace-normal break-words leading-tight">
               Loyalty Points
             </span>
           </div>
-          <p className="font-display-lg text-display-lg text-primary leading-none">
-            2,450
+          <p className="font-display-lg text-headline-md md:text-display-lg text-primary leading-none">
+            {walletData.points}
           </p>
           <p className="font-label-sm text-label-sm text-secondary mt-1 flex items-center gap-1">
             <span className="material-symbols-outlined text-sm">
               trending_up
             </span>
-            +350 this month
+            {walletData.savedThisMonth} this month
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group md:hover:scale-[1.02] transition-transform duration-300">
           <div
             className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none"
             style={{ background: "rgba(11, 90, 73, 0.15)" }}
           />
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3 min-w-0">
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center text-white"
               style={{
@@ -132,12 +195,12 @@ export default function CustomerDashboard() {
             >
               <span className="material-symbols-outlined text-sm">savings</span>
             </div>
-            <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+            <span className="font-label-sm text-label-sm md:font-label-md md:text-label-md text-on-surface-variant uppercase tracking-wider whitespace-normal break-words leading-tight">
               Total Saved
             </span>
           </div>
-          <p className="font-display-lg text-display-lg text-primary leading-none">
-            $124
+          <p className="font-display-lg text-headline-md md:text-display-lg text-primary leading-none">
+            {walletData.totalSaved}
           </p>
         </div>
       </div>
@@ -159,45 +222,86 @@ export default function CustomerDashboard() {
                 Our Services
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {services.map((svc) => (
                 <div
-                  key={svc.title}
-                  className="p-4 rounded-xl border border-outline-variant/30 bg-white/20 hover:bg-white/40 transition-all duration-300 cursor-pointer group hover:scale-[1.02]"
+                  key={svc.id}
+                  className={
+                    "p-5 rounded-xl border border-outline-variant/30 bg-white/20 transition-all duration-300 group " +
+                    (svc.isActive
+                      ? "md:hover:bg-white/40 md:hover:scale-[1.02] cursor-pointer"
+                      : "opacity-70")
+                  }
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-secondary"
-                      style={{ background: "rgba(138, 240, 205, 0.25)" }}
-                    >
-                      <span className="material-symbols-outlined">
-                        {svc.icon}
-                      </span>
-                    </div>
-                    {svc.tag && (
-                      <span
-                        className="font-label-sm text-label-sm text-secondary px-2 py-1 rounded-full"
-                        style={{ background: "rgba(138, 240, 205, 0.3)" }}
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-secondary shrink-0"
+                        style={{ background: "rgba(138, 240, 205, 0.25)" }}
                       >
-                        {svc.tag}
-                      </span>
-                    )}
+                        <span className="material-symbols-outlined">
+                          {svc.icon}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-label-md text-label-md text-primary truncate">
+                          {svc.title}
+                        </h3>
+                        <p className="font-label-sm text-label-sm text-on-surface-variant truncate">
+                          {String(svc.category ?? "").replace(/_/g, " ")}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={
+                        "font-label-sm text-label-sm px-2 py-1 rounded-full border " +
+                        (svc.isActive
+                          ? "text-secondary border-secondary/30 bg-secondary-container/20"
+                          : "text-on-surface-variant border-outline-variant/40 bg-surface/40")
+                      }
+                    >
+                      {svc.isActive ? "Active" : "Inactive"}
+                    </span>
                   </div>
-                  <h3 className="font-label-md text-label-md text-primary mb-1">
-                    {svc.title}
-                  </h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant text-sm">
+
+                  <p className="font-body-md text-body-md text-on-surface-variant text-sm leading-relaxed break-words">
                     {svc.desc}
                   </p>
+
+                  <div className="mt-4 pt-4 border-t border-outline-variant/20 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="bg-surface/30 rounded-lg p-2 sm:p-3 border border-outline-variant/20 min-w-0">
+                      <div className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                        Price
+                      </div>
+                      <div className="font-label-md text-label-sm sm:text-label-md text-on-surface whitespace-nowrap">
+                        {svc.pricePerKg != null ? `₹${svc.pricePerKg}/kg` : "—"}
+                      </div>
+                    </div>
+                    <div className="bg-surface/30 rounded-lg p-2 sm:p-3 border border-outline-variant/20 min-w-0">
+                      <div className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                        Delivery
+                      </div>
+                      <div className="font-label-md text-label-sm sm:text-label-md text-on-surface whitespace-nowrap">
+                        {svc.estimatedDeliveryDays != null
+                          ? `${svc.estimatedDeliveryDays} day${Number(svc.estimatedDeliveryDays) === 1 ? "" : "s"}`
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
+            {!loading && services.length === 0 ? (
+              <p className="text-on-surface-variant text-sm mt-4">
+                No services available.
+              </p>
+            ) : null}
           </section>
 
           {/* CTA */}
           <Link
             to="/customer/schedule"
-            className="cta-gradient text-white rounded-2xl p-6 md:p-8 flex items-center justify-between group hover:scale-[1.01] transition-transform duration-300"
+            className="cta-gradient text-white rounded-2xl p-6 md:p-8 flex items-center justify-between group md:hover:scale-[1.01] transition-transform duration-300"
           >
             <div>
               <h3 className="font-headline-sm text-headline-sm text-white mb-1">
@@ -215,7 +319,7 @@ export default function CustomerDashboard() {
 
         {/* Recent Orders */}
         <div className="lg:col-span-5">
-          <section className="glass-card rounded-2xl p-6 md:p-8 sticky top-28">
+          <section className="glass-card rounded-2xl p-6 md:p-8 lg:sticky lg:top-28">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-headline-sm text-headline-sm">
                 Recent Orders
@@ -226,11 +330,12 @@ export default function CustomerDashboard() {
             </div>
             <div className="space-y-4">
               {recentOrders.map((order) => (
-                <div
+                <Link
                   key={order.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-white/20 border border-outline-variant/20 hover:bg-white/40 transition-colors cursor-pointer"
+                  to={`/customer/track?orderId=${encodeURIComponent(order.id)}`}
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/20 border border-outline-variant/20 hover:bg-white/40 transition-colors cursor-pointer min-w-0"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center text-secondary"
                       style={{ background: "rgba(138, 240, 205, 0.25)" }}
@@ -239,8 +344,8 @@ export default function CustomerDashboard() {
                         receipt_long
                       </span>
                     </div>
-                    <div>
-                      <p className="font-label-md text-label-md text-primary">
+                    <div className="min-w-0">
+                      <p className="font-label-md text-label-md text-primary truncate">
                         {order.id}
                       </p>
                       <p className="font-label-sm text-label-sm text-on-surface-variant">
@@ -256,8 +361,15 @@ export default function CustomerDashboard() {
                       {order.status}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
+              {!loading && recentOrders.length === 0 ? (
+                <div className="p-4 rounded-xl bg-white/20 border border-outline-variant/20">
+                  <p className="text-on-surface-variant text-sm">
+                    No orders yet.
+                  </p>
+                </div>
+              ) : null}
             </div>
           </section>
         </div>

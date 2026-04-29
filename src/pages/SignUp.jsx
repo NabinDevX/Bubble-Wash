@@ -1,11 +1,40 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer.jsx";
+import { useAuth } from "../lib/AuthContext.jsx";
 
 const USER_TYPES = ["Customer", "Rider"];
 
 export default function SignUp() {
   const [userType, setUserType] = useState("Customer");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [terms, setTerms] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { signup } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!terms) {
+      setError("Please agree to the Terms of Service and Privacy Policy.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      await signup(name, phone, password);
+      navigate("/customer", { replace: true });
+    } catch (err) {
+      setError(err.message || "Sign up failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="app-green-gradient min-h-screen flex flex-col relative overflow-hidden">
@@ -61,9 +90,16 @@ export default function SignUp() {
               })}
             </div>
 
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">error</span>
+                {error}
+              </div>
+            )}
+
             <form
               className="space-y-stack-sm"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSubmit}
             >
               <div className="space-y-2">
                 <label className="font-label-md text-label-md text-on-surface ml-1">
@@ -74,6 +110,9 @@ export default function SignUp() {
                   placeholder="Alex Rivers"
                   type="text"
                   autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
                 />
               </div>
 
@@ -86,6 +125,8 @@ export default function SignUp() {
                   placeholder="alex@wash.com"
                   type="email"
                   autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
@@ -102,6 +143,9 @@ export default function SignUp() {
                     placeholder="+1 (555) 000-0000"
                     type="tel"
                     autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -119,6 +163,9 @@ export default function SignUp() {
                     placeholder="••••••••"
                     type="password"
                     autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -129,6 +176,8 @@ export default function SignUp() {
                     id="terms"
                     type="checkbox"
                     className="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary/20 bg-white/50"
+                    checked={terms}
+                    onChange={(e) => setTerms(e.target.checked)}
                   />
                 </div>
                 <label
@@ -156,9 +205,17 @@ export default function SignUp() {
               <div className="pt-6">
                 <button
                   type="submit"
-                  className="cta-gradient w-full py-4 rounded-xl text-white font-label-md text-lg tracking-wide transition-all active:scale-[0.98]"
+                  disabled={loading}
+                  className="cta-gradient w-full py-4 rounded-xl text-white font-label-md text-lg tracking-wide transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Create Account
+                  {loading ? (
+                    <>
+                      <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                      Creating Account…
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
                 </button>
               </div>
             </form>

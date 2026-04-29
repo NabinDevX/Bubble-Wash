@@ -1,17 +1,42 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer.jsx";
+import { useAuth } from "../lib/AuthContext.jsx";
 
 const USER_TYPES = ["Customer", "Rider", "Admin"];
+const REDIRECT_MAP = { customer: "/customer", rider: "/rider", admin: "/admin" };
 
 export default function SignIn() {
   const [userType, setUserType] = useState("Customer");
   const [showPassword, setShowPassword] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const passwordIcon = useMemo(
     () => (showPassword ? "visibility_off" : "visibility"),
     [showPassword],
   );
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await login(phone, password);
+      const role = (res.user?.role ?? res.role ?? userType).toLowerCase();
+      navigate(REDIRECT_MAP[role] || "/customer", { replace: true });
+    } catch (err) {
+      setError(err.message || "Sign in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="app-green-gradient font-body-md text-on-background min-h-screen flex flex-col relative">
@@ -55,24 +80,34 @@ export default function SignIn() {
               })}
             </div>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">error</span>
+                {error}
+              </div>
+            )}
+
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label
                   className="font-label-md text-label-md text-on-surface-variant block ml-1"
-                  htmlFor="email"
+                  htmlFor="phone"
                 >
-                  EMAIL OR USERNAME
+                  PHONE NUMBER
                 </label>
                 <div className="relative group">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-secondary transition-colors">
                     person
                   </span>
                   <input
-                    id="email"
+                    id="phone"
                     type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     className="w-full bg-white/40 border-0 border-b-2 border-outline-variant focus:border-secondary focus:ring-0 pl-12 pr-4 py-3.5 rounded-t-lg transition-all placeholder:text-outline-variant font-body-md text-body-md"
-                    placeholder="Enter your credentials"
+                    placeholder="Enter your phone number"
                     autoComplete="username"
+                    required
                   />
                 </div>
               </div>
@@ -99,9 +134,12 @@ export default function SignIn() {
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-white/40 border-0 border-b-2 border-outline-variant focus:border-secondary focus:ring-0 pl-12 pr-12 py-3.5 rounded-t-lg transition-all placeholder:text-outline-variant font-body-md text-body-md"
                     placeholder="••••••••"
                     autoComplete="current-password"
+                    required
                   />
                   <button
                     type="button"
@@ -124,6 +162,8 @@ export default function SignIn() {
                     id="remember"
                     type="checkbox"
                     className="sr-only peer"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
                   />
                   <div className="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary" />
                 </div>
@@ -137,10 +177,20 @@ export default function SignIn() {
 
               <button
                 type="submit"
-                className="w-full aqua-gradient text-white font-headline-sm text-headline-sm py-4 rounded-xl shadow-[0_4px_20px_rgba(98,250,227,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full aqua-gradient text-white font-headline-sm text-headline-sm py-4 rounded-xl shadow-[0_4px_20px_rgba(98,250,227,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Sign In
-                <span className="material-symbols-outlined">arrow_forward</span>
+                {loading ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                    Signing In…
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <span className="material-symbols-outlined">arrow_forward</span>
+                  </>
+                )}
               </button>
             </form>
 

@@ -22,6 +22,7 @@ import RiderRateCard from "./pages/Rider/RateCard.jsx";
 import RiderSubscriptionsCoupons from "./pages/Rider/SubscriptionsCoupons.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import SignUp from "./pages/SignUp.jsx";
+import RequireRole from "./components/RequireRole.jsx";
 
 // Customer pages
 import CustomerLayout from "./pages/Customer/Layout.jsx";
@@ -38,7 +39,14 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <RequireRole allow={["admin", "staff", "store_manager"]}>
+              <AdminLayout />
+            </RequireRole>
+          }
+        >
           <Route index element={<DashboardHome />} />
           <Route path="customers" element={<Customers />} />
 
@@ -52,7 +60,14 @@ function App() {
 
           <Route path="reports" element={<Reports />} />
         </Route>
-        <Route path="/rider" element={<RiderLayout />}>
+        <Route
+          path="/rider"
+          element={
+            <RequireRole allow={["rider"]}>
+              <RiderLayout />
+            </RequireRole>
+          }
+        >
           <Route index element={<RiderDashboard />} />
           <Route path="pickup-list" element={<RiderPickupList />} />
           <Route path="delivery-list" element={<RiderDeliveryList />} />
@@ -62,7 +77,14 @@ function App() {
             element={<RiderSubscriptionsCoupons />}
           />
         </Route>
-        <Route path="/customer" element={<CustomerLayout />}>
+        <Route
+          path="/customer"
+          element={
+            <RequireRole allow={["customer"]}>
+              <CustomerLayout />
+            </RequireRole>
+          }
+        >
           <Route index element={<CustomerDashboard />} />
           <Route path="schedule" element={<SchedulePickup />} />
           <Route path="checkout" element={<CheckoutPayment />} />

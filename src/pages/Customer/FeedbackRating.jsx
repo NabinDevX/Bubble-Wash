@@ -1,22 +1,32 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export default function FeedbackRating() {
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get("orderId") || searchParams.get("id");
   const [rating, setRating] = useState(4);
   const [hoveredStar, setHoveredStar] = useState(0);
 
   return (
     <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
       <div className="w-full max-w-2xl text-center mb-4">
-        <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Thank You</h1>
+        <h1 className="font-display-lg text-display-lg text-on-surface mb-2">
+          Thank You
+        </h1>
         <p className="font-body-lg text-body-lg text-outline">
-          Order Reference: <span className="font-semibold text-secondary">#BW-8924A</span>
+          Order Reference:{" "}
+          <span className="font-semibold text-secondary">{orderId ?? "—"}</span>
         </p>
       </div>
 
       <div className="w-full max-w-2xl glass-card rounded-3xl p-8 flex flex-col gap-6 items-center">
         <div className="text-center w-full">
-          <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">How was your service?</h2>
-          <p className="text-outline">Your feedback helps us maintain our premium standards.</p>
+          <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">
+            How was your service?
+          </h2>
+          <p className="text-outline">
+            Your feedback helps us maintain our premium standards.
+          </p>
         </div>
 
         {/* 5-Star Rating */}
@@ -49,7 +59,10 @@ export default function FeedbackRating() {
 
         {/* Feedback Textarea */}
         <div className="w-full">
-          <label className="font-label-md text-label-md text-on-surface-variant block mb-2" htmlFor="feedback-details">
+          <label
+            className="font-label-md text-label-md text-on-surface-variant block mb-2"
+            htmlFor="feedback-details"
+          >
             Additional Details (Optional)
           </label>
           <textarea

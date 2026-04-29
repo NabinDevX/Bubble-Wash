@@ -23,16 +23,16 @@ export default function CustomerLayout() {
   }
 
   return (
-    <div className="app-green-gradient text-on-background font-body-md antialiased overflow-hidden flex h-screen w-full">
+    <div className="app-green-gradient text-on-background font-body-md antialiased overflow-x-hidden flex h-screen w-full">
       <CustomerSidebar
         isOpen={isSidebarOpen}
         onClose={closeSidebar}
         items={navItems}
       />
 
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <main className="flex-1 flex flex-col h-full overflow-x-hidden relative">
         <header className="app-shell-header h-20 shrink-0 flex items-center justify-between px-gutter border-b backdrop-blur-md z-30">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 min-w-0">
             <button
               type="button"
               className="md:hidden text-on-surface hover:text-secondary transition-colors"
@@ -41,11 +41,11 @@ export default function CustomerLayout() {
             >
               <span className="material-symbols-outlined">menu</span>
             </button>
-            <div>
-              <h2 className="font-headline-sm text-headline-sm text-on-surface">
+            <div className="min-w-0">
+              <h2 className="font-headline-sm text-body-lg md:text-headline-sm text-on-surface truncate leading-tight">
                 Customer
               </h2>
-              <p className="font-body-md text-body-md text-on-surface-variant">
+              <p className="font-body-md text-label-sm md:text-body-md text-on-surface-variant truncate leading-tight">
                 Orders, Tracking &amp; Rewards
               </p>
             </div>

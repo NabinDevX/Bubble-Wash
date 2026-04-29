@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../lib/AuthContext.jsx";
 
 const navLinkBase =
   "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors";
@@ -14,6 +15,14 @@ export default function CustomerSidebar({
   title = "Bubble Wash",
   subtitle = "Customer Portal",
 }) {
+  const { user } = useAuth();
+  const displayName = user?.name || user?.phone || "—";
+  const initial = (user?.name || user?.phone || "C")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
+  const secondaryLine = user?.role ? String(user.role).replace(/_/g, " ") : "";
+
   return (
     <>
       <div
@@ -61,15 +70,17 @@ export default function CustomerSidebar({
         <div className="p-6 border-t border-on-primary-container/10">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-fixed font-bold">
-              C
+              {initial}
             </div>
             <div>
               <p className="font-label-md text-label-md text-surface font-semibold">
-                Customer User
+                {displayName}
               </p>
-              <p className="font-label-sm text-label-sm text-on-primary-container/70">
-                Premium Plan
-              </p>
+              {secondaryLine ? (
+                <p className="font-label-sm text-label-sm text-on-primary-container/70">
+                  {secondaryLine}
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
