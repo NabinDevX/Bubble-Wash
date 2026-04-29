@@ -1,8 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Landing from "./pages/Landing.jsx";
-import AdminLayout from "./pages/Admin/Dashboard.jsx";
-import DashboardHome from "./pages/Admin/DashboardHome.jsx";
+import AdminLayout from "./pages/Admin/Layout.jsx";
+import Dashboard from "./pages/Admin/Dashboard.jsx";
 import Customers from "./pages/Admin/Customers.jsx";
 
 import Workshops from "./pages/Admin/Workshops.jsx";
@@ -14,17 +14,15 @@ import Riders from "./pages/Admin/Riders.jsx";
 import ServiceAreas from "./pages/Admin/ServiceAreas.jsx";
 
 import Reports from "./pages/Admin/Reports.jsx";
+import PromotionsBilling from "./pages/Admin/PromotionsBilling.jsx";
 import RiderLayout from "./pages/Rider/Layout.jsx";
 import RiderDashboard from "./pages/Rider/Dashboard.jsx";
 import RiderPickupList from "./pages/Rider/PickupList.jsx";
 import RiderDeliveryList from "./pages/Rider/DeliveryList.jsx";
-import RiderRateCard from "./pages/Rider/RateCard.jsx";
-import RiderSubscriptionsCoupons from "./pages/Rider/SubscriptionsCoupons.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import SignUp from "./pages/SignUp.jsx";
 import RequireRole from "./components/RequireRole.jsx";
 
-// Customer pages
 import CustomerLayout from "./pages/Customer/Layout.jsx";
 import CustomerDashboard from "./pages/Customer/Dashboard.jsx";
 import SchedulePickup from "./pages/Customer/SchedulePickup.jsx";
@@ -47,7 +45,7 @@ function App() {
             </RequireRole>
           }
         >
-          <Route index element={<DashboardHome />} />
+          <Route index element={<Dashboard />} />
           <Route path="customers" element={<Customers />} />
 
           <Route path="workshops" element={<Workshops />} />
@@ -59,6 +57,7 @@ function App() {
           <Route path="service-areas" element={<ServiceAreas />} />
 
           <Route path="reports" element={<Reports />} />
+          <Route path="promotions-billing" element={<PromotionsBilling />} />
         </Route>
         <Route
           path="/rider"
@@ -71,11 +70,6 @@ function App() {
           <Route index element={<RiderDashboard />} />
           <Route path="pickup-list" element={<RiderPickupList />} />
           <Route path="delivery-list" element={<RiderDeliveryList />} />
-          <Route path="rate-card" element={<RiderRateCard />} />
-          <Route
-            path="subscriptions-coupons"
-            element={<RiderSubscriptionsCoupons />}
-          />
         </Route>
         <Route
           path="/customer"
