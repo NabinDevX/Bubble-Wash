@@ -50,26 +50,42 @@ export default function CheckoutPayment() {
   async function handlePay() {
     setError("");
     setPaying(true);
+
     try {
       if (!orderId) {
-        throw new Error("Missing orderId. Please create an order first.");
+        setError("Order not found. Please create order again.");
+        setPaying(false);
+        return;
       }
 
-      const res = await api.post("/payments/initiate", {
+      console.log("INITIATING PAYMENT:", { orderId, paymentMethod });
+
+      const response = await api.post("/payments/initiate", {
         orderId,
         paymentMethod,
       });
-      if (res.paymentUrl || res.gatewayUrl) {
+
+      const res = response.data || response;
+
+      if (res?.paymentUrl || res?.gatewayUrl) {
         window.location.href = res.paymentUrl ?? res.gatewayUrl;
       } else {
-        // If the backend supports instant confirmation (e.g. COD), it may return a paymentId.
         if (res.paymentId) {
           await api.get(`/payments/${res.paymentId}`);
         }
-        alert("Payment initiated successfully.");
+
+        // TODO: Replace manual redirect with backend-driven payment success flow
+        window.location.href = `/customer/feedback?orderId=${orderId}`;
       }
+
     } catch (err) {
-      setError(err.message || "Payment failed");
+      console.error("PAYMENT ERROR:", err.response?.data || err.message);
+
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        "Payment could not be initiated"
+      );
     } finally {
       setPaying(false);
     }

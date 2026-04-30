@@ -1,12 +1,59 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import api from "../../lib/api.js";
 
 export default function FeedbackRating() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId") || searchParams.get("id");
+
   const [rating, setRating] = useState(4);
   const [hoveredStar, setHoveredStar] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
+  async function handleSubmit() {
+    setError("");
+    setSubmitting(true);
+
+    try {
+      if (!orderId) {
+        setError("Invalid access. Please complete order first.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!rating) {
+        setError("Please select a rating");
+        setSubmitting(false);
+        return;
+      }
+
+      const payload = {
+        subject: "Service Feedback",
+        description: comment || "No comment",
+        orderId: orderId,
+        rating: rating,
+      };
+
+      console.log("FEEDBACK PAYLOAD:", payload);
+
+      await api.post("/tickets", payload);
+
+      alert("Feedback submitted successfully ✅");
+      window.location.href = "/customer";
+
+    } catch (err) {
+      console.log("FEEDBACK ERROR:", err.response?.data || err.message);
+
+      setError(
+        err.response?.data?.message ||
+        "Unable to submit feedback. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
   return (
     <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
       <div className="w-full max-w-2xl text-center mb-4">
@@ -29,7 +76,7 @@ export default function FeedbackRating() {
           </p>
         </div>
 
-        {/* 5-Star Rating */}
+        {/* Stars */}
         <div className="flex gap-2 py-2">
           {[1, 2, 3, 4, 5].map((star) => {
             const active = star <= (hoveredStar || rating);
@@ -37,14 +84,13 @@ export default function FeedbackRating() {
               <button
                 key={star}
                 type="button"
-                aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
-                className="p-2 focus:outline-none transition-transform hover:scale-110"
+                className="p-2 transition-transform hover:scale-110"
                 onClick={() => setRating(star)}
                 onMouseEnter={() => setHoveredStar(star)}
                 onMouseLeave={() => setHoveredStar(0)}
               >
                 <span
-                  className="material-symbols-outlined text-5xl transition-all duration-200"
+                  className="material-symbols-outlined text-5xl"
                   style={{
                     fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
                     color: active ? "#62fae3" : "#c6c6cd",
@@ -57,27 +103,34 @@ export default function FeedbackRating() {
           })}
         </div>
 
-        {/* Feedback Textarea */}
+        {/* Comment */}
         <div className="w-full">
-          <label
-            className="font-label-md text-label-md text-on-surface-variant block mb-2"
-            htmlFor="feedback-details"
-          >
+          <label className="block mb-2 text-on-surface-variant">
             Additional Details (Optional)
           </label>
           <textarea
-            id="feedback-details"
-            className="w-full bg-surface-container-lowest/50 border border-outline-variant/50 rounded-lg p-4 focus:ring-2 focus:ring-secondary-container focus:border-secondary-container text-on-surface placeholder-outline-variant transition-all duration-300 backdrop-blur-sm resize-none"
-            placeholder="Tell us about your experience..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="w-full border rounded-lg p-4"
             rows={4}
           />
         </div>
 
+        {/* Error */}
+        {error && (
+          <div className="text-red-500 text-sm">{error}</div>
+        )}
+
         {/* Submit */}
-        <button className="w-full py-4 px-6 bg-linear-to-r from-secondary to-secondary-fixed-dim text-white rounded-lg font-label-md text-label-md uppercase tracking-widest hover:shadow-[0_0_20px_rgba(98,250,227,0.4)] transition-all duration-300 transform hover:scale-[1.02]">
-          Submit Feedback
+        <button
+          onClick={handleSubmit}
+          disabled={submitting}
+          className="w-full py-4 bg-secondary text-white rounded-lg"
+        >
+          {submitting ? "Submitting..." : "Submit Feedback"}
         </button>
-        <button className="font-label-md text-label-md text-outline hover:text-secondary transition-colors">
+
+        <button className="text-outline">
           Skip for now
         </button>
       </div>

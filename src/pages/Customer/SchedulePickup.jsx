@@ -5,7 +5,7 @@ import api from "../../lib/api.js";
 export default function SchedulePickup() {
   const navigate = useNavigate();
   const [selectedDay, setSelectedDay] = useState(4);
-  const [selectedSlot, setSelectedSlot] = useState(0);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedServices, setSelectedServices] = useState([]);
   const [services, setServices] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
@@ -31,7 +31,13 @@ export default function SchedulePickup() {
         ]);
 
         if (svcRes.status === "fulfilled") {
-          const list = svcRes.value?.services ?? svcRes.value ?? [];
+          const data = svcRes.value;
+          const list =
+            data?.services ??
+            data?.data?.services ??
+            data?.data ??
+            data ??
+            [];
           setServices(
             list.map((s) => ({
               id: s._id ?? s.id,
@@ -44,21 +50,35 @@ export default function SchedulePickup() {
         }
 
         if (slotRes.status === "fulfilled") {
-          const list = slotRes.value?.slots ?? slotRes.value ?? [];
+          const data = slotRes.value;
+          const list =
+            data?.slots ??
+            data?.data?.slots ??
+            data?.data ??
+            data ??
+            [];
           setTimeSlots(
-            list.map((s) => ({
-              id: s._id ?? s.id,
-              label:
-                s.startTime && s.endTime
-                  ? `${s.startTime} - ${s.endTime}`
-                  : (s.time ?? "—"),
-              available: s.isActive !== false,
-            })),
+            list
+              .map((s) => ({
+                id: s?._id?.$oid || s?._id || s?.id || null,
+                label:
+                  s.startTime && s.endTime
+                    ? `${s.startTime} - ${s.endTime}`
+                    : (s.time ?? "—"),
+                available: s.isActive !== false,
+              }))
+              .filter((s) => s.id !== null)
           );
         }
 
         if (addrRes.status === "fulfilled") {
-          const addrs = addrRes.value?.addresses ?? addrRes.value ?? [];
+          const data = addrRes.value;
+          const addrs =
+            data?.addresses ??
+            data?.data?.addresses ??
+            data?.data ??
+            data ??
+            [];
           if (addrs.length > 0) {
             const a = addrs[0];
             setAddress({
@@ -90,32 +110,55 @@ export default function SchedulePickup() {
       setError("Please select at least one service");
       return;
     }
+
+    if (selectedSlot === null) {
+      setError("Please select a valid time slot");
+      return;
+    }
+
+    if (!address.street || !address.city || !address.zip) {
+      setError("Please fill address properly");
+      return;
+    }
+
     setError("");
     setSubmitting(true);
-    try {
-      const slot = timeSlots[selectedSlot];
 
+    console.log("Selected Services:", selectedServices);
+
+    try {
       const payload = {
         orderItems: selectedServices.map((serviceId) => ({
           service: serviceId,
           weight: 1,
         })),
+
         pickupAddress: {
           street: address.street,
           area: "",
           city: address.city,
           state: "",
           pincode: address.zip,
-          landmark: address.instructions,
+          landmark: address.instructions || "",
         },
-        pickupSlot: slot?.id,
+
+        pickupSlotId: selectedSlot,
       };
 
+      console.log("FINAL PAYLOAD:", payload);
+
       const res = await api.post("/orders", payload);
-      const created = res?.order ?? res;
-      const orderId = created?.orderId ?? created?._id;
+
+      const orderId =
+        res?.order?.orderId ||
+        res?.order?._id ||
+        res?.orderId ||
+        res?._id;
+
+      console.log("ORDER ID:", orderId);
 
       navigate("/customer/checkout", { state: { orderId }, replace: true });
+
     } catch (err) {
       setError(err.message || "Failed to create order");
     } finally {
@@ -310,11 +353,11 @@ export default function SchedulePickup() {
                 <div className="grid grid-cols-2 gap-3">
                   {timeSlots.map((slot, i) => (
                     <button
-                      key={i}
+                      key={slot.id}
                       type="button"
                       disabled={!slot.available}
-                      onClick={() => setSelectedSlot(i)}
-                      className={`py-3 px-4 rounded-lg text-sm transition-colors ${!slot.available ? "border border-white/40 bg-white/20 text-on-surface-variant/50 cursor-not-allowed" : i === selectedSlot ? "border-2 border-secondary bg-secondary-container/10 text-on-surface" : "border border-white/40 bg-white/20 hover:bg-white/40"}`}
+                      onClick={() => setSelectedSlot(slot.id)}
+                      className={`py-3 px-4 rounded-lg text-sm transition-colors ${!slot.available ? "border border-white/40 bg-white/20 text-on-surface-variant/50 cursor-not-allowed" : slot.id === selectedSlot ? "border-2 border-secondary bg-secondary-container/10 text-on-surface" : "border border-white/40 bg-white/20 hover:bg-white/40"}`}
                     >
                       {slot.label}
                     </button>

@@ -26,13 +26,18 @@ export default function CustomerDashboard() {
 
         if (ordersRes.status === "fulfilled") {
           const data = ordersRes.value;
-          const list = data.orders ?? data.data ?? data ?? [];
+          const list =
+            data?.orders ??
+            data?.data?.orders ??
+            data?.data ??
+            data ??
+            [];
           setActiveOrderCount(
             list.filter((o) =>
-              ["Pending", "Processing", "Picked Up", "In Transit"].includes(
-                o.status,
-              ),
-            ).length,
+              ["pending", "processing", "picked up", "in transit"].includes(
+                String(o.status).toLowerCase()
+              )
+            ).length
           );
           setRecentOrders(
             list.slice(0, 3).map((o) => ({
@@ -40,10 +45,10 @@ export default function CustomerDashboard() {
               status: o.status ?? "Pending",
               date: o.createdAt
                 ? new Date(o.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
                 : "—",
               amount: o.totalAmount ? `$${o.totalAmount}` : "—",
               color: ["Delivered", "Completed"].includes(o.status)
@@ -55,7 +60,12 @@ export default function CustomerDashboard() {
 
         if (servicesRes.status === "fulfilled") {
           const data = servicesRes.value;
-          const list = data.services ?? data.data ?? data ?? [];
+          const list =
+            data?.services ??
+            data?.data?.services ??
+            data?.data ??
+            data ??
+            [];
           const iconMap = {
             wash: "local_laundry_service",
             iron: "iron",
@@ -84,7 +94,8 @@ export default function CustomerDashboard() {
         }
 
         if (walletRes.status === "fulfilled") {
-          const w = walletRes.value;
+          const wRaw = walletRes.value;
+          const w = wRaw?.data ?? wRaw;
           setWalletData({
             points: String(w.balance ?? w.points ?? 0).replace(
               /\B(?=(\d{3})+(?!\d))/g,
@@ -113,7 +124,7 @@ export default function CustomerDashboard() {
     <div className="px-margin-mobile md:px-margin-desktop max-w-[1280px] mx-auto">
       {/* Hero Header */}
       <header className="mb-stack-lg text-center md:text-left mt-8 md:mt-0">
-        <p className="font-label-md text-label-md text-secondary mb-2 uppercase tracking-widest">
+        <p className="font-label-md text-label-md text-secondary mt-2 mb-2 uppercase tracking-widest">
           Welcome back
         </p>
         <h1 className="font-display-lg text-headline-md md:text-display-lg text-primary">
@@ -268,25 +279,30 @@ export default function CustomerDashboard() {
                     {svc.desc}
                   </p>
 
-                  <div className="mt-4 pt-4 border-t border-outline-variant/20 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="bg-surface/30 rounded-lg p-2 sm:p-3 border border-outline-variant/20 min-w-0">
-                      <div className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                  <div className="mt-4 pt-4 border-t border-outline-variant/20 flex flex-col gap-2">
+
+                    {/* PRICE BOX */}
+                    <div className="bg-surface/30 rounded-lg p-3 border border-outline-variant/20 text-center">
+                      <div className="text-xs text-on-surface-variant uppercase tracking-wider">
                         Price
                       </div>
-                      <div className="font-label-md text-label-sm sm:text-label-md text-on-surface whitespace-nowrap">
+                      <div className="font-label-md text-on-surface">
                         {svc.pricePerKg != null ? `₹${svc.pricePerKg}/kg` : "—"}
                       </div>
                     </div>
-                    <div className="bg-surface/30 rounded-lg p-2 sm:p-3 border border-outline-variant/20 min-w-0">
-                      <div className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+
+                    {/* DELIVERY BOX */}
+                    <div className="bg-surface/30 rounded-lg p-3 border border-outline-variant/20 text-center">
+                      <div className="text-xs text-on-surface-variant uppercase tracking-wider">
                         Delivery
                       </div>
-                      <div className="font-label-md text-label-sm sm:text-label-md text-on-surface whitespace-nowrap">
+                      <div className="font-label-md text-on-surface">
                         {svc.estimatedDeliveryDays != null
-                          ? `${svc.estimatedDeliveryDays} day${Number(svc.estimatedDeliveryDays) === 1 ? "" : "s"}`
+                          ? `${svc.estimatedDeliveryDays} days`
                           : "—"}
                       </div>
                     </div>
+
                   </div>
                 </div>
               ))}
