@@ -1,19 +1,31 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 
-import RiderSidebar from "../../components/RiderSidebar.jsx";
+import AdminSidebar from "../../components/AdminSidebar.jsx";
 
-const riderNavItems = [
-  { to: "/rider", label: "Rider Dashboard", icon: "dashboard", end: true },
-  { to: "/rider/pickup-list", label: "Pickup List", icon: "inventory_2" },
+const adminNavItems = [
+  { to: "/admin", label: "Dashboard", icon: "dashboard", end: true },
+  { to: "/admin/customers", label: "Customers", icon: "group" },
+  { to: "/admin/workshops", label: "Workshops", icon: "storefront" },
+  { to: "/admin/staff", label: "Staff", icon: "groups" },
   {
-    to: "/rider/delivery-list",
-    label: "Delivery List",
-    icon: "local_shipping",
+    to: "/admin/services-rate-card",
+    label: "Services / Rate Card",
+    icon: "local_laundry_service",
   },
+  {
+    to: "/admin/promotions-billing",
+    label: "Promotions & Billing",
+    icon: "sell",
+  },
+  { to: "/admin/delivery-slots", label: "Delivery Slots", icon: "schedule" },
+  { to: "/admin/tickets", label: "Tickets", icon: "support_agent" },
+  { to: "/admin/riders", label: "Riders", icon: "two_wheeler" },
+  { to: "/admin/service-areas", label: "Service Areas", icon: "map" },
+  { to: "/admin/reports", label: "Reports & Analytics", icon: "analytics" },
 ];
 
-export default function RiderLayout() {
+export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   function toggleSidebar() {
@@ -26,10 +38,10 @@ export default function RiderLayout() {
 
   return (
     <div className="app-green-gradient text-on-background font-body-md antialiased overflow-hidden flex h-screen w-full">
-      <RiderSidebar
+      <AdminSidebar
         isOpen={isSidebarOpen}
         onClose={closeSidebar}
-        items={riderNavItems}
+        items={adminNavItems}
       />
 
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -45,10 +57,10 @@ export default function RiderLayout() {
             </button>
             <div>
               <h2 className="font-headline-sm text-headline-sm text-on-surface">
-                Rider
+                Admin
               </h2>
               <p className="font-body-md text-body-md text-on-surface-variant">
-                Pickup & Delivery Operations
+                Operations &amp; Management
               </p>
             </div>
           </div>
@@ -62,14 +74,15 @@ export default function RiderLayout() {
               <span className="material-symbols-outlined">notifications</span>
               <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
             </button>
+
             <button
               type="button"
               className="bg-linear-to-r from-secondary-fixed-dim to-secondary-fixed text-on-secondary px-6 py-2.5 rounded-full font-label-md text-label-md font-bold shadow-[0_4px_12px_rgba(98,250,227,0.3)] hover:shadow-[0_6px_16px_rgba(98,250,227,0.5)] hover:scale-105 transition-all duration-200 flex items-center space-x-2"
             >
               <span className="material-symbols-outlined text-body-lg">
-                navigation
+                add
               </span>
-              <span>Start</span>
+              <span>New</span>
             </button>
           </div>
         </header>

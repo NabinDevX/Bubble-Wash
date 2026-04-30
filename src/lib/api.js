@@ -1,17 +1,25 @@
-const API_PREFIX = import.meta.env.VITE_API_PREFIX || "/api/v1";
+function normalizePathSegment(p) {
+  if (!p) return "";
+  const s = String(p).trim();
+  if (!s) return "";
+  const withLeading = s.startsWith("/") ? s : `/${s}`;
+  return withLeading.replace(/\/+$/, "");
+}
+
+const API_PREFIX = normalizePathSegment(
+  import.meta.env.VITE_API_PREFIX || "/api/v1",
+);
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(
   /\/+$/,
   "",
 );
 
-// If VITE_API_BASE_URL is set, the browser will call the backend directly.
-// If it's empty, requests stay relative and Vite's dev proxy can handle them.
-const API_ROOT = API_BASE_URL ? `${API_BASE_URL}${API_PREFIX}` : API_PREFIX;
+const API_ROOT = (
+  API_BASE_URL ? `${API_BASE_URL}${API_PREFIX}` : API_PREFIX
+).replace(/\/+$/, "");
 
-// Deduplicate in-flight GET requests (helps in React dev where effects may run twice)
 const inflightGetRequests = new Map();
 
-// ── Token helpers ──────────────────────────────────────────────
 export function getToken() {
   return localStorage.getItem("accessToken");
 }
@@ -24,7 +32,6 @@ export function clearToken() {
   localStorage.removeItem("accessToken");
 }
 
-// ── Core request function ──────────────────────────────────────
 async function request(method, path, body = null) {
   const headers = { "Content-Type": "application/json" };
   const token = getToken();
@@ -33,7 +40,10 @@ async function request(method, path, body = null) {
   const options = { method, headers, credentials: "include" };
   if (body) options.body = JSON.stringify(body);
 
-  const url = `${API_ROOT}${path}`;
+  const normalizedPath = String(path || "").startsWith("/")
+    ? String(path || "")
+    : `/${String(path || "")}`;
+  const url = `${API_ROOT}${normalizedPath}`;
   const isGet = method.toUpperCase() === "GET" && !body;
   const inflightKey = isGet ? `${url}::${token ?? ""}` : null;
 
@@ -44,7 +54,6 @@ async function request(method, path, body = null) {
   const doFetch = (async () => {
     const res = await fetch(url, options);
 
-    // attempt to parse JSON regardless of status
     let data;
     try {
       data = await res.json();
@@ -59,16 +68,12 @@ async function request(method, path, body = null) {
       throw err;
     }
 
-    // Most Bubble Wash endpoints return: { success, message, data: { ... } }
     if (
       data &&
       typeof data === "object" &&
       Object.prototype.hasOwnProperty.call(data, "data")
     ) {
       const inner = data.data;
-
-      // Preserve common auth fields that some endpoints return outside `data`
-      // e.g. { success, message, token, data: { user } }
       if (inner && typeof inner === "object" && !Array.isArray(inner)) {
         const merged = { ...inner };
         for (const key of ["token", "accessToken", "user", "role"]) {
@@ -96,7 +101,6 @@ async function request(method, path, body = null) {
   return doFetch;
 }
 
-// ── Public helpers ─────────────────────────────────────────────
 const api = {
   get: (path) => request("GET", path),
   post: (path, body) => request("POST", path, body),
