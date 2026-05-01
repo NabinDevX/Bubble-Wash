@@ -6,6 +6,7 @@ export default function Profile() {
         name: "",
         email: "",
         phone: "",
+        address: "",
     });
 
     const [editing, setEditing] = useState(false);
@@ -24,6 +25,7 @@ export default function Profile() {
                     name: data.name || "",
                     email: data.email || "",
                     phone: data.phone || "",
+                    address: data.address || "",
                 });
             } catch (err) {
                 setError("Failed to load profile");
@@ -44,6 +46,7 @@ export default function Profile() {
                 name: user.name,
                 phone: user.phone,
                 email: user.email,
+                address: user.address,
             });
 
             setSuccess("Profile updated successfully");
@@ -155,6 +158,22 @@ export default function Profile() {
                             placeholder="Email"
                         />
                     </div>
+                    {/* Address */}
+                    <div className="col-span-full">
+                        <label className="text-xs text-on-surface-variant uppercase mb-1 block">
+                            Address
+                        </label>
+                        <input
+                            value={user.address}
+                            disabled={!editing}
+                            onChange={(e) =>
+                                setUser({ ...user, address: e.target.value })
+                            }
+                            className="w-full px-4 py-3 rounded-t-md bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary outline-none"
+                            placeholder="Enter your address"
+                        />
+                    </div>
+
                 </div>
 
                 {/* ACTIONS */}
