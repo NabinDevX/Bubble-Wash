@@ -18,25 +18,19 @@ export default function Profile() {
         async function load() {
             try {
                 const res = await api.get("/auth/user");
-
                 const data = res?.data?.user ?? res?.data ?? res;
-
-                console.log("PROFILE DATA:", data);
 
                 setUser({
                     name: data.name || "",
                     email: data.email || "",
                     phone: data.phone || "",
                 });
-
             } catch (err) {
-                console.error(err);
                 setError("Failed to load profile");
             } finally {
                 setLoading(false);
             }
         }
-
         load();
     }, []);
 
@@ -46,20 +40,15 @@ export default function Profile() {
         setSuccess("");
 
         try {
-            const res = await api.put("/users/settings/update", {
+            await api.put("/users/settings/update", {
                 name: user.name,
                 phone: user.phone,
                 email: user.email,
             });
 
-            console.log("UPDATE RESPONSE:", res);
-
             setSuccess("Profile updated successfully");
             setEditing(false);
-
         } catch (err) {
-            console.error("UPDATE ERROR:", err.response?.data || err.message);
-
             setError(
                 err.response?.data?.message ||
                 err.message ||
@@ -69,6 +58,7 @@ export default function Profile() {
             setSaving(false);
         }
     }
+
     const initials = user.name?.charAt(0)?.toUpperCase() || "U";
 
     return (
@@ -98,11 +88,14 @@ export default function Profile() {
             )}
 
             {/* Card */}
-            <div className={`glass-card p-6 rounded-3xl space-y-6 ${loading ? "animate-pulse" : ""}`}>
+            <div
+                className={`glass-card p-6 rounded-3xl space-y-8 transition-all duration-300 ${loading ? "animate-pulse" : ""
+                    } ${editing ? "ring-2 ring-secondary/30" : ""}`}
+            >
 
-                {/* Avatar */}
-                <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center text-xl font-semibold text-secondary">
+                {/* PROFILE HEADER */}
+                <div className="flex items-center gap-4 border-b border-outline-variant/30 pb-4">
+                    <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center text-xl font-semibold text-secondary shadow-inner">
                         {initials}
                     </div>
                     <div>
@@ -110,60 +103,75 @@ export default function Profile() {
                             {user.name || "User"}
                         </p>
                         <p className="text-sm text-on-surface-variant">
-                            {user.email || "—"}
+                            {user.phone || "—"}
                         </p>
                     </div>
                 </div>
 
-                {/* Inputs */}
+                {/* INPUTS */}
                 <div className="grid md:grid-cols-2 gap-4">
 
-                    {/* Name */}
-                    <input
-                        value={user.name}
-                        disabled={!editing}
-                        onChange={(e) =>
-                            setUser({ ...user, name: e.target.value })
-                        }
-                        className="p-3 rounded-lg bg-surface border border-outline-variant focus:border-secondary outline-none"
-                        placeholder="Name"
-                    />
+                    {/* NAME */}
+                    <div>
+                        <label className="text-xs text-on-surface-variant uppercase mb-1 block">
+                            Name
+                        </label>
+                        <input
+                            value={user.name}
+                            disabled={!editing}
+                            onChange={(e) =>
+                                setUser({ ...user, name: e.target.value })
+                            }
+                            className="w-full px-4 py-3 rounded-t-md bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary outline-none backdrop-blur-sm"
+                            placeholder="Name"
+                        />
+                    </div>
 
-                    {/* Phone */}
-                    <input
-                        value={user.phone}
-                        disabled={!editing}
-                        onChange={(e) =>
-                            setUser({ ...user, phone: e.target.value })
-                        }
-                        className="p-3 rounded-lg bg-surface border border-outline-variant focus:border-secondary outline-none"
-                        placeholder="Phone"
-                    />
+                    {/* PHONE */}
+                    <div>
+                        <label className="text-xs text-on-surface-variant uppercase mb-1 block">
+                            Phone
+                        </label>
+                        <input
+                            value={user.phone}
+                            disabled={!editing}
+                            onChange={(e) =>
+                                setUser({ ...user, phone: e.target.value })
+                            }
+                            className="w-full px-4 py-3 rounded-t-md bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary outline-none backdrop-blur-sm"
+                            placeholder="Phone"
+                        />
+                    </div>
 
-                    {/* Email (disabled always) */}
-                    <input
-                        value={user.email}
-                        disabled
-                        className="p-3 rounded-lg bg-surface border border-outline-variant opacity-70 col-span-full"
-                        placeholder="Email"
-                    />
+                    {/* EMAIL */}
+                    <div className="col-span-full">
+                        <label className="text-xs text-on-surface-variant uppercase mb-1 block">
+                            Email
+                        </label>
+                        <input
+                            value={user.email}
+                            disabled
+                            className="w-full px-4 py-3 rounded-t-md bg-surface-container-low border-dashed border-outline-variant opacity-60 outline-none"
+                            placeholder="Email"
+                        />
+                    </div>
                 </div>
 
-                {/* Actions */}
+                {/* ACTIONS */}
                 <div className="flex gap-3">
                     {editing ? (
                         <>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="px-5 py-2 rounded-lg bg-secondary text-white font-medium hover:opacity-90 transition disabled:opacity-60"
+                                className="px-5 py-2 rounded-lg bg-linear-to-r from-primary-container to-surface-tint text-on-primary font-medium hover:shadow-[0_0_10px_rgba(98,250,227,0.3)] transition disabled:opacity-60"
                             >
                                 {saving ? "Saving..." : "Save"}
                             </button>
 
                             <button
                                 onClick={() => setEditing(false)}
-                                className="px-5 py-2 rounded-lg border border-outline-variant text-on-surface"
+                                className="px-5 py-2 rounded-lg border border-outline-variant text-on-surface hover:bg-surface-container-high transition"
                             >
                                 Cancel
                             </button>
