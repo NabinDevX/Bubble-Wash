@@ -26,35 +26,50 @@ export default function CustomerDashboard() {
 
         if (ordersRes.status === "fulfilled") {
           const data = ordersRes.value;
-          const list =
-            data?.orders ??
-            data?.data?.orders ??
-            data?.data ??
-            data ??
-            [];
+
+          console.log("CORRECT DATA:", data);
+
+          const list = Array.isArray(data?.orders)
+            ? data.orders
+            : Array.isArray(data)
+              ? data
+              : [];
+
+          console.log("FINAL LIST:", list);
+
           setActiveOrderCount(
-            list.filter((o) =>
-              ["pending", "processing", "picked up", "in transit"].includes(
-                String(o.status).toLowerCase()
-              )
-            ).length
+            list.filter((o) => {
+              const status = String(o.status ?? o.orderStatus).toLowerCase();
+
+              return [
+                "order_initiated",
+                "pending",
+                "processing",
+                "picked up",
+                "picked_up",
+                "in transit",
+                "in_transit",
+                "out for delivery",
+                "out_for_delivery",
+              ].includes(status);
+            }).length
           );
+
           setRecentOrders(
             list.slice(0, 3).map((o) => ({
               id: o.orderId ?? o._id ?? o.id,
-              status: o.status ?? "Pending",
+              status: o.status ?? o.orderStatus ?? "Pending",
               date: o.createdAt
-                ? new Date(o.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })
+                ? new Date(o.createdAt).toLocaleDateString()
                 : "—",
-              amount: o.totalAmount ? `$${o.totalAmount}` : "—",
-              color: ["Delivered", "Completed"].includes(o.status)
-                ? "text-secondary"
-                : "text-amber-600",
-            })),
+              amount: o.totalAmount ? `₹${o.totalAmount}` : "—",
+              color:
+                ["delivered", "completed"].includes(
+                  String(o.status ?? o.orderStatus).toLowerCase()
+                )
+                  ? "text-secondary"
+                  : "text-amber-600",
+            }))
           );
         }
 
@@ -340,9 +355,12 @@ export default function CustomerDashboard() {
               <h3 className="font-headline-sm text-headline-sm">
                 Recent Orders
               </h3>
-              <span className="font-label-sm text-label-sm text-secondary cursor-pointer hover:underline">
+              <Link
+                to="/customer/orders"
+                className="font-label-sm text-label-sm text-secondary hover:underline"
+              >
                 View All
-              </span>
+              </Link>
             </div>
             <div className="space-y-4">
               {recentOrders.map((order) => (

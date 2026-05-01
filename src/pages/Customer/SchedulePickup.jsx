@@ -157,7 +157,15 @@ export default function SchedulePickup() {
 
       console.log("ORDER ID:", orderId);
 
-      navigate("/customer/checkout", { state: { orderId }, replace: true });
+      navigate("/customer/checkout", {
+        state: {
+          orderId,
+          orderItems: payload.orderItems,
+          pickupAddress: payload.pickupAddress,
+          pickupSlot: payload.pickupSlotId,
+        },
+        replace: true,
+      });
 
     } catch (err) {
       setError(err.message || "Failed to create order");

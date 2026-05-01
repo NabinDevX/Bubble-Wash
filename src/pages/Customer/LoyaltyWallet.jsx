@@ -24,10 +24,15 @@ export default function LoyaltyWallet() {
         api.get("/users/settings/referral-status"),
       ]);
 
+      // DEBUG LOGS
+      console.log("WALLET API:", wR);
+      console.log("HISTORY API:", hR);
+      console.log("REFERRAL API:", rR);
+
       if (wR.status === "fulfilled") {
-        const w = wR.value ?? {};
+        const w = wR.value?.data ?? wR.value ?? {};
         const balance = Number(w.balance ?? w.points ?? 0) || 0;
-        const target = Number(w.nextTierTarget ?? 0) || 0;
+        const target = Math.max(0, Number(w.nextTierTarget) || 0);
         const progress =
           target > 0
             ? Math.min(100, Math.max(0, Math.round((balance / target) * 100)))
@@ -44,7 +49,14 @@ export default function LoyaltyWallet() {
       }
 
       if (hR.status === "fulfilled") {
-        const list = hR.value?.history ?? hR.value?.data ?? hR.value ?? [];
+        const raw = hR.value?.data ?? hR.value ?? {};
+        const list = Array.isArray(raw.history)
+          ? raw.history
+          : Array.isArray(raw.transactions)
+            ? raw.transactions
+            : Array.isArray(raw)
+              ? raw
+              : [];
         const arr = Array.isArray(list) ? list : [];
         setActivity(
           arr.slice(0, 5).map((i) => {
@@ -62,10 +74,10 @@ export default function LoyaltyWallet() {
               name: i.description ?? i.title ?? "Transaction",
               date: i.createdAt
                 ? new Date(i.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
                 : "—",
               points: `${points > 0 ? "+" : ""}${points} pts`,
             };
@@ -183,7 +195,7 @@ export default function LoyaltyWallet() {
             <div className="space-y-4">
               {activity.map((item) => (
                 <div
-                  key={item.name + item.date}
+                  key={item.name + item.date + item.points}
                   className="flex items-center justify-between p-3 bg-surface/30 rounded-lg border border-outline-variant/20 hover:bg-surface/50 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center space-x-4">
@@ -245,9 +257,10 @@ export default function LoyaltyWallet() {
                   </code>
                   <button
                     className="text-secondary hover:text-secondary-fixed-dim transition-colors p-2"
-                    onClick={() =>
-                      navigator.clipboard?.writeText(referral.referralCode)
-                    }
+                    onClick={() => {
+                      navigator.clipboard?.writeText(referral.referralCode);
+                      alert("Referral code copied!");
+                    }}
                   >
                     <span className="material-symbols-outlined">
                       content_copy

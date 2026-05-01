@@ -21,10 +21,14 @@ import RiderPickupList from "./pages/Rider/PickupList.jsx";
 import RiderDeliveryList from "./pages/Rider/DeliveryList.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import SignUp from "./pages/SignUp.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 import RequireRole from "./components/RequireRole.jsx";
 
 import CustomerLayout from "./pages/Customer/Layout.jsx";
+import Profile from "./pages/Customer/Profile.jsx";
+import Notifications from "./pages/Customer/Notifications.jsx";
 import CustomerDashboard from "./pages/Customer/Dashboard.jsx";
+import AllOrders from "./pages/Customer/AllOrders.jsx";
 import SchedulePickup from "./pages/Customer/SchedulePickup.jsx";
 import CheckoutPayment from "./pages/Customer/CheckoutPayment.jsx";
 import TrackOrder from "./pages/Customer/TrackOrder.jsx";
@@ -80,7 +84,10 @@ function App() {
           }
         >
           <Route index element={<CustomerDashboard />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="notifications" element={<Notifications />} />
           <Route path="schedule" element={<SchedulePickup />} />
+          <Route path="orders" element={<AllOrders />} />
           <Route path="checkout" element={<CheckoutPayment />} />
           <Route path="track" element={<TrackOrder />} />
           <Route path="invoice" element={<InvoiceDetails />} />
@@ -89,6 +96,7 @@ function App() {
         </Route>
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

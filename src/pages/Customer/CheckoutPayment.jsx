@@ -54,29 +54,40 @@ export default function CheckoutPayment() {
     try {
       if (!orderId) {
         setError("Order not found. Please create order again.");
-        setPaying(false);
         return;
       }
 
       console.log("INITIATING PAYMENT:", { orderId, paymentMethod });
 
-      const response = await api.post("/payments/initiate", {
+      await api.post("/payments/initiate", {
         orderId,
         paymentMethod,
+        cartItems: location.state?.orderItems || [],
+        pickupAddress: location.state?.pickupAddress || {},
+        pickupSlot: location.state?.pickupSlot || null,
       });
 
-      const res = response.data || response;
+      const res = response?.data ?? response;
 
+      console.log("PAYMENT RESPONSE:", res);
+
+      if (!res) {
+        throw new Error("Invalid payment response");
+      }
+
+      //  Gateway redirect
       if (res?.paymentUrl || res?.gatewayUrl) {
         window.location.href = res.paymentUrl ?? res.gatewayUrl;
-      } else {
-        if (res.paymentId) {
-          await api.get(`/payments/${res.paymentId}`);
-        }
-
-        // TODO: Replace manual redirect with backend-driven payment success flow
-        window.location.href = `/customer/feedback?orderId=${orderId}`;
+        return;
       }
+
+      //  Instant success flow
+      if (res?.paymentId) {
+        await api.get(`/payments/${res.paymentId}`);
+      }
+
+      //  Final fallback success
+      window.location.href = `/customer/feedback?orderId=${orderId}`;
 
     } catch (err) {
       console.error("PAYMENT ERROR:", err.response?.data || err.message);

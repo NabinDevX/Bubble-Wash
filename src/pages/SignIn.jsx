@@ -120,12 +120,12 @@ export default function SignIn() {
                   >
                     PASSWORD
                   </label>
-                  <a
+                  <Link
+                    to="/forgot-password"
                     className="font-label-sm text-label-sm text-secondary hover:underline"
-                    href="#"
                   >
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative group">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-secondary transition-colors">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 import CustomerSidebar from "../../components/CustomerSidebar.jsx";
 
@@ -12,6 +12,7 @@ const navItems = [
 ];
 
 export default function CustomerLayout() {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   function toggleSidebar() {
@@ -54,6 +55,7 @@ export default function CustomerLayout() {
           <div className="flex items-center space-x-4">
             <button
               type="button"
+              onClick={() => navigate("/customer/notifications")}
               className="relative w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
               aria-label="Notifications"
             >
@@ -62,6 +64,7 @@ export default function CustomerLayout() {
             </button>
             <button
               type="button"
+              onClick={() => navigate("/customer/profile")}
               className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
               aria-label="Profile"
             >
