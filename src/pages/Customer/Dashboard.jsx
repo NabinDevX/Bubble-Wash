@@ -5,15 +5,19 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
+
   const [services, setServices] = useState([]);
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [walletData, setWalletData] = useState({
-    points: "—",
-    savedThisMonth: "—",
-    totalSaved: "—",
+    balance: 0,
+    points: 0,
   });
-  const [activeOrderCount, setActiveOrderCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+
+  const serviceImages = [
+    "https://plus.unsplash.com/premium_photo-1664372899366-d5fb20b332d1?w=400",
+    "https://images.unsplash.com/photo-1740684589228-54b6fba08985?w=400",
+    "https://images.unsplash.com/photo-1545042746-ec9e5a59b359?w=400",
+  ];
 
   useEffect(() => {
     async function fetchData() {
@@ -26,388 +30,242 @@ export default function CustomerDashboard() {
 
         if (ordersRes.status === "fulfilled") {
           const data = ordersRes.value;
-
-          console.log("CORRECT DATA:", data);
-
-          const list = Array.isArray(data?.orders)
-            ? data.orders
-            : Array.isArray(data)
-              ? data
-              : [];
-
-          console.log("FINAL LIST:", list);
-
-          setActiveOrderCount(
-            list.filter((o) => {
-              const status = String(o.status ?? o.orderStatus).toLowerCase();
-
-              return [
-                "order_initiated",
-                "pending",
-                "processing",
-                "picked up",
-                "picked_up",
-                "in transit",
-                "in_transit",
-                "out for delivery",
-                "out_for_delivery",
-              ].includes(status);
-            }).length
-          );
-
-          setRecentOrders(
-            list.slice(0, 3).map((o) => ({
-              id: o.orderId ?? o._id ?? o.id,
-              status: o.status ?? o.orderStatus ?? "Pending",
-              date: o.createdAt
-                ? new Date(o.createdAt).toLocaleDateString()
-                : "—",
-              amount: o.totalAmount ? `₹${o.totalAmount}` : "—",
-              color:
-                ["delivered", "completed"].includes(
-                  String(o.status ?? o.orderStatus).toLowerCase()
-                )
-                  ? "text-secondary"
-                  : "text-amber-600",
-            }))
-          );
+          const list = data?.orders ?? data?.data ?? data ?? [];
+          setOrders(list);
         }
 
         if (servicesRes.status === "fulfilled") {
           const data = servicesRes.value;
-          const list =
-            data?.services ??
-            data?.data?.services ??
-            data?.data ??
-            data ??
-            [];
-          const iconMap = {
-            wash: "local_laundry_service",
-            iron: "iron",
-            wash_and_iron: "checkroom",
-            "wash & iron": "checkroom",
-            dry_clean: "dry_cleaning",
-            "dry clean": "dry_cleaning",
-          };
-          setServices(
-            list.map((s) => {
-              const categoryKey = String(s.category ?? s.name ?? "")
-                .toLowerCase()
-                .trim();
-              return {
-                id: s._id ?? s.id ?? s.name,
-                icon: iconMap[categoryKey] ?? "dry_cleaning",
-                title: s.name ?? "—",
-                desc: s.description ?? "—",
-                category: s.category ?? "—",
-                isActive: Boolean(s.isActive ?? true),
-                pricePerKg: s.pricePerKg,
-                estimatedDeliveryDays: s.estimatedDeliveryDays,
-              };
-            }),
-          );
+          const list = data?.services ?? data?.data ?? data ?? [];
+          setServices(list);
         }
 
         if (walletRes.status === "fulfilled") {
-          const wRaw = walletRes.value;
-          const w = wRaw?.data ?? wRaw;
+          const w = walletRes.value?.data ?? walletRes.value;
           setWalletData({
-            points: String(w.balance ?? w.points ?? 0).replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ",",
-            ),
-            savedThisMonth:
-              (w.savedThisMonth ?? w.monthlyEarnings)
-                ? `+${w.monthlyEarnings ?? 0}`
-                : "+0",
-            totalSaved: w.totalSaved ? `$${w.totalSaved}` : "$0",
+            balance: w.balance ?? 0,
+            points: w.points ?? 0,
           });
         }
-      } catch {
-        // fallback to empty
-      } finally {
-        setLoading(false);
-      }
+      } catch { }
     }
+
     fetchData();
   }, []);
 
-  // Fallback display name
-  const displayName = user?.name?.split(" ")[0] ?? "there";
+  const displayName = user?.name?.split(" ")[0] ?? "User";
+
+  const activeOrder = orders.find(
+    (o) =>
+      !["delivered", "completed"].includes(
+        String(o.status ?? o.orderStatus).toLowerCase()
+      )
+  );
+
+  const recentOrders = orders.slice(0, 3);
 
   return (
-    <div className="px-margin-mobile md:px-margin-desktop max-w-[1280px] mx-auto">
-      {/* Hero Header */}
-      <header className="mb-stack-lg text-center md:text-left mt-8 md:mt-0">
-        <p className="font-label-md text-label-md text-secondary mt-2 mb-2 uppercase tracking-widest">
-          Welcome back
-        </p>
-        <h1 className="font-display-lg text-headline-md md:text-display-lg text-primary">
-          Hello, <span className="text-gradient">{displayName}</span>
-        </h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">
-          Your premium laundry service is just a tap away. Schedule a pickup or
-          track your orders.
-        </p>
-      </header>
+    <div className="max-w-[1280px] mx-auto px-6 py-6 bg-[#f6f7fb] min-h-screen">
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter mb-stack-lg">
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group md:hover:scale-[1.02] transition-transform duration-300">
-          <div
-            className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none"
-            style={{ background: "rgba(37, 196, 143, 0.25)" }}
-          />
-          <div className="flex items-center gap-3 mb-3 min-w-0">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-              style={{
-                background: "linear-gradient(135deg, #0f8d65, #25c48f)",
-              }}
-            >
-              <span className="material-symbols-outlined text-sm">
-                shopping_bag
+      {/* HEADER */}
+      <div className="mb-6">
+        <h1 className="text-xl md:text-2xl font-semibold text-gray-800">
+          Welcome back, {displayName}!
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">
+          Your garments are in safe hands today.
+        </p>
+      </div>
+
+      {/* ACTIVE ORDER */}
+      {activeOrder && (
+        <div className="bg-[#f1f3f7] rounded-3xl p-6 flex justify-between items-center border border-gray-200 mb-6">
+
+          <div className="flex-1">
+
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xs bg-teal-100 text-teal-700 px-3 py-1 rounded-full font-medium">
+                ACTIVE ORDER
+              </span>
+              <span className="text-sm text-gray-500">
+                Order #{activeOrder._id || activeOrder.id}
               </span>
             </div>
-            <span className="font-label-sm text-label-sm md:font-label-md md:text-label-md text-on-surface-variant uppercase tracking-wider whitespace-normal break-words leading-tight">
-              Active Orders
-            </span>
+
+            <h3 className="font-semibold text-lg text-gray-800">
+              In Workshop
+            </h3>
+
+            <p className="text-sm text-gray-500">
+              Precision cleaning your premium garments
+            </p>
+
+            {/* Progress */}
+            <div className="mt-3">
+              <p className="text-sm text-blue-500 font-medium mb-1">
+                Progress: 65%
+              </p>
+
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-blue-500 to-teal-400 w-[65%] rounded-full transition-all duration-500" />
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Est. Delivery: Tomorrow, 10 AM
+            </p>
           </div>
-          <p className="font-display-lg text-headline-md md:text-display-lg text-primary leading-none">
-            {loading ? "—" : activeOrderCount}
-          </p>
+
+          <Link
+            to={`/customer/track?orderId=${activeOrder._id}`}
+            className="border px-4 py-2 rounded-lg bg-white hover:bg-gray-100 transition"
+          >
+            Track Live
+          </Link>
+        </div>
+      )}
+
+      {/* STATS */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+
+        <div className="bg-[#f1f3f7] rounded-2xl p-5 flex items-center gap-4 border border-gray-200">
+          <span className="material-symbols-outlined text-blue-500">
+            account_balance_wallet
+          </span>
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wider">
+              WALLET BALANCE
+            </p>
+            <h2 className="font-semibold text-gray-800">
+              ₹{walletData.balance}
+            </h2>
+          </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group md:hover:scale-[1.02] transition-transform duration-300">
-          <div
-            className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none"
-            style={{ background: "rgba(138, 240, 205, 0.3)" }}
-          />
-          <div className="flex items-center gap-3 mb-3 min-w-0">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-              style={{
-                background: "linear-gradient(135deg, #0b5a49, #0f8d65)",
-              }}
-            >
-              <span className="material-symbols-outlined text-sm">stars</span>
-            </div>
-            <span className="font-label-sm text-label-sm md:font-label-md md:text-label-md text-on-surface-variant uppercase tracking-wider whitespace-normal break-words leading-tight">
-              Loyalty Points
-            </span>
+        <div className="bg-[#f1f3f7] rounded-2xl p-5 flex items-center gap-4 border border-gray-200">
+          <span className="material-symbols-outlined text-green-500">
+            receipt_long
+          </span>
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wider">
+              TOTAL ORDERS
+            </p>
+            <h2 className="font-semibold text-gray-800">
+              {orders.length}
+            </h2>
           </div>
-          <p className="font-display-lg text-headline-md md:text-display-lg text-primary leading-none">
-            {walletData.points}
-          </p>
-          <p className="font-label-sm text-label-sm text-secondary mt-1 flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">
-              trending_up
-            </span>
-            {walletData.savedThisMonth} this month
-          </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group md:hover:scale-[1.02] transition-transform duration-300">
-          <div
-            className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none"
-            style={{ background: "rgba(11, 90, 73, 0.15)" }}
-          />
-          <div className="flex items-center gap-3 mb-3 min-w-0">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-              style={{
-                background: "linear-gradient(135deg, #25c48f, #8af0cd)",
-              }}
-            >
-              <span className="material-symbols-outlined text-sm">savings</span>
-            </div>
-            <span className="font-label-sm text-label-sm md:font-label-md md:text-label-md text-on-surface-variant uppercase tracking-wider whitespace-normal break-words leading-tight">
-              Total Saved
-            </span>
+        <div className="bg-[#f1f3f7] rounded-2xl p-5 flex items-center gap-4 border border-gray-200">
+          <span className="material-symbols-outlined text-purple-500">
+            confirmation_number
+          </span>
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wider">
+              ACTIVE VOUCHERS
+            </p>
+            <h2 className="font-semibold text-gray-800">03</h2>
           </div>
-          <p className="font-display-lg text-headline-md md:text-display-lg text-primary leading-none">
-            {walletData.totalSaved}
-          </p>
+        </div>
+
+      </div>
+
+      {/* INSTANT SCHEDULING */}
+      <div className="mb-10">
+
+        <h3 className="mb-4 font-semibold text-gray-800">
+          Instant Scheduling
+        </h3>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {services.slice(0, 3).map((svc, index) => (
+            <div
+              key={svc._id}
+              className="bg-[#f8fafc] rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
+            >
+
+              {/* IMAGE */}
+              <img
+                src={serviceImages[index]}
+                className="h-52 w-full object-cover"
+              />
+
+              {/* CONTENT */}
+              <div className="p-5">
+
+                <h4 className="font-semibold text-gray-800 text-sm">
+                  {svc.name}
+                </h4>
+
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">
+                  {svc.description}
+                </p>
+
+                {/* BUTTON */}
+                <Link
+                  to="/customer/schedule"
+                  className="mt-4 w-full block text-center py-2 rounded-full border border-teal-400 text-teal-600 text-sm font-medium hover:bg-teal-50 transition"
+                >
+                  Schedule Now
+                </Link>
+
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        {/* Services Section */}
-        <div className="lg:col-span-7 space-y-stack-md">
-          <section className="glass-card rounded-2xl p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                style={{
-                  background: "linear-gradient(135deg, #0f8d65, #25c48f)",
-                }}
-              >
-                <span className="material-symbols-outlined">dry_cleaning</span>
-              </div>
-              <h2 className="font-headline-sm text-headline-sm">
-                Our Services
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {services.map((svc) => (
-                <div
-                  key={svc.id}
-                  className={
-                    "p-5 rounded-xl border border-outline-variant/30 bg-white/20 transition-all duration-300 group " +
-                    (svc.isActive
-                      ? "md:hover:bg-white/40 md:hover:scale-[1.02] cursor-pointer"
-                      : "opacity-70")
-                  }
-                >
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-secondary shrink-0"
-                        style={{ background: "rgba(138, 240, 205, 0.25)" }}
-                      >
-                        <span className="material-symbols-outlined">
-                          {svc.icon}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-label-md text-label-md text-primary truncate">
-                          {svc.title}
-                        </h3>
-                        <p className="font-label-sm text-label-sm text-on-surface-variant truncate">
-                          {String(svc.category ?? "").replace(/_/g, " ")}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={
-                        "font-label-sm text-label-sm px-2 py-1 rounded-full border " +
-                        (svc.isActive
-                          ? "text-secondary border-secondary/30 bg-secondary-container/20"
-                          : "text-on-surface-variant border-outline-variant/40 bg-surface/40")
-                      }
-                    >
-                      {svc.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </div>
+      {/* RECENT ACTIVITY */}
+      <div>
 
-                  <p className="font-body-md text-body-md text-on-surface-variant text-sm leading-relaxed break-words">
-                    {svc.desc}
-                  </p>
+        <div className="flex justify-between mb-4">
+          <h3 className="font-semibold text-gray-800">
+            Recent Activity
+          </h3>
 
-                  <div className="mt-4 pt-4 border-t border-outline-variant/20 flex flex-col gap-2">
-
-                    {/* PRICE BOX */}
-                    <div className="bg-surface/30 rounded-lg p-3 border border-outline-variant/20 text-center">
-                      <div className="text-xs text-on-surface-variant uppercase tracking-wider">
-                        Price
-                      </div>
-                      <div className="font-label-md text-on-surface">
-                        {svc.pricePerKg != null ? `₹${svc.pricePerKg}/kg` : "—"}
-                      </div>
-                    </div>
-
-                    {/* DELIVERY BOX */}
-                    <div className="bg-surface/30 rounded-lg p-3 border border-outline-variant/20 text-center">
-                      <div className="text-xs text-on-surface-variant uppercase tracking-wider">
-                        Delivery
-                      </div>
-                      <div className="font-label-md text-on-surface">
-                        {svc.estimatedDeliveryDays != null
-                          ? `${svc.estimatedDeliveryDays} days`
-                          : "—"}
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              ))}
-            </div>
-            {!loading && services.length === 0 ? (
-              <p className="text-on-surface-variant text-sm mt-4">
-                No services available.
-              </p>
-            ) : null}
-          </section>
-
-          {/* CTA */}
           <Link
-            to="/customer/schedule"
-            className="cta-gradient text-white rounded-2xl p-6 md:p-8 flex items-center justify-between group md:hover:scale-[1.01] transition-transform duration-300"
+            to="/customer/orders"
+            className="text-blue-500 text-sm"
           >
-            <div>
-              <h3 className="font-headline-sm text-headline-sm text-white mb-1">
-                Schedule a Pickup
-              </h3>
-              <p className="text-white/80 text-sm">
-                Fresh clothes, delivered to your door.
-              </p>
-            </div>
-            <span className="material-symbols-outlined text-white/80 group-hover:translate-x-1 transition-transform duration-300">
-              arrow_forward
-            </span>
+            View All History
           </Link>
         </div>
 
-        {/* Recent Orders */}
-        <div className="lg:col-span-5">
-          <section className="glass-card rounded-2xl p-6 md:p-8 lg:sticky lg:top-28">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-headline-sm text-headline-sm">
-                Recent Orders
-              </h3>
-              <Link
-                to="/customer/orders"
-                className="font-label-sm text-label-sm text-secondary hover:underline"
-              >
-                View All
-              </Link>
-            </div>
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  to={`/customer/track?orderId=${encodeURIComponent(order.id)}`}
-                  className="flex items-center justify-between p-4 rounded-xl bg-white/20 border border-outline-variant/20 hover:bg-white/40 transition-colors cursor-pointer min-w-0"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-secondary"
-                      style={{ background: "rgba(138, 240, 205, 0.25)" }}
-                    >
-                      <span className="material-symbols-outlined text-sm">
-                        receipt_long
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-label-md text-label-md text-primary truncate">
-                        {order.id}
-                      </p>
-                      <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        {order.date}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-label-md text-label-md text-primary">
-                      {order.amount}
-                    </p>
-                    <p className={`font-label-sm text-label-sm ${order.color}`}>
-                      {order.status}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-              {!loading && recentOrders.length === 0 ? (
-                <div className="p-4 rounded-xl bg-white/20 border border-outline-variant/20">
-                  <p className="text-on-surface-variant text-sm">
-                    No orders yet.
+        <div className="space-y-4">
+          {recentOrders.map((order) => (
+            <div
+              key={order._id}
+              className="bg-white rounded-2xl p-4 flex justify-between items-center shadow-sm border-l-4 border-teal-400"
+            >
+              <div className="flex items-center gap-3">
+
+                <span className="material-symbols-outlined text-teal-500">
+                  check_circle
+                </span>
+
+                <div>
+                  <p className="font-medium text-gray-800">
+                    {order.status ?? order.orderStatus}
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString()} • ₹{order.totalAmount || 0}
                   </p>
                 </div>
-              ) : null}
+              </div>
+
+              <Link
+                to={`/customer/track?orderId=${order._id}`}
+                className="text-blue-500 text-sm"
+              >
+                View Details →
+              </Link>
             </div>
-          </section>
+          ))}
         </div>
+
       </div>
+
     </div>
   );
 }
