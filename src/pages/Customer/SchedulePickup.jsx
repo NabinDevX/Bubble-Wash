@@ -4,7 +4,27 @@ import api from "../../lib/api.js";
 
 export default function SchedulePickup() {
   const navigate = useNavigate();
-  const [selectedDay, setSelectedDay] = useState(4);
+
+  // Dynamic Date Setup
+  const today = new Date();
+
+  const [month, setMonth] = useState(today.getMonth());
+  const [year, setYear] = useState(today.getFullYear());
+  const [selectedDay, setSelectedDay] = useState(today.getDate());
+
+  // Get number of days in month
+  function getDaysInMonth(month, year) {
+    return new Date(year, month + 1, 0).getDate();
+  }
+
+  const daysInMonth = getDaysInMonth(month, year);
+  const calendarDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  // Month name
+  const monthName = new Date(year, month).toLocaleString("default", {
+    month: "long",
+  });
+
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedServices, setSelectedServices] = useState([]);
   const [services, setServices] = useState([]);
@@ -18,8 +38,6 @@ export default function SchedulePickup() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  const calendarDays = [29, 30, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   useEffect(() => {
     async function fetchData() {
@@ -98,6 +116,14 @@ export default function SchedulePickup() {
     }
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const daysInNewMonth = new Date(year, month + 1, 0).getDate();
+
+    if (selectedDay > daysInNewMonth) {
+      setSelectedDay(daysInNewMonth);
+    }
+  }, [month, year]);
 
   function toggleService(id) {
     setSelectedServices((prev) =>
@@ -313,19 +339,46 @@ export default function SchedulePickup() {
             {/* Calendar */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-4">
-                <button className="text-on-surface-variant hover:text-on-surface">
+
+                {/* LEFT BUTTON (←) */}
+                <button
+                  onClick={() => {
+                    if (month === 0) {
+                      setMonth(11);
+                      setYear(year - 1);
+                    } else {
+                      setMonth(month - 1);
+                    }
+                  }}
+                  className="text-on-surface-variant hover:text-on-surface"
+                >
                   <span className="material-symbols-outlined">
                     chevron_left
                   </span>
                 </button>
+
+                {/* MONTH + YEAR */}
                 <span className="font-label-md text-label-md">
-                  October 2023
+                  {monthName} {year}
                 </span>
-                <button className="text-on-surface-variant hover:text-on-surface">
+
+                {/* RIGHT BUTTON (→) */}
+                <button
+                  onClick={() => {
+                    if (month === 11) {
+                      setMonth(0);
+                      setYear(year + 1);
+                    } else {
+                      setMonth(month + 1);
+                    }
+                  }}
+                  className="text-on-surface-variant hover:text-on-surface"
+                >
                   <span className="material-symbols-outlined">
                     chevron_right
                   </span>
                 </button>
+
               </div>
               <div className="grid grid-cols-7 gap-1 text-center font-label-sm text-label-sm text-on-surface-variant mb-2">
                 {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -334,14 +387,17 @@ export default function SchedulePickup() {
               </div>
               <div className="grid grid-cols-7 gap-1 text-center">
                 {calendarDays.map((day) => {
-                  const isPrev = day > 20;
-                  const isSelected = day === selectedDay && !isPrev;
+                  const isSelected = day === selectedDay;
+
                   return (
                     <button
                       key={day}
                       type="button"
-                      onClick={() => !isPrev && setSelectedDay(day)}
-                      className={`p-2 rounded-full text-sm transition-all ${isPrev ? "text-on-surface-variant/30 cursor-default" : isSelected ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]" : "hover:bg-white/40 cursor-pointer"}`}
+                      onClick={() => setSelectedDay(day)}
+                      className={`p-2 rounded-full text-sm transition-all ${isSelected
+                        ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
+                        : "hover:bg-white/40 cursor-pointer"
+                        }`}
                     >
                       {day}
                     </button>
