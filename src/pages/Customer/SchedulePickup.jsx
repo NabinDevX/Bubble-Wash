@@ -28,6 +28,15 @@ export default function SchedulePickup() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedServices, setSelectedServices] = useState([]);
   const [services, setServices] = useState([]);
+  // STEP CONTROL
+  const [step, setStep] = useState(1);
+  // QUANTITY STATE
+  const [quantities, setQuantities] = useState({});
+  const subtotal = services.reduce((sum, s) => {
+    if (!selectedServices.includes(s.id)) return sum;
+    return sum + (quantities[s.id] || 1) * (s.price || 0);
+  }, 0);
+
   const [timeSlots, setTimeSlots] = useState([]);
   const [address, setAddress] = useState({
     street: "",
@@ -57,13 +66,30 @@ export default function SchedulePickup() {
             data ??
             [];
           setServices(
-            list.map((s) => ({
-              id: s._id ?? s.id,
-              icon: s.name?.includes("Dry") ? "iron" : "local_laundry_service",
-              name: s.name,
-              desc: s.description ?? "Professional garment care.",
-              popular: s.popular ?? false,
-            })),
+            list.map((s) => {
+              let icon = "local_laundry_service";
+
+              if (s.name.toLowerCase().includes("wash")) {
+                icon = "local_laundry_service";
+              } else if (s.name.toLowerCase().includes("iron")) {
+                icon = "iron";
+              } else if (s.name.toLowerCase().includes("dry")) {
+                icon = "dry_cleaning";
+              } else if (s.name.toLowerCase().includes("fold")) {
+                icon = "checkroom";
+              } else {
+                icon = "cleaning_services"; // fallback
+              }
+
+              return {
+                id: s._id ?? s.id,
+                icon,
+                name: s.name,
+                desc: s.description ?? "Professional garment care.",
+                price: s.price ?? 49,
+                unit: s.unit ?? "kg",
+              };
+            })
           );
         }
 
@@ -127,8 +153,17 @@ export default function SchedulePickup() {
 
   function toggleService(id) {
     setSelectedServices((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+      prev.includes(id)
+        ? prev.filter((s) => s !== id)
+        : [...prev, id]
     );
+  }
+  function updateQty(id, delta) {
+    setQuantities((prev) => {
+      const current = prev[id] || 1;
+      const next = Math.max(1, current + delta);
+      return { ...prev, [id]: next };
+    });
   }
 
   async function handleSubmit() {
@@ -156,7 +191,7 @@ export default function SchedulePickup() {
       const payload = {
         orderItems: selectedServices.map((serviceId) => ({
           service: serviceId,
-          weight: 1,
+          weight: quantities[serviceId] || 1,
         })),
 
         pickupAddress: {
@@ -201,7 +236,7 @@ export default function SchedulePickup() {
   }
 
   return (
-    <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto">
+    <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto pb-24">
       {/* Header */}
       <header className="text-center md:text-left">
         <p className="font-label-md text-label-md text-secondary mb-2 uppercase tracking-widest">
@@ -224,7 +259,7 @@ export default function SchedulePickup() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Address & Services */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-8 space-y-6">
           {/* Address */}
           <section className="glass-card rounded-3xl p-6 md:p-8">
             <div className="flex items-center gap-3 mb-6">
@@ -273,177 +308,294 @@ export default function SchedulePickup() {
             </div>
           </section>
 
-          {/* Services */}
-          <section className="glass-card rounded-3xl p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined">dry_cleaning</span>
+          <div className="space-y-6">
+
+            {/* HEADER */}
+            {step !== 2 && (
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+                  <span className="material-symbols-outlined">
+                    {step === 1 ? "dry_cleaning" : "local_shipping"}
+                  </span>
+                </div>
+
+                <h2 className="font-headline-sm text-headline-sm">
+                  {step === 1 ? "Select Services" : "Delivery Option"}
+                </h2>
               </div>
-              <h2 className="font-headline-sm text-headline-sm">
-                Select Services
-              </h2>
-            </div>
-            {loading ? (
-              <p className="text-on-surface-variant">Loading services…</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            )}
+
+            {/* STEP 1 */}
+            {step === 1 && (
+              <div className="space-y-4">
                 {services.map((s) => {
                   const active = selectedServices.includes(s.id);
+
                   return (
                     <button
                       key={s.id}
-                      type="button"
                       onClick={() => toggleService(s.id)}
-                      className={`w-full p-4 rounded-xl text-left transition-all ${active ? "border-2 border-secondary bg-secondary-container/10" : "border border-white/40 bg-white/20 hover:bg-white/40"}`}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl border ${active
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 bg-white"
+                        }`}
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <span
-                          className={`material-symbols-outlined ${active ? "text-secondary" : "text-on-surface-variant"}`}
-                        >
+                      <div className="flex items-center gap-4">
+                        <span className="material-symbols-outlined text-2xl text-blue-500">
                           {s.icon}
                         </span>
-                        {s.popular && (
-                          <span className="font-label-sm text-label-sm text-secondary bg-secondary-container/20 px-2 py-1 rounded-full">
-                            Popular
-                          </span>
-                        )}
+
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{s.name}</h3>
+                          <p className="text-blue-600 text-sm">
+                            ₹{s.price}/{s.unit}
+                          </p>
+                        </div>
                       </div>
-                      <h3 className="font-label-md text-label-md mb-1 text-on-surface">
-                        {s.name}
-                      </h3>
-                      <p className="text-sm text-on-surface-variant">
-                        {s.desc}
-                      </p>
+
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${active
+                        ? "bg-blue-500 text-white"
+                        : "border-gray-300"
+                        }`}>
+                        {active && "✓"}
+                      </div>
                     </button>
                   );
                 })}
               </div>
             )}
-          </section>
-        </div>
 
-        {/* Right: Calendar & Time */}
-        <div className="lg:col-span-5 space-y-6">
-          <section className="glass-card rounded-3xl p-6 md:p-8 flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined">
-                  calendar_month
-                </span>
-              </div>
-              <h2 className="font-headline-sm text-headline-sm">
-                Schedule Time
-              </h2>
-            </div>
+            {/* GRID START */}
+            {step === 2 && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            {/* Calendar */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
+                {/* ================= LEFT (Laundry Card) ================= */}
+                <div className="lg:col-span-6 space-y-6">
 
-                {/* LEFT BUTTON (←) */}
-                <button
-                  onClick={() => {
-                    if (month === 0) {
-                      setMonth(11);
-                      setYear(year - 1);
-                    } else {
-                      setMonth(month - 1);
-                    }
-                  }}
-                  className="text-on-surface-variant hover:text-on-surface"
-                >
-                  <span className="material-symbols-outlined">
-                    chevron_left
-                  </span>
-                </button>
+                  <section className="glass-card rounded-3xl p-6 md:p-8">
 
-                {/* MONTH + YEAR */}
-                <span className="font-label-md text-label-md">
-                  {monthName} {year}
-                </span>
+                    <div className="flex items-center gap-3 mb-6">
+                      <span className="material-symbols-outlined text-secondary">
+                        local_laundry_service
+                      </span>
+                      <h2>Laundry Details</h2>
+                    </div>
 
-                {/* RIGHT BUTTON (→) */}
-                <button
-                  onClick={() => {
-                    if (month === 11) {
-                      setMonth(0);
-                      setYear(year + 1);
-                    } else {
-                      setMonth(month + 1);
-                    }
-                  }}
-                  className="text-on-surface-variant hover:text-on-surface"
-                >
-                  <span className="material-symbols-outlined">
-                    chevron_right
-                  </span>
-                </button>
+                    <div className="space-y-4">
+                      {services
+                        .filter((s) => selectedServices.includes(s.id))
+                        .map((s) => (
+                          <div
+                            key={s.id}
+                            className="flex items-center justify-between bg-white border p-4 rounded-xl"
+                          >
+                            <div className="flex items-center gap-4">
+                              <span className="material-symbols-outlined text-blue-500">
+                                {s.icon}
+                              </span>
+                              <div>
+                                <h3>{s.name}</h3>
+                                <p>₹{s.price}/{s.unit}</p>
+                              </div>
+                            </div>
 
-              </div>
-              <div className="grid grid-cols-7 gap-1 text-center font-label-sm text-label-sm text-on-surface-variant mb-2">
-                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                  <div key={i}>{d}</div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-1 text-center">
-                {calendarDays.map((day) => {
-                  const isSelected = day === selectedDay;
+                            <div className="flex items-center gap-3">
+                              <button onClick={() => updateQty(s.id, -1)}>-</button>
+                              <span>{quantities[s.id] || 1}</span>
+                              <button onClick={() => updateQty(s.id, 1)}>+</button>
+                            </div>
+                          </div>
+                        ))}
 
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => setSelectedDay(day)}
-                      className={`p-2 rounded-full text-sm transition-all ${isSelected
-                        ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
-                        : "hover:bg-white/40 cursor-pointer"
-                        }`}
-                    >
-                      {day}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      <div className="flex justify-between bg-gray-100 p-4 rounded-xl font-semibold">
+                        <span>Subtotal</span>
+                        <span>₹{subtotal}</span>
+                      </div>
+                    </div>
 
-            {/* Time Slots */}
-            <div className="mt-auto">
-              <h3 className="font-label-md text-label-md mb-3 text-on-surface-variant">
-                Available Windows
-              </h3>
-              {loading ? (
-                <p className="text-on-surface-variant">Loading slots…</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {timeSlots.map((slot, i) => (
-                    <button
-                      key={slot.id}
-                      type="button"
-                      disabled={!slot.available}
-                      onClick={() => setSelectedSlot(slot.id)}
-                      className={`py-3 px-4 rounded-lg text-sm transition-colors ${!slot.available ? "border border-white/40 bg-white/20 text-on-surface-variant/50 cursor-not-allowed" : slot.id === selectedSlot ? "border-2 border-secondary bg-secondary-container/10 text-on-surface" : "border border-white/40 bg-white/20 hover:bg-white/40"}`}
-                    >
-                      {slot.label}
-                    </button>
-                  ))}
+                  </section>
+
                 </div>
-              )}
-            </div>
-          </section>
 
-          {/* Action */}
-          <div className="flex justify-end">
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="w-full md:w-auto bg-linear-to-r from-secondary to-secondary-container text-on-secondary px-8 py-4 rounded-full font-label-md text-label-md hover:shadow-[0_0_20px_rgba(98,250,227,0.4)] transition-shadow duration-300 flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {submitting ? "Creating Order…" : "Continue to Payment"}
-              <span className="material-symbols-outlined">arrow_forward</span>
-            </button>
+
+                {/* ================= RIGHT (Schedule Card) ================= */}
+                <div className="lg:col-span-6 space-y-6">
+
+                  <section className="glass-card rounded-3xl p-6 md:p-8 w-full">
+
+                    <div className="flex items-center gap-3 mb-6">
+                      <span className="material-symbols-outlined text-secondary">
+                        calendar_month
+                      </span>
+                      <h2>Schedule Time</h2>
+                    </div>
+
+                    {/* Calendar */}
+                    <div className="mb-6">
+                      {/* Calendar */}
+                      <div className="mb-6">
+                        <div className="flex justify-between items-center mb-4">
+
+                          <button
+                            onClick={() => {
+                              if (month === 0) {
+                                setMonth(11);
+                                setYear(year - 1);
+                              } else {
+                                setMonth(month - 1);
+                              }
+                            }}
+                            className="text-on-surface-variant hover:text-on-surface"
+                          >
+                            <span className="material-symbols-outlined">
+                              chevron_left
+                            </span>
+                          </button>
+
+                          <span className="font-label-md text-label-md">
+                            {monthName} {year}
+                          </span>
+
+                          <button
+                            onClick={() => {
+                              if (month === 11) {
+                                setMonth(0);
+                                setYear(year + 1);
+                              } else {
+                                setMonth(month + 1);
+                              }
+                            }}
+                            className="text-on-surface-variant hover:text-on-surface"
+                          >
+                            <span className="material-symbols-outlined">
+                              chevron_right
+                            </span>
+                          </button>
+
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1 text-center font-label-sm text-label-sm text-on-surface-variant mb-2">
+                          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                            <div key={i}>{d}</div>
+                          ))}
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1 text-center">
+                          {calendarDays.map((day) => {
+                            const isSelected = day === selectedDay;
+
+                            return (
+                              <button
+                                key={day}
+                                type="button"
+                                onClick={() => setSelectedDay(day)}
+                                className={`p-2 rounded-full text-sm transition-all ${isSelected
+                                  ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
+                                  : "hover:bg-white/40 cursor-pointer"
+                                  }`}
+                              >
+                                {day}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Slots */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {timeSlots.map((slot) => (
+                        <button
+                          key={slot.id}
+                          onClick={() => setSelectedSlot(slot.id)}
+                          className={`p-3 rounded-lg border ${slot.id === selectedSlot
+                            ? "border-secondary bg-secondary-container/20"
+                            : "border-gray-300"
+                            }`}
+                        >
+                          {slot.label}
+                        </button>
+                      ))}
+                    </div>
+
+                  </section>
+
+                </div>
+
+              </div>
+            )}
+            {/* GRID END */}
+
+            {/* STEP 3 (DELIVERY INSIDE SAME BOX) */}
+            {step === 3 && (
+              <div className="space-y-4">
+
+                <div className="border-2 border-blue-500 bg-blue-50 rounded-xl p-4 flex justify-between items-center cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Standard Delivery</h3>
+                      <p className="text-sm text-gray-500">48 hours turnaround</p>
+                    </div>
+                  </div>
+                  <span className="bg-gray-200 px-3 py-1 rounded-full text-sm">Free</span>
+                </div>
+
+                <div className="border rounded-xl p-4 flex justify-between items-center cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-400"></div>
+                    <div>
+                      <h3 className="font-semibold">Express Delivery</h3>
+                      <p className="text-sm text-gray-500">24 hours turnaround</p>
+                    </div>
+                  </div>
+                  <span className="bg-yellow-400 text-white px-3 py-1 rounded-full text-sm">
+                    +₹49
+                  </span>
+                </div>
+
+              </div>
+            )}
+
           </div>
-        </div>
+        </div >
+      </div >
+      <div className="flex justify-between mt-8">
+
+        {/* BACK */}
+        <button
+          onClick={() => setStep((prev) => Math.max(1, prev - 1))}
+          className="px-6 py-3 border rounded-xl"
+        >
+          ← Back
+        </button>
+
+        {/* CONTINUE */}
+        <button
+          onClick={() => {
+            if (step === 1 && selectedServices.length > 0) {
+              setStep(2);
+            }
+            else if (step === 2 && selectedSlot) {
+              setStep(3);
+            }
+            else if (step === 3) {
+              handleSubmit();
+            }
+          }}
+          disabled={
+            (step === 1 && selectedServices.length === 0) ||
+            (step === 2 && !selectedSlot)
+          }
+          className="px-6 py-3 bg-blue-600 text-white rounded-xl disabled:opacity-50"
+        >
+          Continue →
+        </button>
       </div>
-    </div>
+
+    </div >
+
   );
 }
