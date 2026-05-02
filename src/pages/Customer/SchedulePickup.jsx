@@ -47,6 +47,7 @@ export default function SchedulePickup() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [deliveryType, setDeliveryType] = useState("standard");
 
   useEffect(() => {
     async function fetchData() {
@@ -204,6 +205,7 @@ export default function SchedulePickup() {
         },
 
         pickupSlotId: selectedSlot,
+        deliveryType: deliveryType,
       };
 
       console.log("FINAL PAYLOAD:", payload);
@@ -526,31 +528,58 @@ export default function SchedulePickup() {
             )}
             {/* GRID END */}
 
-            {/* STEP 3 (DELIVERY INSIDE SAME BOX) */}
+            {/* STEP 3 */}
             {step === 3 && (
               <div className="space-y-4">
 
-                <div className="border-2 border-blue-500 bg-blue-50 rounded-xl p-4 flex justify-between items-center cursor-pointer">
+                {/* STANDARD */}
+                <div
+                  onClick={() => setDeliveryType("standard")}
+                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "standard"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300"
+                    }`}
+                >
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center">
-                      <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "standard" ? "border-blue-500" : "border-gray-400"
+                      }`}>
+                      {deliveryType === "standard" && (
+                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                      )}
                     </div>
+
                     <div>
                       <h3 className="font-semibold">Standard Delivery</h3>
                       <p className="text-sm text-gray-500">48 hours turnaround</p>
                     </div>
                   </div>
+
                   <span className="bg-gray-200 px-3 py-1 rounded-full text-sm">Free</span>
                 </div>
 
-                <div className="border rounded-xl p-4 flex justify-between items-center cursor-pointer">
+
+                {/* EXPRESS */}
+                <div
+                  onClick={() => setDeliveryType("express")}
+                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "express"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300"
+                    }`}
+                >
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-400"></div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "express" ? "border-blue-500" : "border-gray-400"
+                      }`}>
+                      {deliveryType === "express" && (
+                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                      )}
+                    </div>
+
                     <div>
                       <h3 className="font-semibold">Express Delivery</h3>
                       <p className="text-sm text-gray-500">24 hours turnaround</p>
                     </div>
                   </div>
+
                   <span className="bg-yellow-400 text-white px-3 py-1 rounded-full text-sm">
                     +₹49
                   </span>
@@ -575,19 +604,41 @@ export default function SchedulePickup() {
         {/* CONTINUE */}
         <button
           onClick={() => {
-            if (step === 1 && selectedServices.length > 0) {
+
+            // STEP 1 → SERVICES
+            if (step === 1) {
+              if (selectedServices.length === 0) {
+                setError("Please select at least one service");
+                return;
+              }
+              setError("");
               setStep(2);
             }
-            else if (step === 2 && selectedSlot) {
+
+            // STEP 2 → SLOT + ADDRESS
+            else if (step === 2) {
+              if (!address.street || !address.city || !address.zip) {
+                setError("Please fill address properly");
+                return;
+              }
+
+              if (!selectedSlot) {
+                setError("Please select a time slot");
+                return;
+              }
+
+              setError("");
               setStep(3);
             }
+
+            // STEP 3 → FINAL SUBMIT
             else if (step === 3) {
               handleSubmit();
             }
           }}
           disabled={
             (step === 1 && selectedServices.length === 0) ||
-            (step === 2 && !selectedSlot)
+            (step === 2 && (!selectedSlot || !address.street || !address.city || !address.zip))
           }
           className="px-6 py-3 bg-blue-600 text-white rounded-xl disabled:opacity-50"
         >
