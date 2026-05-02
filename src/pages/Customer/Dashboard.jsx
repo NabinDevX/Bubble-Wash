@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../../lib/api.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [services, setServices] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -12,6 +14,9 @@ export default function CustomerDashboard() {
     balance: 0,
     points: 0,
   });
+
+  const [pincode, setPincode] = useState("");
+  const [available, setAvailable] = useState(null);
 
   const serviceImages = [
     "https://plus.unsplash.com/premium_photo-1664372899366-d5fb20b332d1?w=400",
@@ -63,6 +68,41 @@ export default function CustomerDashboard() {
   );
 
   const recentOrders = orders.slice(0, 3);
+
+  async function handleCheck() {
+    if (!pincode) return;
+
+    try {
+      const res = await api.get(`/users/service-areas?pincode=${pincode}`);
+
+      // handle multiple possible response formats safely
+      const data = res?.data ?? res;
+
+      let isAvailable = false;
+
+      if (data) {
+        // case: single object
+        if (!Array.isArray(data)) {
+          isAvailable = data.isActive === true;
+        }
+
+        // case: array
+        else {
+          isAvailable = data.some(
+            (area) => area.pincode === pincode && area.isActive
+          );
+        }
+      }
+
+      setAvailable(isAvailable);
+
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error("Service check error:", err);
+      }
+      setAvailable(false);
+    }
+  }
 
   return (
     <div className="max-w-[1280px] mx-auto px-6 py-6 bg-[#f6f7fb] min-h-screen">
@@ -166,6 +206,83 @@ export default function CustomerDashboard() {
             </p>
             <h2 className="font-semibold text-gray-800">03</h2>
           </div>
+        </div>
+
+      </div>
+
+      {/* SERVICE AVAILABILITY */}
+      <div className="mb-10">
+
+        <div className="bg-[#f1f3f7] border border-gray-200 rounded-3xl p-6 shadow-sm w-full">
+
+          {/* ICON */}
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
+            <span className="material-symbols-outlined">location_on</span>
+          </div>
+
+          {/* TITLE */}
+          <h3 className="text-lg font-semibold text-gray-800">
+            Check Service Availability
+          </h3>
+
+          <p className="text-sm text-gray-500 mt-1 mb-4">
+            Enter your pincode to see if we serve your area
+          </p>
+
+          {/* INPUT + BUTTON */}
+          <div className="flex gap-2 mb-4">
+
+            <input
+              type="number"
+              value={pincode}
+              onChange={(e) => setPincode(e.target.value)}
+              placeholder="e.g. 700001"
+              className="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-2 outline-none focus:border-blue-400"
+            />
+
+            <button
+              onClick={handleCheck}
+              disabled={!pincode}
+              className={`px-4 py-2 rounded-xl transition ${pincode
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
+            >
+              Check
+            </button>
+          </div>
+
+          {/*  SHOW ONLY AFTER CHECK */}
+          {available === true && (
+            <div className="bg-green-100 text-green-700 text-sm px-4 py-2 rounded-xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm">check_circle</span>
+              We serve your area!
+            </div>
+          )}
+
+          {available === false && (
+            <div className="bg-red-100 text-red-600 text-sm px-4 py-2 rounded-xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm">cancel</span>
+              We don't serve your area for now.
+            </div>
+          )}
+
+          {/* BUTTON */}
+          <button
+            disabled={!available}
+            onClick={() => {
+              if (available) {
+                navigate("/customer/schedule");
+              }
+            }}
+            className={`mt-4 w-full py-2 rounded-xl font-medium transition ${available
+              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+          >
+            Continue →
+          </button>
+
         </div>
 
       </div>
