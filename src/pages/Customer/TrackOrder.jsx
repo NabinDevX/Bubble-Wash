@@ -161,115 +161,159 @@ export default function TrackOrder() {
   const steps = order.steps;
 
   return (
-    <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row gap-6 min-h-[calc(100vh-200px)]">
-        {/* Map */}
-        <div className="flex-1 glass-card rounded-3xl overflow-hidden relative min-h-[420px] md:min-h-0">
-          <div className="absolute inset-0 bg-linear-to-br from-surface-container-low to-surface-container flex items-center justify-center">
-            <span className="material-symbols-outlined text-8xl text-outline-variant/30">
-              map
-            </span>
-          </div>
-          <div className="absolute inset-0 bg-linear-to-t from-surface/80 via-transparent to-surface/30" />
+    <div className="px-4 md:px-8 py-6 max-w-7xl mx-auto">
 
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10">
-            <div className="bg-secondary-container text-on-secondary-container p-3 rounded-full shadow-lg mb-2 relative animate-pulse">
-              <span className="material-symbols-outlined">local_shipping</span>
-              <div className="absolute inset-0 border-2 border-secondary-container rounded-full animate-ping opacity-50" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* LEFT SIDE */}
+        <div className="lg:col-span-2">
+
+          <div className="relative rounded-3xl overflow-hidden h-[440px] bg-gradient-to-br from-[#eef3f6] to-[#f8fbfd] shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+
+            {/* MAP BG */}
+            <div className="absolute inset-0 flex items-center justify-center text-gray-300 opacity-40">
+              <span className="material-symbols-outlined text-[80px]">
+                map
+              </span>
             </div>
-            <div className="bg-surface px-4 py-2 rounded-full shadow-md text-label-sm font-label-sm text-on-surface whitespace-nowrap">
+
+            {/* DRIVER ICON (with pulse animation) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <div className="relative">
+                <div className="absolute inset-0 bg-teal-400 rounded-full animate-ping opacity-40"></div>
+                <div className="relative bg-gradient-to-r from-teal-500 to-green-500 text-white p-3 rounded-full shadow-lg">
+                  <span className="material-symbols-outlined">
+                    local_shipping
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* ETA BADGE */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-5 py-2 rounded-full shadow text-sm font-medium">
               {order.eta !== "—" ? `Arriving: ${order.eta}` : order.status}
             </div>
-          </div>
 
-          <div className="absolute top-6 left-6 right-6 md:right-auto md:w-80 glass-card p-6 rounded-xl z-10">
-            <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">
-              Order {order.id}
-            </h2>
-            <p className="text-outline mb-4">Driver: {order.driverName}</p>
-            <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-lg">
-              <div className="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined">person</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-label-md text-label-md text-on-surface">
+            {/* ORDER CARD */}
+            <div className="absolute top-6 left-6 bg-white/90 backdrop-blur rounded-2xl p-5 w-[270px] shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-white/40">
+
+              <h2 className="font-semibold text-xl text-gray-800">
+                Order
+              </h2>
+
+              <p className="text-xs text-gray-500 mb-2 break-all">
+                {order.id}
+              </p>
+
+              <p className="text-xs text-gray-400 mb-4">
+                Driver: {order.driverName}
+              </p>
+
+              <div className="flex items-center justify-between">
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600">
+                    <span className="material-symbols-outlined text-sm">person</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">
                     {order.driverRating} ★
                   </span>
-                  <button className="bg-primary-container text-on-primary-container p-2 rounded-full hover:bg-primary transition-colors hover:text-on-primary">
-                    <span className="material-symbols-outlined text-sm">
-                      call
-                    </span>
-                  </button>
                 </div>
+
+                <button className="bg-gradient-to-r from-teal-500 to-green-500 text-white p-2 rounded-full shadow hover:scale-105 transition">
+                  <span className="material-symbols-outlined text-sm">
+                    call
+                  </span>
+                </button>
+
               </div>
             </div>
           </div>
         </div>
 
-        {/* Timeline & Details */}
-        <div className="w-full md:w-96 space-y-6">
-          <div className="glass-card p-6 rounded-3xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-secondary-container/20 rounded-full blur-2xl -mr-10 -mt-10" />
-            <h3 className="font-headline-md text-headline-md text-on-surface mb-6">
+        {/* RIGHT SIDE */}
+        <div className="space-y-6">
+
+          {/* LIVE STATUS */}
+          <div className="bg-white/70 backdrop-blur rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-white/40">
+
+            <h3 className="text-3xl font-semibold mb-6 text-gray-800">
               Live Status
             </h3>
-            <div className="relative pl-6 border-l-2 border-surface-variant space-y-8">
+
+            <div className="space-y-6 border-l-2 border-gray-200 pl-6">
+
               {steps.map((step) => (
-                <div key={step.label} className="relative">
-                  <span
-                    className={`absolute -left-8 top-0 w-6 h-6 rounded-full flex items-center justify-center ${step.active ? "bg-secondary-container border-2 border-secondary-container text-on-secondary-container shadow-[0_0_15px_rgba(98,250,227,0.5)]" : "bg-surface border-2 border-secondary text-secondary"}`}
+                <div key={step.label} className="relative group">
+
+                  {/* DOT */}
+                  <div
+                    className={`absolute -left-[34px] top-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${step.done
+                        ? "bg-green-100 text-green-600 shadow-md"
+                        : "bg-gray-200 text-gray-400"
+                      }`}
                   >
                     <span className="material-symbols-outlined text-[14px]">
                       {step.icon}
                     </span>
-                  </span>
-                  <div
-                    className={`font-label-md text-label-md uppercase tracking-wider mb-1 ${step.active ? "text-on-surface" : "text-secondary"}`}
-                  >
+                  </div>
+
+                  {/* TEXT */}
+                  <p className={`text-sm font-semibold ${step.done ? "text-gray-900" : "text-gray-500"
+                    }`}>
                     {step.label}
-                  </div>
-                  <div
-                    className={`text-sm ${step.active ? "text-on-surface-variant" : "text-outline"}`}
-                  >
+                  </p>
+
+                  <p className="text-xs text-gray-500 mt-1">
                     {step.desc}
-                  </div>
+                  </p>
+
                 </div>
               ))}
+
             </div>
           </div>
 
-          <div className="glass-card p-6 rounded-3xl">
-            <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider mb-4">
+          {/* DELIVERY DETAILS */}
+          <div className="bg-white/70 backdrop-blur rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-white/40">
+
+            <h4 className="text-xs uppercase text-gray-400 mb-4 tracking-wider">
               Delivery Details
             </h4>
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <span className="material-symbols-outlined text-outline">
+
+            <div className="space-y-5">
+
+              <div className="flex gap-3 items-start">
+                <span className="material-symbols-outlined text-gray-400">
                   location_on
                 </span>
                 <div>
-                  <div className="text-on-surface">{order.address}</div>
-                  <div className="text-sm text-outline">
+                  <p className="text-gray-800 text-sm">{order.address}</p>
+                  <p className="text-xs text-gray-500">
                     {order.addressDetail}
-                  </div>
+                  </p>
                 </div>
               </div>
-              <div className="flex gap-4">
-                <span className="material-symbols-outlined text-outline">
+
+              <div className="flex gap-3 items-start">
+                <span className="material-symbols-outlined text-gray-400">
                   schedule
                 </span>
                 <div>
-                  <div className="text-on-surface">Estimated Arrival</div>
-                  <div className="text-secondary font-semibold">
+                  <p className="text-gray-800 text-sm">Estimated Arrival</p>
+                  <p className="text-teal-600 font-semibold text-sm">
                     {order.eta}
-                  </div>
+                  </p>
                 </div>
               </div>
+
             </div>
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }
