@@ -27,6 +27,7 @@ import RequireRole from "./components/RequireRole.jsx";
 import CustomerLayout from "./pages/Customer/Layout.jsx";
 import Profile from "./pages/Customer/Profile.jsx";
 import Notifications from "./pages/Customer/Notifications.jsx";
+import ReviewOrder from "./pages/Customer/ReviewOrder.jsx";
 import CustomerDashboard from "./pages/Customer/Dashboard.jsx";
 import AllOrders from "./pages/Customer/AllOrders.jsx";
 import SchedulePickup from "./pages/Customer/SchedulePickup.jsx";
@@ -87,6 +88,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="schedule" element={<SchedulePickup />} />
+          <Route path="/customer/review" element={<ReviewOrder />} />
           <Route path="orders" element={<AllOrders />} />
           <Route path="checkout" element={<CheckoutPayment />} />
           <Route path="track" element={<TrackOrder />} />

@@ -190,11 +190,16 @@ export default function SchedulePickup() {
 
     try {
       const payload = {
-        orderItems: selectedServices.map((serviceId) => ({
-          service: serviceId,
-          weight: quantities[serviceId] || 1,
-        })),
+        orderItems: selectedServices.map((serviceId) => {
+          const service = services.find(s => s.id === serviceId);
 
+          return {
+            service: serviceId,              // ✅ backend needs this
+            name: service.name,              // ✅ UI
+            price: service.price,            // ✅ UI
+            weight: quantities[serviceId] || 1,
+          };
+        }),
         pickupAddress: {
           street: address.street,
           area: "",
@@ -220,14 +225,16 @@ export default function SchedulePickup() {
 
       console.log("ORDER ID:", orderId);
 
-      navigate("/customer/checkout", {
+      const selectedSlotData = timeSlots.find(s => s.id === selectedSlot);
+
+      navigate("/customer/review", {
         state: {
-          orderId,
           orderItems: payload.orderItems,
           pickupAddress: payload.pickupAddress,
-          pickupSlot: payload.pickupSlotId,
+           pickupSlot: selectedSlotData?.label, //FIXED
+          deliveryType: deliveryType,
+          subtotal: subtotal,
         },
-        replace: true,
       });
 
     } catch (err) {
