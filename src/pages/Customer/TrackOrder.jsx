@@ -35,33 +35,61 @@ export default function TrackOrder() {
     })();
 
     const flow = [
+      "Order Initiated",
       "Pickup Complete",
       "Processing",
       "Out for Delivery",
       "Delivered",
     ];
-    const idx = flow.indexOf(statusLabel);
+
+    let idx = flow.indexOf(statusLabel);
+
+    // 🔥 IMPORTANT FIX
+    if (idx === -1) {
+      if (
+        normalized.includes("order") ||
+        normalized.includes("initiated") ||
+        normalized.includes("pending") ||
+        normalized.includes("confirmed")
+      ) {
+        idx = 0; // force first step
+      }
+    }
     return [
       {
-        label: "Pickup Complete",
-        desc: "Items collected from your location.",
-        icon: "check",
+        label: "Order Initiated",
+        desc: "Your order has been placed.",
+        icon: "receipt_long",
         done: idx >= 0,
         active: idx === 0,
       },
       {
-        label: "Processing",
-        desc: "Garments inspected and cleaned.",
-        icon: "check",
+        label: "Pickup Complete",
+        desc: "Items collected from your location.",
+        icon: "inventory_2",
         done: idx >= 1,
         active: idx === 1,
+      },
+      {
+        label: "Processing",
+        desc: "Garments inspected and cleaned.",
+        icon: "local_laundry_service",
+        done: idx >= 2,
+        active: idx === 2,
       },
       {
         label: "Out for Delivery",
         desc: "Driver is en route to your location.",
         icon: "local_shipping",
-        done: idx >= 2,
-        active: idx === 2,
+        done: idx >= 3,
+        active: idx === 3,
+      },
+      {
+        label: "Delivered",
+        desc: "Order delivered successfully.",
+        icon: "check_circle",
+        done: idx >= 4,
+        active: idx === 4,
       },
     ];
   }
@@ -80,6 +108,17 @@ export default function TrackOrder() {
         const o = data.order ?? data;
 
         const status = o.status ?? o.orderStatus ?? o.state ?? "";
+
+        const created = new Date(o.createdAt);
+
+        let etaTime;
+
+        if (o.deliveryType === "express") {
+          etaTime = new Date(created.getTime() + 24 * 60 * 60 * 1000);
+        } else {
+          etaTime = new Date(created.getTime() + 48 * 60 * 60 * 1000);
+        }
+
         setOrder({
           id: o.orderId ?? o._id ?? orderId,
           status: status,
@@ -95,7 +134,12 @@ export default function TrackOrder() {
             o.pickupAddress?.city || o.address?.city
               ? `${o.pickupAddress?.city ?? o.address?.city}${o.pickupAddress?.pincode || o.address?.zip ? `, ${o.pickupAddress?.pincode ?? o.address?.zip}` : ""}`
               : "",
-          eta: o.eta ?? o.estimatedArrival ?? "—",
+          eta: etaTime.toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           steps: buildSteps(status),
         });
       } catch (e) {
@@ -249,8 +293,8 @@ export default function TrackOrder() {
                   {/* DOT */}
                   <div
                     className={`absolute -left-[34px] top-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${step.done
-                        ? "bg-green-100 text-green-600 shadow-md"
-                        : "bg-gray-200 text-gray-400"
+                      ? "bg-green-100 text-green-600 shadow-md"
+                      : "bg-gray-200 text-gray-400"
                       }`}
                   >
                     <span className="material-symbols-outlined text-[14px]">
