@@ -494,7 +494,7 @@ export default function SchedulePickup() {
                     <div className="flex justify-between items-center mb-4">
 
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (month === 0) {
                             setMonth(11);
                             setYear(year - 1);
@@ -667,7 +667,7 @@ export default function SchedulePickup() {
 
             {/* CONTINUE */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (step === 1) {
                   if (selectedServices.length === 0) {
                     setError("Please select at least one service");
@@ -675,15 +675,47 @@ export default function SchedulePickup() {
                   }
                   setError("");
                   setStep(2);
+
                 } else if (step === 2) {
                   setStep(3);
+
                 } else if (step === 3) {
                   if (!address.street || !address.city || !address.zip) {
                     setError("Please fill address properly");
                     return;
                   }
-                  setError("");
-                  setStep(4);
+
+                  try {
+                    console.log("Checking service availability for:", address);
+
+                    const res = await api.get(
+                      `/users/service-areas?pincode=${address.zip}`
+                    );
+
+                    console.log("API RESPONSE:", res);
+
+                    const data = res?.data || res;
+
+                    const isAvailable = data && data._id && data.isActive !== false;
+
+                    if (!isAvailable) {
+                      setError("Service not available in your location ❌");
+                      return;
+                    }
+
+                    // ✅ SUCCESS
+                    setError("");
+                    setStep(4);
+
+                  } catch (err) {
+                    console.log("API ERROR:", err);
+
+                    if (err.response?.status === 404) {
+                      setError("Service not available in your location ❌");
+                    } else {
+                      setError("Unable to check service availability");
+                    }
+                  }
                 } else if (step === 4) {
                   if (!selectedSlot) {
                     setError("Please select a time slot");
@@ -691,6 +723,7 @@ export default function SchedulePickup() {
                   }
                   setError("");
                   setStep(5);
+
                 } else if (step === 5) {
                   handleSubmit();
                 }
