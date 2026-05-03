@@ -5,6 +5,21 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 
 export default function CustomerDashboard() {
+
+  function getProgress(status) {
+    const map = {
+      pending: 10,
+      confirmed: 20,
+      picked_up: 40,
+      processing: 65,
+      out_for_delivery: 90,
+      delivered: 100,
+      completed: 100,
+    };
+
+    return map[status?.toLowerCase()] || 10;
+  }
+
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -25,6 +40,7 @@ export default function CustomerDashboard() {
   ];
 
   useEffect(() => {
+
     async function fetchData() {
       try {
         const [ordersRes, servicesRes, walletRes] = await Promise.allSettled([
@@ -66,6 +82,10 @@ export default function CustomerDashboard() {
         String(o.status ?? o.orderStatus).toLowerCase()
       )
   );
+
+  const progress = activeOrder
+    ? getProgress(activeOrder.status || activeOrder.orderStatus)
+    : 0;
 
   const recentOrders = orders.slice(0, 3);
 
@@ -128,7 +148,7 @@ export default function CustomerDashboard() {
                 ACTIVE ORDER
               </span>
               <span className="text-sm text-gray-500">
-                Order #{activeOrder._id || activeOrder.id}
+                Order #BW-{(activeOrder._id || activeOrder.id)?.slice(-4)}
               </span>
             </div>
 
@@ -143,16 +163,23 @@ export default function CustomerDashboard() {
             {/* Progress */}
             <div className="mt-3">
               <p className="text-sm text-blue-500 font-medium mb-1">
-                Progress: 65%
+                Progress: {progress}%
               </p>
 
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-2 bg-gradient-to-r from-blue-500 to-teal-400 w-[65%] rounded-full transition-all duration-500" />
+                <div
+                  className="h-2 bg-gradient-to-r from-blue-500 to-teal-400 rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
 
             <p className="text-sm text-gray-500 mt-2">
-              Est. Delivery: Tomorrow, 10 AM
+              Est. Delivery:{" "}
+              {activeOrder &&
+                new Date(
+                  new Date(activeOrder.createdAt).getTime() + 48 * 60 * 60 * 1000
+                ).toLocaleString("en-IN")}
             </p>
           </div>
 
@@ -244,8 +271,8 @@ export default function CustomerDashboard() {
               onClick={handleCheck}
               disabled={!pincode}
               className={`px-4 py-2 rounded-xl transition ${pincode
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
             >
               Check
@@ -366,7 +393,21 @@ export default function CustomerDashboard() {
                   </p>
 
                   <p className="text-sm text-gray-500">
-                    {new Date(order.createdAt).toLocaleDateString()} • ₹{order.totalAmount || 0}
+                    {new Date(order.deliveryDate || order.updatedAt || order.createdAt)
+                      .toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    {" • "}
+                    ₹{
+                      order.finalAmount ||
+                      order.grandTotal ||
+                      order.totalAmount ||
+                      0
+                    }
                   </p>
                 </div>
               </div>

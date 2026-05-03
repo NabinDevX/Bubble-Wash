@@ -198,9 +198,7 @@ export default function SchedulePickup() {
 
           return {
             service: serviceId, // backend
-            name: service?.name || "Service", // UI safe
-            price: service?.price || 0,       // UI safe
-            weight: quantities[serviceId] || 1,
+            quantity: quantities[serviceId] || 1,
           };
         }),
         pickupAddress: {
@@ -232,9 +230,24 @@ export default function SchedulePickup() {
 
       navigate("/customer/review", {
         state: {
-          orderItems: payload.orderItems,
+          orderItems: selectedServices.map((serviceId) => {
+            const service = services.find((s) => s.id === serviceId);
+
+            return {
+              name: service?.name || "Service",
+              price: Number(service?.price) || 0,
+              quantity: quantities[serviceId] || 1,
+            };
+          }),
           pickupAddress: payload.pickupAddress,
-          pickupSlot: selectedSlotData?.label, //FIXED
+          pickupSlot: selectedSlotData?.label,
+          pickupDate: new Date(year, month, selectedDay)
+            .toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+
           deliveryType: deliveryType,
           subtotal: subtotal,
         },

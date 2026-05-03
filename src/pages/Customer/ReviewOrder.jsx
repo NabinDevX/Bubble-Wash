@@ -10,6 +10,7 @@ export default function ReviewOrder() {
     orderItems,
     pickupAddress,
     pickupSlot,
+    pickupDate,
     deliveryType,
     subtotal,
   } = state;
@@ -36,9 +37,9 @@ export default function ReviewOrder() {
         {orderItems.map((item, i) => (
           <div key={i} className="flex justify-between">
             <span>
-              {item.name} × {item.weight}
+              {item.name} × {item.quantity}
             </span>
-            <span>₹{(item.weight * item.price).toFixed(2)}</span>
+            <span>₹{(item.quantity * item.price).toFixed(2)}</span>
           </div>
         ))}
       </div>
@@ -46,7 +47,7 @@ export default function ReviewOrder() {
       {/* SCHEDULE */}
       <div className="bg-gray-100 p-4 rounded-xl">
         <p className="text-sm text-gray-500 mb-1">📅 SCHEDULE</p>
-        <p>{pickupSlot}</p>
+        <p>{pickupDate ? `${pickupDate} • ${pickupSlot}` : pickupSlot}</p>
       </div>
 
       {/* DELIVERY */}
