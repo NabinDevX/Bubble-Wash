@@ -389,7 +389,11 @@ export default function CustomerDashboard() {
 
                 <div>
                   <p className="font-medium text-gray-800">
-                    {order.status ?? order.orderStatus}
+                    {order.orderItems?.length > 0
+                      ? order.orderItems
+                        .map((item) => item.service?.name || "Service")
+                        .join(", ")
+                      : "Service"}
                   </p>
 
                   <p className="text-sm text-gray-500">

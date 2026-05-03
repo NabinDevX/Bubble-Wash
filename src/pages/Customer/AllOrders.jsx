@@ -42,23 +42,6 @@ export default function AllOrders() {
     load();
   }, []);
 
-  //  HELPER FUNCTION
-  function getServiceName(serviceId) {
-    if (!serviceId) return "Service";
-
-    const id =
-      typeof serviceId === "object"
-        ? serviceId.$oid || serviceId._id
-        : serviceId;
-
-    const match = services.find((s) => {
-      const sid = s._id?.$oid || s._id;
-      return String(sid) === String(id);
-    });
-
-    return match?.name || "Service";
-  }
-
   // FILTER LOGIC
   const filteredOrders = orders.filter((o) => {
     const status = (o.status || o.orderStatus || "pending").toLowerCase();
@@ -158,7 +141,7 @@ export default function AllOrders() {
                       ORDER ID
                     </p>
                     <p className="font-semibold text-gray-800 text-lg">
-                      #{o._id.slice(-4)}
+                      #{`${o._id.slice(0, 2)}-${o._id.slice(-2)}`.toUpperCase()}
                     </p>
                   </div>
 
@@ -180,16 +163,7 @@ export default function AllOrders() {
                     <p className="font-medium text-gray-800">
                       {o.orderItems?.length > 0
                         ? o.orderItems
-                          .map((item) => {
-                            const id = item.service?.$oid || item.service;
-
-                            const found = services.find(
-                              (s) =>
-                                String(s._id?.$oid || s._id) === String(id)
-                            );
-
-                            return found?.name || "Service";
-                          })
+                          .map((item) => item.service?.name || "Service")
                           .join(", ")
                         : "Service"}
                     </p>
