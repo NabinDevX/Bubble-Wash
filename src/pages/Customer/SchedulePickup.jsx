@@ -648,79 +648,67 @@ export default function SchedulePickup() {
             )}
 
           </div>
+
+          <div className="flex items-center mt-8">
+
+            {/* BACK */}
+            <button
+              onClick={() => {
+                if (step === 1) {
+                  navigate("/customer");
+                } else {
+                  setStep((prev) => prev - 1);
+                }
+              }}
+              className="px-6 py-3 border rounded-xl"
+            >
+              ← Back
+            </button>
+
+            {/* CONTINUE */}
+            <button
+              onClick={() => {
+                if (step === 1) {
+                  if (selectedServices.length === 0) {
+                    setError("Please select at least one service");
+                    return;
+                  }
+                  setError("");
+                  setStep(2);
+                } else if (step === 2) {
+                  setStep(3);
+                } else if (step === 3) {
+                  if (!address.street || !address.city || !address.zip) {
+                    setError("Please fill address properly");
+                    return;
+                  }
+                  setError("");
+                  setStep(4);
+                } else if (step === 4) {
+                  if (!selectedSlot) {
+                    setError("Please select a time slot");
+                    return;
+                  }
+                  setError("");
+                  setStep(5);
+                } else if (step === 5) {
+                  handleSubmit();
+                }
+              }}
+              disabled={
+                (step === 1 && selectedServices.length === 0) ||
+                (step === 3 && (!address.street || !address.city || !address.zip)) ||
+                (step === 4 && !selectedSlot)
+              }
+              className="ml-auto px-6 py-3 bg-[#1E7F5A] text-white rounded-xl shadow-md"
+            >
+              Continue →
+            </button>
+
+          </div>
+
         </div >
       </div >
-      <div className="flex justify-between mt-8">
-
-        {/* BACK */}
-        <button
-          onClick={() => {
-            if (step === 1) {
-              navigate("/customer")
-            } else {
-              setStep((prev) => prev - 1);
-            }
-          }}
-          className="px-6 py-3 border rounded-xl"
-        >
-          ← Back
-        </button>
-
-        {/* CONTINUE */}
-        <button
-          onClick={() => {
-
-            // STEP 1 → SERVICES
-            if (step === 1) {
-              if (selectedServices.length === 0) {
-                setError("Please select at least one service");
-                return;
-              }
-              setError("");
-              setStep(2);
-            }
-
-            // STEP 2 → QUANTITY (no validation needed)
-            else if (step === 2) {
-              setStep(3);
-            }
-
-            // STEP 3 → ADDRESS
-            else if (step === 3) {
-              if (!address.street || !address.city || !address.zip) {
-                setError("Please fill address properly");
-                return;
-              }
-              setError("");
-              setStep(4);
-            }
-
-            // STEP 4 → TIME
-            else if (step === 4) {
-              if (!selectedSlot) {
-                setError("Please select a time slot");
-                return;
-              }
-              setError("");
-              setStep(5);
-            }
-
-            // STEP 5 → FINAL SUBMIT
-            else if (step === 5) {
-              handleSubmit();
-            }
-          }}
-          disabled={
-            (step === 1 && selectedServices.length === 0) ||
-            (step === 3 && (!address.street || !address.city || !address.zip)) ||
-            (step === 4 && !selectedSlot)
-          }
-          className="px-6 py-3 bg-[#1E7F5A] text-white rounded-xl disabled:opacity-50 hover:bg-[#166a4a] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md"
-        >
-          Continue →
-        </button>
-      </div>
-
     </div >
 
   );
