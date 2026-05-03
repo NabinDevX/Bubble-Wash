@@ -191,12 +191,15 @@ export default function SchedulePickup() {
     try {
       const payload = {
         orderItems: selectedServices.map((serviceId) => {
-          const service = services.find(s => s.id === serviceId);
+          const service = services.find((s) => {
+            const sid = s._id?.$oid || s._id || s.id;
+            return sid === serviceId;
+          });
 
           return {
-            service: serviceId,              // ✅ backend needs this
-            name: service.name,              // ✅ UI
-            price: service.price,            // ✅ UI
+            service: serviceId, // backend
+            name: service?.name || "Service", // UI safe
+            price: service?.price || 0,       // UI safe
             weight: quantities[serviceId] || 1,
           };
         }),
@@ -231,7 +234,7 @@ export default function SchedulePickup() {
         state: {
           orderItems: payload.orderItems,
           pickupAddress: payload.pickupAddress,
-           pickupSlot: selectedSlotData?.label, //FIXED
+          pickupSlot: selectedSlotData?.label, //FIXED
           deliveryType: deliveryType,
           subtotal: subtotal,
         },
