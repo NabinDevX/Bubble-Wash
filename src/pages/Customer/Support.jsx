@@ -190,25 +190,10 @@ export default function SupportPage() {
                                 </p>
                             </div>
 
-                            {/* ORDER ID */}
-                            <div className="space-y-1">
-                                <label className="text-sm text-gray-500">
-                                    Order ID <span className="text-xs">(Optional)</span>
-                                </label>
-                                <input
-                                    placeholder="#BW-0000"
-                                    value={form.orderId}
-                                    onChange={(e) =>
-                                        setForm({ ...form, orderId: e.target.value })
-                                    }
-                                    className="w-full bg-transparent border-b border-gray-300 focus:border-gray-500 outline-none py-2 text-gray-700"
-                                />
-                            </div>
-
                             {/* CATEGORY */}
                             <div className="space-y-1">
                                 <label className="text-sm text-gray-500">
-                                    Category
+                                    Category <span className="text-xs">(Optional)</span>
                                 </label>
                                 <select
                                     value={form.category}
@@ -227,7 +212,7 @@ export default function SupportPage() {
                             {/* SUBJECT */}
                             <div className="space-y-1">
                                 <label className="text-sm text-gray-500">
-                                    Subject
+                                    Subject <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     placeholder="What is the issue about?"
@@ -242,7 +227,7 @@ export default function SupportPage() {
                             {/* DESCRIPTION */}
                             <div className="space-y-1">
                                 <label className="text-sm text-gray-500">
-                                    Description
+                                    Description <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
                                     placeholder="Please provide as much detail as possible..."
@@ -254,11 +239,30 @@ export default function SupportPage() {
                                 />
                             </div>
 
+                            {/* OBJECT ID (MOVED TO END) */}
+                            <div className="space-y-1">
+                                <label className="text-sm text-gray-500">
+                                    Object ID <span className="text-xs">(Optional)</span>
+                                </label>
+                                <input
+                                    placeholder="#BW-0000"
+                                    value={form.orderId}
+                                    onChange={(e) =>
+                                        setForm({ ...form, orderId: e.target.value })
+                                    }
+                                    className="w-full bg-transparent border-b border-gray-300 focus:border-gray-500 outline-none py-2 text-gray-700"
+                                />
+                            </div>
+
                             {/* BUTTON */}
                             <button
                                 onClick={handleSubmit}
                                 disabled={submitting}
-                                className={`w-full py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition ${submitting ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-teal-400 to-blue-500 hover:opacity-90"}`}>
+                                className={`w-full py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition ${submitting
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-gradient-to-r from-teal-400 to-blue-500 hover:opacity-90"
+                                    }`}
+                            >
                                 <span className="material-symbols-outlined text-sm">
                                     send
                                 </span>
@@ -268,7 +272,7 @@ export default function SupportPage() {
 
                         </div>
                     </div>
-
+                    
                     {/* BOTTOM CARDS */}
                     <div className="grid grid-cols-2 gap-4">
 
