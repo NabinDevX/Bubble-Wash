@@ -93,7 +93,7 @@ export default function FeedbackRating() {
                   className="material-symbols-outlined text-5xl"
                   style={{
                     fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
-                    color: active ? "#62fae3" : "#c6c6cd",
+                    color: active ? "#198754" : "#c6c6cd",
                   }}
                 >
                   star

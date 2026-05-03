@@ -7,7 +7,7 @@ export default function SupportPage() {
 
     const [form, setForm] = useState({
         orderId: "",
-        category: "billing",
+        category: "",
         subject: "",
         description: "",
     });
@@ -202,6 +202,10 @@ export default function SupportPage() {
                                     }
                                     className="w-full bg-transparent border-b border-gray-300 focus:border-gray-500 outline-none py-2 text-gray-700"
                                 >
+                                    <option value="" disabled hidden>
+                                        Select category (optional)
+                                    </option>
+
                                     <option value="billing">Billing</option>
                                     <option value="pickup">Pickup Issue</option>
                                     <option value="delivery">Delivery Issue</option>
@@ -259,8 +263,8 @@ export default function SupportPage() {
                                 onClick={handleSubmit}
                                 disabled={submitting}
                                 className={`w-full py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition ${submitting
-                                        ? "bg-gray-400 cursor-not-allowed"
-                                        : "bg-gradient-to-r from-teal-400 to-blue-500 hover:opacity-90"
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-teal-400 to-blue-500 hover:opacity-90"
                                     }`}
                             >
                                 <span className="material-symbols-outlined text-sm">
@@ -272,7 +276,7 @@ export default function SupportPage() {
 
                         </div>
                     </div>
-                    
+
                     {/* BOTTOM CARDS */}
                     <div className="grid grid-cols-2 gap-4">
 
