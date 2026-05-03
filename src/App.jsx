@@ -35,6 +35,7 @@ import CheckoutPayment from "./pages/Customer/CheckoutPayment.jsx";
 import TrackOrder from "./pages/Customer/TrackOrder.jsx";
 import InvoiceDetails from "./pages/Customer/InvoiceDetails.jsx";
 import LoyaltyWallet from "./pages/Customer/LoyaltyWallet.jsx";
+import SupportPage from "./pages/Customer/Support.jsx";
 import FeedbackRating from "./pages/Customer/FeedbackRating.jsx";
 
 function App() {
@@ -95,6 +96,7 @@ function App() {
           <Route path="invoice" element={<InvoiceDetails />} />
           <Route path="wallet" element={<LoyaltyWallet />} />
           <Route path="feedback" element={<FeedbackRating />} />
+          <Route path="support" element={<SupportPage />} />
         </Route>
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />

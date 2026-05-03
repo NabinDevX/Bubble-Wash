@@ -8,6 +8,7 @@ const navItems = [
   { to: "/customer/orders", icon: "receipt_long", label: "Orders" },
   { to: "/customer/track", icon: "local_shipping", label: "Track" },
   { to: "/customer/wallet", icon: "account_balance_wallet", label: "Wallet" },
+  { to: "/customer/support", icon: "support_agent", label: "Support" },
   { to: "/customer/feedback", icon: "rate_review", label: "Feedback" },
 ];
 
