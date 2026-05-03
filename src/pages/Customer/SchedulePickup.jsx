@@ -613,7 +613,7 @@ export default function SchedulePickup() {
                   </span>
                 </div>
 
-                {/* EXPRESS 🔥 ADD THIS */}
+                {/* EXPRESS */}
                 <div
                   onClick={() => setDeliveryType("express")}
                   className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "express"
@@ -699,11 +699,11 @@ export default function SchedulePickup() {
                     const isAvailable = data && data._id && data.isActive !== false;
 
                     if (!isAvailable) {
-                      setError("Service not available in your location ❌");
+                      setError("Service not available in your location");
                       return;
                     }
 
-                    // ✅ SUCCESS
+                    // SUCCESS
                     setError("");
                     setStep(4);
 
@@ -711,7 +711,7 @@ export default function SchedulePickup() {
                     console.log("API ERROR:", err);
 
                     if (err.response?.status === 404) {
-                      setError("Service not available in your location ❌");
+                      setError("Service not available in your location");
                     } else {
                       setError("Unable to check service availability");
                     }
