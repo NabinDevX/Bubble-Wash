@@ -2,6 +2,32 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../lib/api.js";
 
+function formatTime(time) {
+  if (!time) return "";
+
+  // If already in AM/PM format → return as it is
+  if (time.toLowerCase().includes("am") || time.toLowerCase().includes("pm")) {
+    return time;
+  }
+
+  // Fix 24:00 → 00:00
+  if (time === "24:00") time = "00:00";
+
+  const parts = time.split(":");
+  if (parts.length !== 2) return time;
+
+  const h = Number(parts[0]);
+  const m = Number(parts[1]);
+
+  if (isNaN(h) || isNaN(m)) return time; // 🔥 prevent NaN
+
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  const ampm = h >= 12 ? "PM" : "AM";
+
+  return `${String(hour).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+
 export default function SchedulePickup() {
   const navigate = useNavigate();
 
@@ -103,16 +129,26 @@ export default function SchedulePickup() {
             data ??
             [];
           setTimeSlots(
-            list
-              .map((s) => ({
-                id: s?._id?.$oid || s?._id || s?.id || null,
-                label:
-                  s.startTime && s.endTime
-                    ? `${s.startTime} - ${s.endTime}`
-                    : (s.time ?? "—"),
-                available: s.isActive !== false,
-              }))
-              .filter((s) => s.id !== null)
+            Array.from(
+              new Map(
+                list.map((s) => {
+                  const start = formatTime(s.startTime);
+                  const end = formatTime(s.endTime);
+
+                  const label =
+                    start && end ? `${start} - ${end}` : s.time ?? "—";
+
+                  return [
+                    label,
+                    {
+                      id: s?._id?.$oid || s?._id || s?.id,
+                      label,
+                      available: s.isActive !== false,
+                    },
+                  ];
+                })
+              ).values()
+            )
           );
         }
 
@@ -194,10 +230,10 @@ export default function SchedulePickup() {
           const service = services.find(s => s.id === serviceId);
 
           return {
-            service: serviceId,  
+            service: serviceId,
             quantity: quantities[serviceId] || 1,
             weight: quantities[serviceId] || 1,
-            price: service?.price || 0, 
+            price: service?.price || 0,
           };
         }),
 
@@ -210,7 +246,7 @@ export default function SchedulePickup() {
           landmark: address.instructions || "",
         },
 
-        slotId: selectedSlot,   // ✅ FIXED
+        slotId: selectedSlot,
         deliveryType: deliveryType,
       };
 
