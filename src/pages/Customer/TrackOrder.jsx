@@ -44,7 +44,7 @@ export default function TrackOrder() {
 
     let idx = flow.indexOf(statusLabel);
 
-    // 🔥 IMPORTANT FIX
+    // IMPORTANT FIX
     if (idx === -1) {
       if (
         normalized.includes("order") ||

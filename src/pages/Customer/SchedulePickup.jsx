@@ -366,20 +366,20 @@ export default function SchedulePickup() {
                         }`}
                     >
                       <div className="flex items-center gap-4">
-                        <span className="material-symbols-outlined text-2xl text-blue-500">
+                        <span className="material-symbols-outlined text-2xl text-[#1E7F5A]">
                           {s.icon}
                         </span>
 
                         <div>
                           <h3 className="font-semibold text-gray-800">{s.name}</h3>
-                          <p className="text-blue-600 text-sm">
+                          <p className="text-[#1E7F5A] text-sm">
                             ₹{s.price}/{s.unit}
                           </p>
                         </div>
                       </div>
 
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${active
-                        ? "bg-blue-500 text-white"
+                        ? "bg-[#1E7F5A] text-white"
                         : "border-gray-300"
                         }`}>
                         {active && "✓"}
@@ -415,7 +415,7 @@ export default function SchedulePickup() {
                             className="flex items-center justify-between bg-white border p-4 rounded-xl"
                           >
                             <div className="flex items-center gap-4">
-                              <span className="material-symbols-outlined text-blue-500">
+                              <span className="material-symbols-outlined text-[#1E7F5A]">
                                 {s.icon}
                               </span>
                               <div>
@@ -663,7 +663,7 @@ export default function SchedulePickup() {
             (step === 1 && selectedServices.length === 0) ||
             (step === 2 && (!selectedSlot || !address.street || !address.city || !address.zip))
           }
-          className="px-6 py-3 bg-blue-600 text-white rounded-xl disabled:opacity-50"
+          className="px-6 py-3 bg-[#1E7F5A] text-white rounded-xl disabled:opacity-50 hover:bg-[#166a4a] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md"
         >
           Continue →
         </button>

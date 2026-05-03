@@ -271,7 +271,7 @@ export default function CustomerDashboard() {
               onClick={handleCheck}
               disabled={!pincode}
               className={`px-4 py-2 rounded-xl transition ${pincode
-                ? "bg-blue-500 text-white hover:bg-blue-600"
+                ? "bg-[#1E7F5A] text-white hover:bg-[#166a4a]"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
             >
@@ -303,7 +303,7 @@ export default function CustomerDashboard() {
               }
             }}
             className={`mt-4 w-full py-2 rounded-xl font-medium transition ${available
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+              ? "bg-gradient-to-r bg-[#1E7F5A] hover:bg-[#166a4a] text-white"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
           >

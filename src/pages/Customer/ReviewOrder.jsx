@@ -77,7 +77,7 @@ export default function ReviewOrder() {
 
         <button
           onClick={() => navigate("/customer/checkout")}
-          className="flex-1 bg-blue-600 text-white rounded-xl py-3"
+          className="flex-1 bg-[#1E7F5A] text-white rounded-xl py-3 hover:bg-[#166a4a] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md"
         >
           Proceed to Pay →
         </button>
