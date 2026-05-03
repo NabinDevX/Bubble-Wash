@@ -158,7 +158,7 @@ export default function SupportPage() {
                     {/* IMAGE CARD */}
                     <div className="relative rounded-2xl overflow-hidden">
                         <img
-                            src="https://images.unsplash.com/photo-1558611848-73f7eb4001a1"
+                            src="https://images.unsplash.com/photo-1696546760882-1d34a7af6800?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                             className="w-full h-52 object-cover"
                         />
 
