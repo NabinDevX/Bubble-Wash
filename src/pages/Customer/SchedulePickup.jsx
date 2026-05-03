@@ -191,16 +191,16 @@ export default function SchedulePickup() {
     try {
       const payload = {
         orderItems: selectedServices.map((serviceId) => {
-          const service = services.find((s) => {
-            const sid = s._id?.$oid || s._id || s.id;
-            return sid === serviceId;
-          });
+          const service = services.find(s => s.id === serviceId);
 
           return {
-            service: serviceId, // backend
+            service: serviceId,  
             quantity: quantities[serviceId] || 1,
+            weight: quantities[serviceId] || 1,
+            price: service?.price || 0, 
           };
         }),
+
         pickupAddress: {
           street: address.street,
           area: "",
@@ -210,7 +210,7 @@ export default function SchedulePickup() {
           landmark: address.instructions || "",
         },
 
-        pickupSlotId: selectedSlot,
+        slotId: selectedSlot,   // ✅ FIXED
         deliveryType: deliveryType,
       };
 
@@ -285,58 +285,11 @@ export default function SchedulePickup() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Address & Services */}
         <div className="lg:col-span-8 space-y-6">
-          {/* Address */}
-          <section className="glass-card rounded-3xl p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined">location_on</span>
-              </div>
-              <h2 className="font-headline-sm text-headline-sm">
-                Pickup Address
-              </h2>
-            </div>
-            <div className="flex flex-col gap-4">
-              <input
-                className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface"
-                placeholder="Street Address"
-                value={address.street}
-                onChange={(e) =>
-                  setAddress((p) => ({ ...p, street: e.target.value }))
-                }
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface"
-                  placeholder="City"
-                  value={address.city}
-                  onChange={(e) =>
-                    setAddress((p) => ({ ...p, city: e.target.value }))
-                  }
-                />
-                <input
-                  className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface"
-                  placeholder="ZIP Code"
-                  value={address.zip}
-                  onChange={(e) =>
-                    setAddress((p) => ({ ...p, zip: e.target.value }))
-                  }
-                />
-              </div>
-              <textarea
-                className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface resize-none h-24 mt-2"
-                placeholder="Delivery Instructions (Optional, e.g., 'Leave with doorman')"
-                value={address.instructions}
-                onChange={(e) =>
-                  setAddress((p) => ({ ...p, instructions: e.target.value }))
-                }
-              />
-            </div>
-          </section>
 
           <div className="space-y-6">
 
             {/* HEADER */}
-            {step !== 2 && (
+            {(step === 1 || step === 5) && (
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
                   <span className="material-symbols-outlined">
@@ -349,8 +302,9 @@ export default function SchedulePickup() {
                 </h2>
               </div>
             )}
+            {/* SERVICES */}
 
-            {/* STEP 1 */}
+            {/* ================= STEP 1 ================= */}
             {step === 1 && (
               <div className="space-y-4">
                 {services.map((s) => {
@@ -361,7 +315,7 @@ export default function SchedulePickup() {
                       key={s.id}
                       onClick={() => toggleService(s.id)}
                       className={`w-full flex items-center justify-between p-4 rounded-xl border ${active
-                        ? "border-blue-500 bg-blue-50"
+                        ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
                         : "border-gray-200 bg-white"
                         }`}
                     >
@@ -378,10 +332,10 @@ export default function SchedulePickup() {
                         </div>
                       </div>
 
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center border ${active
-                        ? "bg-[#1E7F5A] text-white"
-                        : "border-gray-300"
-                        }`}>
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center border ${active ? "bg-[#1E7F5A] text-white" : "border-gray-300"
+                          }`}
+                      >
                         {active && "✓"}
                       </div>
                     </button>
@@ -390,184 +344,225 @@ export default function SchedulePickup() {
               </div>
             )}
 
-            {/* GRID START */}
+            {/* ================= STEP 2 → QUANTITY ================= */}
             {step === 2 && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                {/* ================= LEFT (Laundry Card) ================= */}
-                <div className="lg:col-span-6 space-y-6">
-
-                  <section className="glass-card rounded-3xl p-6 md:p-8">
-
-                    <div className="flex items-center gap-3 mb-6">
-                      <span className="material-symbols-outlined text-secondary">
-                        local_laundry_service
-                      </span>
-                      <h2>Laundry Details</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                      {services
-                        .filter((s) => selectedServices.includes(s.id))
-                        .map((s) => (
-                          <div
-                            key={s.id}
-                            className="flex items-center justify-between bg-white border p-4 rounded-xl"
-                          >
-                            <div className="flex items-center gap-4">
-                              <span className="material-symbols-outlined text-[#1E7F5A]">
-                                {s.icon}
-                              </span>
-                              <div>
-                                <h3>{s.name}</h3>
-                                <p>₹{s.price}/{s.unit}</p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                              <button onClick={() => updateQty(s.id, -1)}>-</button>
-                              <span>{quantities[s.id] || 1}</span>
-                              <button onClick={() => updateQty(s.id, 1)}>+</button>
-                            </div>
-                          </div>
-                        ))}
-
-                      <div className="flex justify-between bg-gray-100 p-4 rounded-xl font-semibold">
-                        <span>Subtotal</span>
-                        <span>₹{subtotal}</span>
-                      </div>
-                    </div>
-
-                  </section>
-
+              <section className="glass-card rounded-3xl p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="material-symbols-outlined text-secondary">
+                    local_laundry_service
+                  </span>
+                  <h1>Laundry Details</h1>
                 </div>
 
-
-                {/* ================= RIGHT (Schedule Card) ================= */}
-                <div className="lg:col-span-6 space-y-6">
-
-                  <section className="glass-card rounded-3xl p-6 md:p-8 w-full">
-
-                    <div className="flex items-center gap-3 mb-6">
-                      <span className="material-symbols-outlined text-secondary">
-                        calendar_month
-                      </span>
-                      <h2>Schedule Time</h2>
-                    </div>
-
-                    {/* Calendar */}
-                    <div className="mb-6">
-                      {/* Calendar */}
-                      <div className="mb-6">
-                        <div className="flex justify-between items-center mb-4">
-
-                          <button
-                            onClick={() => {
-                              if (month === 0) {
-                                setMonth(11);
-                                setYear(year - 1);
-                              } else {
-                                setMonth(month - 1);
-                              }
-                            }}
-                            className="text-on-surface-variant hover:text-on-surface"
-                          >
-                            <span className="material-symbols-outlined">
-                              chevron_left
-                            </span>
-                          </button>
-
-                          <span className="font-label-md text-label-md">
-                            {monthName} {year}
+                <div className="space-y-4">
+                  {services
+                    .filter((s) => selectedServices.includes(s.id))
+                    .map((s) => (
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between bg-white border p-4 rounded-xl"
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className="material-symbols-outlined text-[#1E7F5A]">
+                            {s.icon}
                           </span>
-
-                          <button
-                            onClick={() => {
-                              if (month === 11) {
-                                setMonth(0);
-                                setYear(year + 1);
-                              } else {
-                                setMonth(month + 1);
-                              }
-                            }}
-                            className="text-on-surface-variant hover:text-on-surface"
-                          >
-                            <span className="material-symbols-outlined">
-                              chevron_right
-                            </span>
-                          </button>
-
+                          <div>
+                            <h3>{s.name}</h3>
+                            <p>
+                              ₹{s.price}/{s.unit}
+                            </p>
+                          </div>
                         </div>
 
-                        <div className="grid grid-cols-7 gap-1 text-center font-label-sm text-label-sm text-on-surface-variant mb-2">
-                          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                            <div key={i}>{d}</div>
-                          ))}
-                        </div>
-
-                        <div className="grid grid-cols-7 gap-1 text-center">
-                          {calendarDays.map((day) => {
-                            const isSelected = day === selectedDay;
-
-                            return (
-                              <button
-                                key={day}
-                                type="button"
-                                onClick={() => setSelectedDay(day)}
-                                className={`p-2 rounded-full text-sm transition-all ${isSelected
-                                  ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
-                                  : "hover:bg-white/40 cursor-pointer"
-                                  }`}
-                              >
-                                {day}
-                              </button>
-                            );
-                          })}
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => updateQty(s.id, -1)}>-</button>
+                          <span>{quantities[s.id] || 1}</span>
+                          <button onClick={() => updateQty(s.id, 1)}>+</button>
                         </div>
                       </div>
+                    ))}
+
+                  <div className="flex justify-between bg-gray-100 p-4 rounded-xl font-semibold">
+                    <span>Subtotal</span>
+                    <span>₹{subtotal}</span>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* ================= STEP 3 → ADDRESS ================= */}
+            {step === 3 && (
+              <section className="glass-card rounded-3xl p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+                    <span className="material-symbols-outlined">location_on</span>
+                  </div>
+                  <h2 className="font-headline-sm text-headline-sm">
+                    Pickup Address
+                  </h2>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <input
+                    className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface"
+                    placeholder="Street Address"
+                    value={address.street}
+                    onChange={(e) =>
+                      setAddress((p) => ({ ...p, street: e.target.value }))
+                    }
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input
+                      className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface"
+                      placeholder="City"
+                      value={address.city}
+                      onChange={(e) =>
+                        setAddress((p) => ({ ...p, city: e.target.value }))
+                      }
+                    />
+                    <input
+                      className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface"
+                      placeholder="ZIP Code"
+                      value={address.zip}
+                      onChange={(e) =>
+                        setAddress((p) => ({ ...p, zip: e.target.value }))
+                      }
+                    />
+                  </div>
+                  <textarea
+                    className="bg-white/40 border-b border-surface-tint/20 rounded-t-lg px-4 py-3 focus:outline-none focus:border-secondary-container transition-colors placeholder-on-surface-variant/50 text-on-surface resize-none h-24 mt-2"
+                    placeholder="Delivery Instructions (Optional, e.g., 'Leave with doorman')"
+                    value={address.instructions}
+                    onChange={(e) =>
+                      setAddress((p) => ({ ...p, instructions: e.target.value }))
+                    }
+                  />
+                </div>
+              </section>
+            )}
+
+            {/* ================= STEP 4 → TIME ================= */}
+            {step === 4 && (
+              <section className="glass-card rounded-3xl p-6 md:p-8 w-full">
+
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="material-symbols-outlined text-[#1E7F5A]">
+                    calendar_month
+                  </span>
+                  <h2>Schedule Time</h2>
+                </div>
+
+                {/* Calendar */}
+                <div className="mb-6">
+                  {/* Calendar */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-4">
+
+                      <button
+                        onClick={() => {
+                          if (month === 0) {
+                            setMonth(11);
+                            setYear(year - 1);
+                          } else {
+                            setMonth(month - 1);
+                          }
+                        }}
+                        className="text-on-surface-variant hover:text-on-surface"
+                      >
+                        <span className="material-symbols-outlined">
+                          chevron_left
+                        </span>
+                      </button>
+
+                      <span className="font-label-md text-label-md">
+                        {monthName} {year}
+                      </span>
+
+                      <button
+                        onClick={() => {
+                          if (month === 11) {
+                            setMonth(0);
+                            setYear(year + 1);
+                          } else {
+                            setMonth(month + 1);
+                          }
+                        }}
+                        className="text-on-surface-variant hover:text-on-surface"
+                      >
+                        <span className="material-symbols-outlined">
+                          chevron_right
+                        </span>
+                      </button>
+
                     </div>
 
-                    {/* Slots */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {timeSlots.map((slot) => (
-                        <button
-                          key={slot.id}
-                          onClick={() => setSelectedSlot(slot.id)}
-                          className={`p-3 rounded-lg border ${slot.id === selectedSlot
-                            ? "border-secondary bg-secondary-container/20"
-                            : "border-gray-300"
-                            }`}
-                        >
-                          {slot.label}
-                        </button>
+                    <div className="grid grid-cols-7 gap-1 text-center font-label-sm text-label-sm text-on-surface-variant mb-2">
+                      {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                        <div key={i}>{d}</div>
                       ))}
                     </div>
 
-                  </section>
+                    <div className="grid grid-cols-7 gap-1 text-center">
+                      {calendarDays.map((day) => {
+                        const isSelected = day === selectedDay;
 
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => setSelectedDay(day)}
+                            className={`p-2 rounded-full text-sm transition-all ${isSelected
+                              ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
+                              : "hover:bg-white/40 cursor-pointer"
+                              }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
-              </div>
-            )}
-            {/* GRID END */}
+                {/* Slots */}
+                <div className="grid grid-cols-2 gap-3">
+                  {timeSlots.map((slot) => (
+                    <button
+                      key={slot.id}
+                      onClick={() => setSelectedSlot(slot.id)}
+                      className={`p-3 rounded-lg border ${slot.id === selectedSlot
+                        ? "border-secondary bg-secondary-container/20"
+                        : "border-gray-300"
+                        }`}
+                    >
+                      {slot.label}
+                    </button>
+                  ))}
+                </div>
 
-            {/* STEP 3 */}
-            {step === 3 && (
+              </section>
+            )}
+
+            {/* ================= STEP 5 → DELIVERY ================= */}
+            {step === 5 && (
               <div className="space-y-4">
 
                 {/* STANDARD */}
                 <div
                   onClick={() => setDeliveryType("standard")}
                   className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "standard"
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
                     : "border-gray-300"
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "standard" ? "border-blue-500" : "border-gray-400"
-                      }`}>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "standard"
+                        ? "border-[#1E7F5A]"
+                        : "border-gray-400"
+                        }`}
+                    >
                       {deliveryType === "standard" && (
-                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#1E7F5A] rounded-full"></div>
                       )}
                     </div>
 
@@ -577,23 +572,28 @@ export default function SchedulePickup() {
                     </div>
                   </div>
 
-                  <span className="bg-gray-200 px-3 py-1 rounded-full text-sm">Free</span>
+                  <span className="bg-gray-200 px-3 py-1 rounded-full text-sm">
+                    Free
+                  </span>
                 </div>
 
-
-                {/* EXPRESS */}
+                {/* EXPRESS 🔥 ADD THIS */}
                 <div
                   onClick={() => setDeliveryType("express")}
                   className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "express"
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
                     : "border-gray-300"
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "express" ? "border-blue-500" : "border-gray-400"
-                      }`}>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "express"
+                        ? "border-[#1E7F5A]"
+                        : "border-gray-400"
+                        }`}
+                    >
                       {deliveryType === "express" && (
-                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                        <div className="w-2.5 h-2.5 bg-[#1E7F5A] rounded-full"></div>
                       )}
                     </div>
 
@@ -618,7 +618,13 @@ export default function SchedulePickup() {
 
         {/* BACK */}
         <button
-          onClick={() => setStep((prev) => Math.max(1, prev - 1))}
+          onClick={() => {
+            if (step === 1) {
+              navigate("/customer")
+            } else {
+              setStep((prev) => prev - 1);
+            }
+          }}
           className="px-6 py-3 border rounded-xl"
         >
           ← Back
@@ -638,30 +644,40 @@ export default function SchedulePickup() {
               setStep(2);
             }
 
-            // STEP 2 → SLOT + ADDRESS
+            // STEP 2 → QUANTITY (no validation needed)
             else if (step === 2) {
+              setStep(3);
+            }
+
+            // STEP 3 → ADDRESS
+            else if (step === 3) {
               if (!address.street || !address.city || !address.zip) {
                 setError("Please fill address properly");
                 return;
               }
+              setError("");
+              setStep(4);
+            }
 
+            // STEP 4 → TIME
+            else if (step === 4) {
               if (!selectedSlot) {
                 setError("Please select a time slot");
                 return;
               }
-
               setError("");
-              setStep(3);
+              setStep(5);
             }
 
-            // STEP 3 → FINAL SUBMIT
-            else if (step === 3) {
+            // STEP 5 → FINAL SUBMIT
+            else if (step === 5) {
               handleSubmit();
             }
           }}
           disabled={
             (step === 1 && selectedServices.length === 0) ||
-            (step === 2 && (!selectedSlot || !address.street || !address.city || !address.zip))
+            (step === 3 && (!address.street || !address.city || !address.zip)) ||
+            (step === 4 && !selectedSlot)
           }
           className="px-6 py-3 bg-[#1E7F5A] text-white rounded-xl disabled:opacity-50 hover:bg-[#166a4a] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md"
         >

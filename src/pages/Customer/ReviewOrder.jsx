@@ -61,7 +61,7 @@ export default function ReviewOrder() {
       </div>
 
       {/* TOTAL */}
-      <div className="border-2 border-blue-500 rounded-xl p-4 flex justify-between text-lg font-bold">
+      <div className="border-2 border-[#1E7F5A] rounded-xl p-4 flex justify-between text-lg font-bold">
         <span>Total</span>
         <span>₹{total}</span>
       </div>

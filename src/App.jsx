@@ -89,7 +89,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="schedule" element={<SchedulePickup />} />
-          <Route path="/customer/review" element={<ReviewOrder />} />
+          <Route path="customer/review" element={<ReviewOrder />} />
           <Route path="orders" element={<AllOrders />} />
           <Route path="checkout" element={<CheckoutPayment />} />
           <Route path="track" element={<TrackOrder />} />
