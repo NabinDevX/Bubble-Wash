@@ -86,14 +86,19 @@ export default function CustomerSidebar({
         <div className="p-6 border-t border-on-primary-container/10 space-y-4">
 
           {/* User Info */}
-          <div className="flex items-center space-x-3">
+          <div
+            onClick={() => navigate("/customer/profile")}
+            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition"
+          >
             <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-fixed font-bold">
               {initial}
             </div>
+
             <div>
               <p className="font-label-md text-label-md text-surface font-semibold">
                 {displayName}
               </p>
+
               {secondaryLine ? (
                 <p className="font-label-sm text-label-sm text-on-primary-container/70">
                   {secondaryLine}
