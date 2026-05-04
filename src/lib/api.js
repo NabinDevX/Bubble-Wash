@@ -21,15 +21,25 @@ const API_ROOT = (
 const inflightGetRequests = new Map();
 
 export function getToken() {
-  return localStorage.getItem("accessToken");
+  return (
+    localStorage.getItem("accessToken") ||
+    sessionStorage.getItem("accessToken")
+  );
 }
 
-export function setToken(token) {
-  localStorage.setItem("accessToken", token);
+export function setToken(token, remember = true) {
+  if (remember) {
+    localStorage.setItem("accessToken", token);
+    sessionStorage.removeItem("accessToken");
+  } else {
+    sessionStorage.setItem("accessToken", token);
+    localStorage.removeItem("accessToken");
+  }
 }
 
 export function clearToken() {
   localStorage.removeItem("accessToken");
+  sessionStorage.removeItem("accessToken");
 }
 
 async function request(method, path, body = null) {

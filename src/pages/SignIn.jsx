@@ -28,7 +28,7 @@ export default function SignIn() {
     setError("");
     setLoading(true);
     try {
-      const res = await login(phone, password);
+      const res = await login(phone, password, remember);
       const role = (res.user?.role ?? res.role ?? userType).toLowerCase();
       navigate(REDIRECT_MAP[role] || "/customer", { replace: true });
     } catch (err) {
@@ -156,8 +156,8 @@ export default function SignIn() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 px-1">
-                <div className="relative inline-flex items-center cursor-pointer">
+              <label className="flex items-center gap-3 px-1 cursor-pointer">
+                <div className="relative inline-flex items-center">
                   <input
                     id="remember"
                     type="checkbox"
@@ -165,15 +165,18 @@ export default function SignIn() {
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
                   />
-                  <div className="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary" />
+                  <div className="w-10 h-5 bg-surface-container-highest rounded-full 
+      peer-checked:bg-secondary 
+      after:content-[''] after:absolute after:top-0.5 after:left-0.5 
+      after:bg-white after:rounded-full after:h-4 after:w-4 
+      after:transition-all 
+      peer-checked:after:translate-x-full" />
                 </div>
-                <label
-                  className="font-label-md text-label-md text-on-surface-variant cursor-pointer"
-                  htmlFor="remember"
-                >
+
+                <span className="font-label-md text-label-md text-on-surface-variant">
                   Keep me signed in
-                </label>
-              </div>
+                </span>
+              </label>
 
               <button
                 type="submit"

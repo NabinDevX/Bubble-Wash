@@ -27,18 +27,29 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (phone, password) => {
+  const login = useCallback(async (phone, password, remember) => {
     const res = await api.post("/auth/signin", { phone, password });
+
     const token = res?.token ?? res?.accessToken;
-    if (token) setToken(token);
+
+    if (token) {
+      if (remember) {
+        localStorage.setItem("accessToken", token);
+        sessionStorage.removeItem("accessToken");
+      } else {
+        sessionStorage.setItem("accessToken", token);
+        localStorage.removeItem("accessToken");
+      }
+    }
     setUser(res?.user ?? res);
+
     return res;
   }, []);
 
   const signup = useCallback(async (name, phone, password) => {
     const res = await api.post("/auth/signup", { name, phone, password });
     const token = res?.token ?? res?.accessToken;
-    if (token) setToken(token);
+    if (token) setToken(token, remember);
     setUser(res?.user ?? res);
     return res;
   }, []);
