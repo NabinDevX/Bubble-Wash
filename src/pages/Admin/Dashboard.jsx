@@ -14,7 +14,14 @@ import {
 } from "chart.js";
 import { Bar, Pie } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, ArcElement);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+  ArcElement,
+);
 
 function readCssVar(name, fallback) {
   if (typeof window === "undefined") return fallback;
@@ -70,6 +77,16 @@ function formatDateTime(value) {
   });
 }
 
+function readCount(source, keys, fallback = 0) {
+  for (const key of keys) {
+    const value = source?.[key];
+    if (value == null || value === "") continue;
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}
+
 function toTitleCase(v) {
   const s = String(v ?? "");
   if (!s) return "—";
@@ -97,7 +114,6 @@ function getStatusPill(status) {
   };
 }
 
-
 function buildMonthCalendar(date) {
   const year = date.getFullYear();
   const month = date.getMonth();
@@ -107,7 +123,8 @@ function buildMonthCalendar(date) {
   const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
 
   const actualToday = new Date();
-  const isCurrentMonth = year === actualToday.getFullYear() && month === actualToday.getMonth();
+  const isCurrentMonth =
+    year === actualToday.getFullYear() && month === actualToday.getMonth();
 
   return Array.from({ length: totalCells }, (_, index) => {
     if (index < firstDay) {
@@ -143,41 +160,6 @@ export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [revenueDataRes, setRevenueDataRes] = useState(null);
   const [trendsDataRes, setTrendsDataRes] = useState(null);
-  const [catalog, setCatalog] = useState({ services: [], slots: [] });
-  const [stats, setStats] = useState([
-    {
-      label: "Total Orders",
-      value: "—",
-      hint: "",
-      icon: "shopping_bag",
-      iconBg: "bg-blue-50",
-      iconColor: "text-primary",
-    },
-    {
-      label: "Revenue",
-      value: "—",
-      hint: "",
-      icon: "payments",
-      iconBg: "bg-emerald-50",
-      iconColor: "text-secondary",
-    },
-    {
-      label: "Active Riders",
-      value: "—",
-      hint: "",
-      icon: "two_wheeler",
-      iconBg: "bg-cyan-50",
-      iconColor: "text-secondary",
-    },
-    {
-      label: "Open Tickets",
-      value: "—",
-      hint: "",
-      icon: "support_agent",
-      iconBg: "bg-orange-50",
-      iconColor: "text-orange-600",
-    },
-  ]);
   const [slaRows, setSlaRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -208,7 +190,10 @@ export default function Dashboard() {
     };
   }, []);
 
-  const todayCalendar = useMemo(() => buildMonthCalendar(currentMonthDate), [currentMonthDate]);
+  const todayCalendar = useMemo(
+    () => buildMonthCalendar(currentMonthDate),
+    [currentMonthDate],
+  );
   const todayLabel = useMemo(
     () =>
       new Intl.DateTimeFormat(undefined, {
@@ -225,17 +210,21 @@ export default function Dashboard() {
         month: "long",
         year: "numeric",
       }).format(currentMonthDate),
-    [currentMonthDate]
+    [currentMonthDate],
   );
 
   function handlePrevMonth(e) {
     e.stopPropagation();
-    setCurrentMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setCurrentMonthDate(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+    );
   }
 
   function handleNextMonth(e) {
     e.stopPropagation();
-    setCurrentMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setCurrentMonthDate(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+    );
   }
 
   useEffect(() => {
@@ -260,10 +249,8 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [dashboardRes, servicesRes, slotsRes, revenueRes, trendsRes] = await Promise.allSettled([
+        const [dashboardRes, revenueRes, trendsRes] = await Promise.allSettled([
           api.get("/admin/dashboard/stats"),
-          api.get("/services"),
-          api.get("/slots"),
           api.get("/admin/dashboard/revenue"),
           api.get("/admin/dashboard/orders-trends"),
         ]);
@@ -271,120 +258,17 @@ export default function Dashboard() {
 
         const data =
           dashboardRes.status === "fulfilled" ? dashboardRes.value : null;
-        
+
         if (revenueRes.status === "fulfilled") {
           setRevenueDataRes(revenueRes.value);
         }
         if (trendsRes.status === "fulfilled") {
           setTrendsDataRes(trendsRes.value);
         }
-
-        if (servicesRes.status === "fulfilled") {
-          const list = servicesRes.value?.services ?? servicesRes.value ?? [];
-          setCatalog((prev) => ({
-            ...prev,
-            services: Array.isArray(list) ? list : [],
-          }));
-        }
-
-        if (slotsRes.status === "fulfilled") {
-          const list = slotsRes.value?.slots ?? slotsRes.value ?? [];
-          setCatalog((prev) => ({
-            ...prev,
-            slots: Array.isArray(list) ? list : [],
-          }));
-        }
-
-        if (data?.stats) {
-          setStats([
-            {
-              label: "Total Orders",
-              value: String(data.stats.totalOrders ?? "0"),
-              hint: data.stats.ordersHint ?? "",
-              icon: "shopping_bag",
-              iconBg: "bg-blue-50",
-              iconColor: "text-primary",
-            },
-            {
-              label: "Revenue",
-              value: data.stats.revenue
-                ? `$${Number(data.stats.revenue).toLocaleString()}`
-                : "$0",
-              hint: data.stats.revenueHint ?? "",
-              icon: "payments",
-              iconBg: "bg-emerald-50",
-              iconColor: "text-secondary",
-            },
-            {
-              label: "Active Riders",
-              value: String(data.stats.activeRiders ?? "0"),
-              hint: data.stats.ridersHint ?? "",
-              icon: "two_wheeler",
-              iconBg: "bg-cyan-50",
-              iconColor: "text-secondary",
-            },
-            {
-              label: "Open Tickets",
-              value: String(data.stats.openTickets ?? "0"),
-              hint: data.stats.ticketsHint ?? "",
-              icon: "support_agent",
-              iconBg: "bg-orange-50",
-              iconColor: "text-orange-600",
-            },
-          ]);
-          setDashboard(null);
-        } else if (data?.overview || data?.periodStats) {
+        if (data?.overview || data?.periodStats) {
           const overview = data?.overview ?? {};
           const periodStats = data?.periodStats ?? {};
           const period = periodStats.period;
-
-          const periodOrdersRaw =
-            overview.totalOrdersPeriod ?? periodStats.ordersCount;
-          const periodRevenueRaw = periodStats.revenue;
-
-          const ordersHint =
-            period && periodOrdersRaw != null
-              ? `${formatCount(periodOrdersRaw)} in ${period}`
-              : "";
-          const revenueHint =
-            period && periodRevenueRaw != null
-              ? `${formatMoney(periodRevenueRaw)} in ${period}`
-              : "";
-
-          setStats([
-            {
-              label: "Total Orders",
-              value: formatCount(overview.totalOrders ?? 0),
-              hint: ordersHint,
-              icon: "shopping_bag",
-              iconBg: "bg-blue-50",
-              iconColor: "text-primary",
-            },
-            {
-              label: "Revenue",
-              value: formatMoney(overview.totalRevenue ?? 0),
-              hint: revenueHint,
-              icon: "payments",
-              iconBg: "bg-emerald-50",
-              iconColor: "text-secondary",
-            },
-            {
-              label: "Active Riders",
-              value: formatCount(overview.activeRiders ?? 0),
-              hint: "",
-              icon: "two_wheeler",
-              iconBg: "bg-cyan-50",
-              iconColor: "text-secondary",
-            },
-            {
-              label: "Open Tickets",
-              value: formatCount(overview.openTickets ?? 0),
-              hint: "",
-              icon: "support_agent",
-              iconBg: "bg-orange-50",
-              iconColor: "text-orange-600",
-            },
-          ]);
           setDashboard({
             overview,
             periodStats,
@@ -399,7 +283,7 @@ export default function Dashboard() {
               : [],
           });
         }
-        if (data.sla || data.performance) {
+        if (data?.sla || data?.performance) {
           const sla = data.sla ?? data.performance ?? [];
           setSlaRows(
             sla.map((s) => ({
@@ -533,45 +417,68 @@ export default function Dashboard() {
   }, [chartOptions, chartTheme.onSurfaceVariant]);
 
   const dueDeliveryData = useMemo(() => {
-    // Assuming trendsDataRes has a dueDelivery array or similar. 
+    // Assuming trendsDataRes has a dueDelivery array or similar.
     // If not, we fallback to static data until the backend format is known.
-    const labels = trendsDataRes?.dueDelivery?.labels || ['07-Mar', '08-Mar', '09-Mar', '10-Mar', '11-Mar', '12-Mar', '13-Mar'];
-    const data = trendsDataRes?.dueDelivery?.data || [10, 16, 18, 20, 25, 18, 6];
-    
+    const labels = trendsDataRes?.dueDelivery?.labels || [
+      "07-Mar",
+      "08-Mar",
+      "09-Mar",
+      "10-Mar",
+      "11-Mar",
+      "12-Mar",
+      "13-Mar",
+    ];
+    const data = trendsDataRes?.dueDelivery?.data || [
+      10, 16, 18, 20, 25, 18, 6,
+    ];
+
     return {
       labels,
       datasets: [
         {
-          label: 'Orders',
+          label: "Orders",
           data,
-          backgroundColor: '#3b82f6',
+          backgroundColor: "#3b82f6",
           barThickness: 16,
           borderRadius: 2,
-        }
-      ]
+        },
+      ],
     };
   }, [trendsDataRes]);
 
   const dayWiseData = useMemo(() => {
-    const labels = trendsDataRes?.dayWise?.labels || ['01-Mar', '02-Mar', '03-Mar', '04-Mar', '05-Mar', '06-Mar', '07-Mar'];
+    const labels = trendsDataRes?.dayWise?.labels || [
+      "01-Mar",
+      "02-Mar",
+      "03-Mar",
+      "04-Mar",
+      "05-Mar",
+      "06-Mar",
+      "07-Mar",
+    ];
     const data = trendsDataRes?.dayWise?.data || [10, 15, 16, 12, 11, 18, 6];
 
     return {
       labels,
       datasets: [
         {
-          label: 'Orders',
+          label: "Orders",
           data,
-          backgroundColor: '#3b82f6',
+          backgroundColor: "#3b82f6",
           barThickness: 16,
           borderRadius: 2,
-        }
-      ]
+        },
+      ],
     };
   }, [trendsDataRes]);
 
   const revenuePieData = useMemo(() => {
-    const labels = revenueDataRes?.services?.labels || ['Dry Cleaning', 'Shoe Cleaning', 'Curtain Cleaning', 'Wash and Fold'];
+    const labels = revenueDataRes?.services?.labels || [
+      "Dry Cleaning",
+      "Shoe Cleaning",
+      "Curtain Cleaning",
+      "Wash and Fold",
+    ];
     const data = revenueDataRes?.services?.data || [50000, 10000, 25000, 20000];
 
     return {
@@ -579,15 +486,18 @@ export default function Dashboard() {
       datasets: [
         {
           data,
-          backgroundColor: ['#3b82f6', '#f97316', '#a8a29e', '#eab308'],
+          backgroundColor: ["#3b82f6", "#f97316", "#a8a29e", "#eab308"],
           borderWidth: 1,
-        }
-      ]
+        },
+      ],
     };
   }, [revenueDataRes]);
 
   const customersPieData = useMemo(() => {
-    const labels = dashboard?.customers?.labels || ['Returning Customers', 'New Customers'];
+    const labels = dashboard?.customers?.labels || [
+      "Returning Customers",
+      "New Customers",
+    ];
     const data = dashboard?.customers?.data || [35, 5];
 
     return {
@@ -595,10 +505,10 @@ export default function Dashboard() {
       datasets: [
         {
           data,
-          backgroundColor: ['#3b82f6', '#f97316'],
+          backgroundColor: ["#3b82f6", "#f97316"],
           borderWidth: 1,
-        }
-      ]
+        },
+      ],
     };
   }, [dashboard]);
 
@@ -609,43 +519,160 @@ export default function Dashboard() {
       plugins: {
         legend: {
           position: "right",
-          labels: { color: chartTheme.onSurfaceVariant, usePointStyle: true, boxWidth: 8 },
+          labels: {
+            color: chartTheme.onSurfaceVariant,
+            usePointStyle: true,
+            boxWidth: 8,
+          },
         },
       },
     };
   }, [chartTheme.onSurfaceVariant]);
 
-  const extraTiles = useMemo(() => {
-    const overview = dashboard?.overview;
-    if (!overview) return [];
+  const monthOverviewTiles = useMemo(() => {
+    const overview = dashboard?.overview ?? {};
+    const periodStats = dashboard?.periodStats ?? {};
+    const period = periodStats.period;
+    const periodOrdersRaw =
+      overview.totalOrdersPeriod ?? periodStats.ordersCount;
+    const periodRevenueRaw = periodStats.revenue;
+
+    const ordersHint =
+      period && periodOrdersRaw != null
+        ? `${formatCount(periodOrdersRaw)} in ${period}`
+        : "";
+    const revenueHint =
+      period && periodRevenueRaw != null
+        ? `${formatMoney(periodRevenueRaw)} in ${period}`
+        : "";
+
     return [
       {
-        label: "Total Users",
-        value: formatCount(overview.totalUsers ?? 0),
-        icon: "group",
-        iconBg: "bg-cyan-50",
-        iconColor: "text-secondary",
-      },
-      {
-        label: "Active Services",
-        value: formatCount(overview.activeServices ?? 0),
-        icon: "local_laundry_service",
+        label: "Total Orders",
+        value: formatCount(overview.totalOrders ?? 0),
+        hint: ordersHint,
+        icon: "shopping_bag",
         iconBg: "bg-blue-50",
         iconColor: "text-primary",
       },
       {
-        label: "Active Slots",
-        value: formatCount(overview.activeSlots ?? 0),
-        icon: "schedule",
+        label: "Revenue",
+        value: formatMoney(overview.totalRevenue ?? 0),
+        hint: revenueHint,
+        icon: "payments",
         iconBg: "bg-emerald-50",
         iconColor: "text-secondary",
       },
+    ];
+  }, [dashboard]);
+
+  const liveDataTiles = useMemo(() => {
+    const overview = dashboard?.overview ?? {};
+    const periodStats = dashboard?.periodStats ?? {};
+    const statusBreakdown = periodStats.statusBreakdown ?? {};
+
+    const pickupPending = readCount(statusBreakdown, [
+      "pickup_pending",
+      "pending_pickup",
+      "pickupPending",
+      "pending",
+    ]);
+    const warehouseInProgress = readCount(statusBreakdown, [
+      "in_warehouse",
+      "warehouse_in_progress",
+      "warehouse",
+      "processing",
+    ]);
+    const ownInProgress = readCount(statusBreakdown, [
+      "in_progress",
+      "in_progress_own",
+      "own_in_progress",
+      "ongoing",
+    ]);
+    const overdueOrders = readCount(statusBreakdown, [
+      "overdue",
+      "over_due",
+      "due",
+      "delayed",
+    ]);
+    const expressDelivery = readCount(statusBreakdown, [
+      "express",
+      "express_delivery",
+      "rush",
+      "priority",
+    ]);
+    const deliveryPending = readCount(statusBreakdown, [
+      "delivery_pending",
+      "out_for_delivery",
+      "pending_delivery",
+    ]);
+    const openTickets = readCount(overview, [
+      "openTickets",
+      "ticketsOpen",
+      "ticketCount",
+    ]);
+    const dueForCollection = readCount(
+      overview,
+      ["dueForCollection", "due_collection", "collectionsDue"],
+      readCount(statusBreakdown, ["due_for_collection", "collection_due"]),
+    );
+
+    return [
       {
-        label: "Service Areas",
-        value: formatCount(overview.totalAreas ?? 0),
-        icon: "map",
+        label: "Pickup Pending",
+        value: formatCount(pickupPending),
+        icon: "inventory_2",
+        iconBg: "bg-blue-50",
+        iconColor: "text-primary",
+      },
+      {
+        label: "In Progress Warehouse",
+        value: formatCount(warehouseInProgress),
+        icon: "warehouse",
         iconBg: "bg-orange-50",
         iconColor: "text-orange-600",
+      },
+      {
+        label: "In-Progress Own",
+        value: formatCount(ownInProgress),
+        icon: "local_shipping",
+        iconBg: "bg-cyan-50",
+        iconColor: "text-secondary",
+      },
+      {
+        label: "Over Due Orders",
+        value: formatCount(overdueOrders),
+        icon: "schedule",
+        iconBg: "bg-rose-50",
+        iconColor: "text-rose-600",
+      },
+      {
+        label: "Express Delivery",
+        value: formatCount(expressDelivery),
+        icon: "bolt",
+        iconBg: "bg-amber-50",
+        iconColor: "text-amber-600",
+      },
+      {
+        label: "Delivery Pending",
+        value: formatCount(deliveryPending),
+        icon: "pending_actions",
+        iconBg: "bg-teal-50",
+        iconColor: "text-teal-600",
+      },
+      {
+        label: "Open Tickets",
+        value: formatCount(openTickets),
+        icon: "support_agent",
+        iconBg: "bg-orange-50",
+        iconColor: "text-orange-600",
+      },
+      {
+        label: "Due for Collection",
+        value: formatCount(dueForCollection),
+        icon: "payments",
+        iconBg: "bg-emerald-50",
+        iconColor: "text-secondary",
       },
     ];
   }, [dashboard]);
@@ -688,12 +715,13 @@ export default function Dashboard() {
               if (!calendarPinned) setCalendarOpen(false);
             }}
           >
-            <button 
+            <button
               onClick={() => {
                 setCalendarPinned((prev) => !prev);
                 setCalendarOpen(true);
               }}
-              className="px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface text-sm font-medium hover:bg-white/80 transition-colors flex items-center gap-2">
+              className="px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface text-sm font-medium hover:bg-white/80 transition-colors flex items-center gap-2"
+            >
               <span className="material-symbols-outlined text-base">
                 calendar_today
               </span>
@@ -717,7 +745,11 @@ export default function Dashboard() {
                 </div>
                 <div className="p-4">
                   <div className="mb-4 flex items-center justify-between">
-                    <button type="button" onClick={handlePrevMonth} className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface">
+                    <button
+                      type="button"
+                      onClick={handlePrevMonth}
+                      className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface"
+                    >
                       <span className="material-symbols-outlined text-base">
                         chevron_left
                       </span>
@@ -725,7 +757,11 @@ export default function Dashboard() {
                     <p className="text-sm font-semibold text-on-surface">
                       {displayedMonthLabel}
                     </p>
-                    <button type="button" onClick={handleNextMonth} className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface">
+                    <button
+                      type="button"
+                      onClick={handleNextMonth}
+                      className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface"
+                    >
                       <span className="material-symbols-outlined text-base">
                         chevron_right
                       </span>
@@ -769,90 +805,124 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {loading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : (
-          stats.map((item) => (
-            <div
-              key={item.label}
-              className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group`}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div
-                  className={`p-2.5 ${item.iconBg} rounded-lg group-hover:scale-110 transition-transform`}
-                >
-                  <span className={`material-symbols-outlined ${item.iconColor}`}>
-                    {item.icon}
-                  </span>
-                </div>
-                {item.hint && (
-                  <span className="text-xs font-bold text-secondary bg-secondary-container/30 px-2 py-1 rounded-full">
-                    {item.hint}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">
-                {item.label}
-              </p>
-              <p className="text-2xl font-bold text-on-surface mt-1">
-                {item.value}
+      <div className="grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] items-stretch gap-4">
+        <section className="flex h-full min-h-[180px] flex-col rounded-3xl border border-outline-variant/30 bg-[#e8eef7] p-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-on-surface">
+                Current Month
+              </h3>
+              <p className="text-xs uppercase tracking-[0.24em] text-on-surface-variant mt-1">
+                {displayedMonthLabel}
               </p>
             </div>
-          ))
-        )}
-      </div>
+            <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-on-surface-variant">
+              Overview
+            </span>
+          </div>
 
-      {extraTiles.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {loading ? (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
-          ) : (
-            extraTiles.map((item) => (
+          <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
+            {(loading ? [0, 1] : monthOverviewTiles).map((item, index) => (
               <div
-                key={item.label}
-                className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group`}
+                key={loading ? index : item.label}
+                className="min-h-[112px] rounded-2xl border border-white/60 bg-white/90 px-4 py-4 shadow-sm"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div
-                    className={`p-2.5 ${item.iconBg} rounded-lg group-hover:scale-110 transition-transform`}
-                  >
-                    <span
-                      className={`material-symbols-outlined ${item.iconColor}`}
-                    >
-                      {item.icon}
-                    </span>
+                {loading ? (
+                  <Skeleton className="h-16 w-full rounded-xl" />
+                ) : (
+                  <div className="flex h-full items-center gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div className={`rounded-2xl ${item.iconBg} p-3`}>
+                        <span
+                          className={`material-symbols-outlined ${item.iconColor}`}
+                        >
+                          {item.icon}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-on-surface-variant font-medium leading-tight">
+                          {item.label}
+                        </p>
+                        <p className="text-2xl font-bold text-on-surface mt-1 leading-none">
+                          {item.value}
+                        </p>
+                      </div>
+                    </div>
+                    {item.hint && (
+                      <span className="shrink-0 rounded-full bg-secondary-container/30 px-2.5 py-1 text-[11px] font-bold text-secondary whitespace-nowrap">
+                        {item.hint}
+                      </span>
+                    )}
                   </div>
-                </div>
-                <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">
-                  {item.label}
-                </p>
-                <p className="text-2xl font-bold text-on-surface mt-1">
-                  {item.value}
-                </p>
+                )}
               </div>
-            ))
-          )}
-        </div>
-      )}
+            ))}
+          </div>
+        </section>
+
+        <section className="flex h-full min-h-[180px] flex-col rounded-3xl border border-outline-variant/30 bg-[#fde5d6] p-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-on-surface">
+                Live Data
+              </h3>
+              <p className="text-xs uppercase tracking-[0.24em] text-on-surface-variant mt-1">
+                Operational status
+              </p>
+            </div>
+            <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-on-surface-variant">
+              Real time
+            </span>
+          </div>
+
+          <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 content-start">
+            {(loading ? Array.from({ length: 8 }) : liveDataTiles).map(
+              (item, index) => (
+                <div
+                  key={loading ? index : item.label}
+                  className="rounded-2xl border border-white/70 bg-white/92 px-4 py-4 shadow-sm"
+                >
+                  {loading ? (
+                    <Skeleton className="h-16 w-full rounded-xl" />
+                  ) : (
+                    <div className="flex min-h-[72px] items-center gap-3">
+                      <div
+                        className={`shrink-0 rounded-xl ${item.iconBg} p-2.5`}
+                      >
+                        <span
+                          className={`material-symbols-outlined ${item.iconColor}`}
+                        >
+                          {item.icon}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold leading-tight">
+                          {item.label}
+                        </p>
+                        <p className="text-2xl font-bold text-on-surface mt-1 leading-none">
+                          {item.value}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
+          </div>
+        </section>
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <div className="flex flex-col gap-4">
           <div className="glass-card rounded-xl overflow-hidden flex flex-col">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-16" />
-              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Orders Due for Delivery</h3>
-              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm">7 Days</span>
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
+                Orders Due for Delivery
+              </h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm">
+                7 Days
+              </span>
             </div>
             <div className="p-4 h-56">
               {loading ? (
@@ -862,7 +932,10 @@ export default function Dashboard() {
                   data={dueDeliveryData}
                   options={{
                     ...chartOptions,
-                    plugins: { ...chartOptions.plugins, legend: { display: false } }
+                    plugins: {
+                      ...chartOptions.plugins,
+                      legend: { display: false },
+                    },
                   }}
                 />
               )}
@@ -871,8 +944,12 @@ export default function Dashboard() {
           <div className="glass-card rounded-xl overflow-hidden flex flex-col">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-16" />
-              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Day wise Orders Placed</h3>
-              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm">30 Days</span>
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
+                Day wise Orders Placed
+              </h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm">
+                30 Days
+              </span>
             </div>
             <div className="p-4 h-56">
               {loading ? (
@@ -882,7 +959,10 @@ export default function Dashboard() {
                   data={dayWiseData}
                   options={{
                     ...chartOptions,
-                    plugins: { ...chartOptions.plugins, legend: { display: false } }
+                    plugins: {
+                      ...chartOptions.plugins,
+                      legend: { display: false },
+                    },
                   }}
                 />
               )}
@@ -894,8 +974,12 @@ export default function Dashboard() {
           <div className="glass-card rounded-xl overflow-hidden flex flex-col">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-24" />
-              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Revenue - Service Category</h3>
-              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm whitespace-nowrap">Current Month</span>
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
+                Revenue - Service Category
+              </h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm whitespace-nowrap">
+                Current Month
+              </span>
             </div>
             <div className="p-4 h-56">
               {loading ? (
@@ -908,8 +992,12 @@ export default function Dashboard() {
           <div className="glass-card rounded-xl overflow-hidden flex flex-col">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-24" />
-              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Customers</h3>
-              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm whitespace-nowrap">Current Month</span>
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
+                Customers
+              </h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm whitespace-nowrap">
+                Current Month
+              </span>
             </div>
             <div className="p-4 h-56">
               {loading ? (
