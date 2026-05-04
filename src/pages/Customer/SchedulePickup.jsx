@@ -710,7 +710,15 @@ export default function SchedulePickup() {
                   } catch (err) {
                     console.log("API ERROR:", err);
 
-                    if (err.response?.status === 404) {
+                    const message =
+                      err.response?.data?.message ||
+                      err.message ||
+                      "";
+
+                    if (
+                      err.response?.status === 404 ||
+                      message.toLowerCase().includes("no service")
+                    ) {
                       setError("Service not available in your location");
                     } else {
                       setError("Unable to check service availability");
