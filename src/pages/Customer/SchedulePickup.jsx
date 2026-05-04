@@ -203,99 +203,6 @@ export default function SchedulePickup() {
     });
   }
 
-  async function handleSubmit() {
-    if (selectedServices.length === 0) {
-      setError("Please select at least one service");
-      return;
-    }
-
-    if (selectedSlot === null) {
-      setError("Please select a valid time slot");
-      return;
-    }
-
-    if (!address.street || !address.city || !address.zip) {
-      setError("Please fill address properly");
-      return;
-    }
-
-    setError("");
-    setSubmitting(true);
-
-    console.log("Selected Services:", selectedServices);
-
-    try {
-      const payload = {
-        orderItems: selectedServices.map((serviceId) => {
-          const service = services.find(s => s.id === serviceId);
-
-          return {
-            service: serviceId,
-            quantity: quantities[serviceId] || 1,
-            weight: quantities[serviceId] || 1,
-            price: service?.price || 0,
-          };
-        }),
-
-        pickupAddress: {
-          street: address.street,
-          area: "",
-          city: address.city,
-          state: "",
-          pincode: address.zip,
-          landmark: address.instructions || "",
-        },
-
-        slotId: selectedSlot,
-        deliveryType: deliveryType,
-      };
-
-      console.log("FINAL PAYLOAD:", payload);
-
-      const res = await api.post("/orders", payload);
-
-      const orderId =
-        res?.order?.orderId ||
-        res?.order?._id ||
-        res?.orderId ||
-        res?._id;
-
-      console.log("ORDER ID:", orderId);
-
-      const selectedSlotData = timeSlots.find(s => s.id === selectedSlot);
-
-      navigate("/customer/review", {
-        state: {
-          orderItems: selectedServices.map((serviceId) => {
-            const service = services.find((s) => s.id === serviceId);
-
-            return {
-              name: service?.name || "Service",
-              price: Number(service?.price) || 0,
-              quantity: quantities[serviceId] || 1,
-            };
-          }),
-          pickupAddress: payload.pickupAddress,
-          pickupSlot: selectedSlotData?.label,
-          pickupDate: new Date(year, month, selectedDay)
-            .toLocaleDateString("en-IN", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            }),
-
-          deliveryType: deliveryType,
-          subtotal: subtotal,
-        },
-      });
-
-    } catch (err) {
-      setError(err.message || "Failed to create order");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   return (
     <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto pb-24">
       {/* Header */}
@@ -733,7 +640,37 @@ export default function SchedulePickup() {
                   setStep(5);
 
                 } else if (step === 5) {
-                  handleSubmit();
+                  navigate("/customer/review", {
+                    state: {
+                      orderItems: selectedServices.map((serviceId) => {
+                        const service = services.find((s) => s.id === serviceId);
+
+                        return {
+                          service: serviceId,
+                          name: service?.name,
+                          price: service?.price,
+                          quantity: quantities[serviceId] || 1,
+                        };
+                      }),
+
+                      pickupAddress: {
+                        street: address.street,
+                        city: address.city,
+                        pincode: address.zip,
+                        landmark: address.instructions || "",
+                      },
+
+                      slotId: selectedSlot,
+                      deliveryType,
+                      subtotal,
+                      pickupDate: new Date(year, month, selectedDay)
+                        .toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        }),
+                    },
+                  });
                 }
               }}
               disabled={
