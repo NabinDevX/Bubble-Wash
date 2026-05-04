@@ -168,20 +168,15 @@
 }
 
 .cta-gradient {
-  background: #1E7F5A;
-  color: white;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(30, 127, 90, 0.3);
+  background: linear-gradient(90deg, #4fd1c5 0%, #0f766e 100%);
 }
 
 .cta-gradient:hover {
-  background: #166a4a;
-  box-shadow: 0 6px 20px rgba(30, 127, 90, 0.4);
-  transform: translateY(-1px);
+  background: linear-gradient(90deg, #38b2ac 0%, #0d5f57 100%);
 }
 
 .cta-gradient:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .bg-mesh {

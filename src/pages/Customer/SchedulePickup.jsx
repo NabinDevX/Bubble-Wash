@@ -116,6 +116,7 @@ export default function SchedulePickup() {
           const data = slotRes.value;
           const list =
             data?.slots ?? data?.data?.slots ?? data?.data ?? data ?? [];
+
           setTimeSlots(
             Array.from(
               new Map(
@@ -235,7 +236,7 @@ export default function SchedulePickup() {
 
                   return (
                     <button
-                      key={s.id}
+                      key={`${s.id}-${s.name}`}
                       onClick={() => toggleService(s.id)}
                       className={`w-full flex items-center justify-between p-4 rounded-xl border ${active
                         ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
@@ -284,7 +285,7 @@ export default function SchedulePickup() {
                     .filter((s) => selectedServices.includes(s.id))
                     .map((s) => (
                       <div
-                        key={s.id}
+                        key={`${s.id}-${s.name}`}
                         className="flex items-center justify-between bg-white border p-4 rounded-xl"
                       >
                         <div className="flex items-center gap-4">
