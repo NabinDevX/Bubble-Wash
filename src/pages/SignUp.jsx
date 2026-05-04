@@ -6,6 +6,7 @@ import { useAuth } from "../lib/AuthContext.jsx";
 const USER_TYPES = ["Customer", "Rider"];
 
 export default function SignUp() {
+  const [showPassword, setShowPassword] = useState(false);
   const [userType, setUserType] = useState("Customer");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -158,15 +159,27 @@ export default function SignUp() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline material-symbols-outlined">
                     lock
                   </span>
+
                   <input
-                    className="w-full glass-input pl-12 pr-4 py-3.5 rounded-xl font-body-md text-on-background placeholder:text-outline"
+                    className="w-full glass-input pl-12 pr-12 py-3.5 rounded-xl font-body-md text-on-background placeholder:text-outline"
                     placeholder="••••••••"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+
+                  {/* Eye icon */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface"
+                  >
+                    <span className="material-symbols-outlined">
+                      {showPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
                 </div>
               </div>
 

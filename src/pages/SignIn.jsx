@@ -181,11 +181,13 @@ export default function SignIn() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full aqua-gradient text-white font-headline-sm text-headline-sm py-4 rounded-xl shadow-[0_4px_20px_rgba(98,250,227,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="cta-gradient w-full py-4 rounded-xl text-white font-label-md text-lg tracking-wide transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
-                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                    <span className="material-symbols-outlined animate-spin">
+                      progress_activity
+                    </span>
                     Signing In…
                   </>
                 ) : (
