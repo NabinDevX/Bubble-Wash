@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function RiderDashboard() {
@@ -107,10 +108,15 @@ export default function RiderDashboard() {
         </div>
       </div>
 
-      <div
-        className={`grid grid-cols-1 gap-4 lg:grid-cols-3 ${loading ? "animate-pulse" : ""}`}
-      >
-        {summaryCards.map((card) => (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {loading ? (
+          <>
+            <Skeleton className="w-full h-36 rounded-xl" />
+            <Skeleton className="w-full h-36 rounded-xl" />
+            <Skeleton className="w-full h-36 rounded-xl" />
+          </>
+        ) : (
+          summaryCards.map((card) => (
           <article
             key={card.title}
             className={
@@ -171,7 +177,7 @@ export default function RiderDashboard() {
               </p>
             </div>
           </article>
-        ))}
+        )))}
       </div>
 
       <h2 className="mt-12 border-b border-outline-variant pb-2 text-headline-sm font-semibold text-on-surface">

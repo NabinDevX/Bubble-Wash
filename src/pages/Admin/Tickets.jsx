@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function Tickets() {
@@ -68,17 +69,26 @@ export default function Tickets() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <div key={s.label} className={`glass-card rounded-xl p-5 flex items-center gap-4 hover:shadow-lg transition-shadow ${loading ? "animate-pulse" : ""}`}>
-            <div className={`p-2.5 ${s.iconBg} rounded-lg`}>
-              <span className={`material-symbols-outlined ${s.iconColor}`}>{s.icon}</span>
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          stats.map((s) => (
+            <div key={s.label} className={`glass-card rounded-xl p-5 flex items-center gap-4 hover:shadow-lg transition-shadow`}>
+              <div className={`p-2.5 ${s.iconBg} rounded-lg`}>
+                <span className={`material-symbols-outlined ${s.iconColor}`}>{s.icon}</span>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">{s.label}</p>
+                <p className="text-2xl font-bold text-on-surface">{s.value}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">{s.label}</p>
-              <p className="text-2xl font-bold text-on-surface">{s.value}</p>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Ticket Table */}
@@ -102,7 +112,13 @@ export default function Tickets() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-on-surface-variant">Loading tickets…</td></tr>
+                <>
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                </>
               ) : tickets.length === 0 ? (
                 <tr><td colSpan={6} className="px-5 py-8 text-center text-on-surface-variant">No tickets found</td></tr>
               ) : (

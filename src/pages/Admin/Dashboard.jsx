@@ -1,4 +1,6 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { SkeletonCard, Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 import {
@@ -8,10 +10,11 @@ import {
   BarElement,
   Tooltip,
   Legend,
+  ArcElement,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, Pie } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, ArcElement);
 
 function readCssVar(name, fallback) {
   if (typeof window === "undefined") return fallback;
@@ -94,8 +97,53 @@ function getStatusPill(status) {
   };
 }
 
+
+function buildMonthCalendar(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+  const actualToday = new Date();
+  const isCurrentMonth = year === actualToday.getFullYear() && month === actualToday.getMonth();
+
+  return Array.from({ length: totalCells }, (_, index) => {
+    if (index < firstDay) {
+      return {
+        day: prevMonthDays - firstDay + index + 1,
+        muted: true,
+        today: false,
+        key: `prev-${index}`,
+      };
+    }
+
+    const day = index - firstDay + 1;
+    if (day <= daysInMonth) {
+      return {
+        day,
+        muted: false,
+        today: isCurrentMonth && day === actualToday.getDate(),
+        key: `current-${day}`,
+      };
+    }
+
+    return {
+      day: day - daysInMonth,
+      muted: true,
+      today: false,
+      key: `next-${index}`,
+    };
+  });
+}
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const calendarRef = useRef(null);
   const [dashboard, setDashboard] = useState(null);
+  const [revenueDataRes, setRevenueDataRes] = useState(null);
+  const [trendsDataRes, setTrendsDataRes] = useState(null);
+  const [catalog, setCatalog] = useState({ services: [], slots: [] });
   const [stats, setStats] = useState([
     {
       label: "Total Orders",
@@ -133,6 +181,9 @@ export default function Dashboard() {
   const [slaRows, setSlaRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarPinned, setCalendarPinned] = useState(false);
+  const [currentMonthDate, setCurrentMonthDate] = useState(() => new Date());
 
   const chartTheme = useMemo(() => {
     const secondary = readCssVar("--color-secondary", "#0f8d65");
@@ -157,11 +208,92 @@ export default function Dashboard() {
     };
   }, []);
 
+  const todayCalendar = useMemo(() => buildMonthCalendar(currentMonthDate), [currentMonthDate]);
+  const todayLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }).format(new Date()),
+    [],
+  );
+
+  const displayedMonthLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        month: "long",
+        year: "numeric",
+      }).format(currentMonthDate),
+    [currentMonthDate]
+  );
+
+  function handlePrevMonth(e) {
+    e.stopPropagation();
+    setCurrentMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }
+
+  function handleNextMonth(e) {
+    e.stopPropagation();
+    setCurrentMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setCalendarOpen(false);
+      }
+    }
+    function handleScroll() {
+      setCalendarOpen(false);
+    }
+    if (calendarOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [calendarOpen]);
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await api.get("/admin/dashboard/stats");
+        const [dashboardRes, servicesRes, slotsRes, revenueRes, trendsRes] = await Promise.allSettled([
+          api.get("/admin/dashboard/stats"),
+          api.get("/services"),
+          api.get("/slots"),
+          api.get("/admin/dashboard/revenue"),
+          api.get("/admin/dashboard/orders-trends"),
+        ]);
         setError("");
+
+        const data =
+          dashboardRes.status === "fulfilled" ? dashboardRes.value : null;
+        
+        if (revenueRes.status === "fulfilled") {
+          setRevenueDataRes(revenueRes.value);
+        }
+        if (trendsRes.status === "fulfilled") {
+          setTrendsDataRes(trendsRes.value);
+        }
+
+        if (servicesRes.status === "fulfilled") {
+          const list = servicesRes.value?.services ?? servicesRes.value ?? [];
+          setCatalog((prev) => ({
+            ...prev,
+            services: Array.isArray(list) ? list : [],
+          }));
+        }
+
+        if (slotsRes.status === "fulfilled") {
+          const list = slotsRes.value?.slots ?? slotsRes.value ?? [];
+          setCatalog((prev) => ({
+            ...prev,
+            slots: Array.isArray(list) ? list : [],
+          }));
+        }
 
         if (data?.stats) {
           setStats([
@@ -295,6 +427,10 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  function handleCreateOrder() {
+    navigate("/admin/create-order");
+  }
+
   const statusBreakdown = dashboard?.periodStats?.statusBreakdown ?? {};
   const statusLabels = Object.keys(statusBreakdown);
   const statusValues = statusLabels.map((k) => Number(statusBreakdown[k]) || 0);
@@ -396,6 +532,89 @@ export default function Dashboard() {
     };
   }, [chartOptions, chartTheme.onSurfaceVariant]);
 
+  const dueDeliveryData = useMemo(() => {
+    // Assuming trendsDataRes has a dueDelivery array or similar. 
+    // If not, we fallback to static data until the backend format is known.
+    const labels = trendsDataRes?.dueDelivery?.labels || ['07-Mar', '08-Mar', '09-Mar', '10-Mar', '11-Mar', '12-Mar', '13-Mar'];
+    const data = trendsDataRes?.dueDelivery?.data || [10, 16, 18, 20, 25, 18, 6];
+    
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Orders',
+          data,
+          backgroundColor: '#3b82f6',
+          barThickness: 16,
+          borderRadius: 2,
+        }
+      ]
+    };
+  }, [trendsDataRes]);
+
+  const dayWiseData = useMemo(() => {
+    const labels = trendsDataRes?.dayWise?.labels || ['01-Mar', '02-Mar', '03-Mar', '04-Mar', '05-Mar', '06-Mar', '07-Mar'];
+    const data = trendsDataRes?.dayWise?.data || [10, 15, 16, 12, 11, 18, 6];
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Orders',
+          data,
+          backgroundColor: '#3b82f6',
+          barThickness: 16,
+          borderRadius: 2,
+        }
+      ]
+    };
+  }, [trendsDataRes]);
+
+  const revenuePieData = useMemo(() => {
+    const labels = revenueDataRes?.services?.labels || ['Dry Cleaning', 'Shoe Cleaning', 'Curtain Cleaning', 'Wash and Fold'];
+    const data = revenueDataRes?.services?.data || [50000, 10000, 25000, 20000];
+
+    return {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: ['#3b82f6', '#f97316', '#a8a29e', '#eab308'],
+          borderWidth: 1,
+        }
+      ]
+    };
+  }, [revenueDataRes]);
+
+  const customersPieData = useMemo(() => {
+    const labels = dashboard?.customers?.labels || ['Returning Customers', 'New Customers'];
+    const data = dashboard?.customers?.data || [35, 5];
+
+    return {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: ['#3b82f6', '#f97316'],
+          borderWidth: 1,
+        }
+      ]
+    };
+  }, [dashboard]);
+
+  const pieOptions = useMemo(() => {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "right",
+          labels: { color: chartTheme.onSurfaceVariant, usePointStyle: true, boxWidth: 8 },
+        },
+      },
+    };
+  }, [chartTheme.onSurfaceVariant]);
+
   const extraTiles = useMemo(() => {
     const overview = dashboard?.overview;
     if (!overview) return [];
@@ -431,6 +650,24 @@ export default function Dashboard() {
     ];
   }, [dashboard]);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setCalendarOpen(false);
+        setCalendarPinned(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("scroll", () => {
+      setCalendarOpen(false);
+      setCalendarPinned(false);
+    });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("scroll", () => {});
+    };
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -443,13 +680,82 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface text-sm font-medium hover:bg-white/80 transition-colors flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">
-              calendar_today
-            </span>
-            Today
-          </button>
-          <button className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-linear-to-r from-secondary-fixed-dim to-secondary shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+          <div
+            ref={calendarRef}
+            className="relative"
+            onMouseEnter={() => setCalendarOpen(true)}
+            onMouseLeave={() => {
+              if (!calendarPinned) setCalendarOpen(false);
+            }}
+          >
+            <button 
+              onClick={() => {
+                setCalendarPinned((prev) => !prev);
+                setCalendarOpen(true);
+              }}
+              className="px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface text-sm font-medium hover:bg-white/80 transition-colors flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">
+                calendar_today
+              </span>
+              Today
+            </button>
+
+            {calendarOpen && (
+              <div className="absolute right-0 top-full z-20 mt-3 w-80 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-[0_20px_50px_rgba(15,23,42,0.18)] overflow-hidden">
+                <div className="flex items-center justify-between border-b border-outline-variant/20 bg-white/60 px-4 py-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-on-surface-variant">
+                      Current date
+                    </p>
+                    <p className="text-sm font-semibold text-on-surface">
+                      {todayLabel}
+                    </p>
+                  </div>
+                  <span className="material-symbols-outlined text-secondary">
+                    calendar_month
+                  </span>
+                </div>
+                <div className="p-4">
+                  <div className="mb-4 flex items-center justify-between">
+                    <button type="button" onClick={handlePrevMonth} className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface">
+                      <span className="material-symbols-outlined text-base">
+                        chevron_left
+                      </span>
+                    </button>
+                    <p className="text-sm font-semibold text-on-surface">
+                      {displayedMonthLabel}
+                    </p>
+                    <button type="button" onClick={handleNextMonth} className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface">
+                      <span className="material-symbols-outlined text-base">
+                        chevron_right
+                      </span>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
+                    {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
+                      <div key={day} className="py-1">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 grid grid-cols-7 gap-1 text-center">
+                    {todayCalendar.map((cell) => (
+                      <div
+                        key={cell.key}
+                        className={`rounded-full py-2 text-sm transition-colors ${cell.muted ? "text-on-surface-variant/30" : cell.today ? "bg-secondary text-on-secondary shadow-[0_0_14px_rgba(98,250,227,0.28)]" : "text-on-surface hover:bg-secondary-container/20"}`}
+                      >
+                        {cell.day}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleCreateOrder}
+            className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-linear-to-r from-secondary-fixed-dim to-secondary shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+          >
             <span className="material-symbols-outlined text-base">add</span>
             Create Order
           </button>
@@ -464,52 +770,32 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {stats.map((item) => (
-          <div
-            key={item.label}
-            className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group ${loading ? "animate-pulse" : ""}`}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div
-                className={`p-2.5 ${item.iconBg} rounded-lg group-hover:scale-110 transition-transform`}
-              >
-                <span className={`material-symbols-outlined ${item.iconColor}`}>
-                  {item.icon}
-                </span>
-              </div>
-              {item.hint && (
-                <span className="text-xs font-bold text-secondary bg-secondary-container/30 px-2 py-1 rounded-full">
-                  {item.hint}
-                </span>
-              )}
-            </div>
-            <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">
-              {item.label}
-            </p>
-            <p className="text-2xl font-bold text-on-surface mt-1">
-              {item.value}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {extraTiles.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {extraTiles.map((item) => (
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          stats.map((item) => (
             <div
               key={item.label}
-              className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group ${loading ? "animate-pulse" : ""}`}
+              className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group`}
             >
               <div className="flex justify-between items-start mb-4">
                 <div
                   className={`p-2.5 ${item.iconBg} rounded-lg group-hover:scale-110 transition-transform`}
                 >
-                  <span
-                    className={`material-symbols-outlined ${item.iconColor}`}
-                  >
+                  <span className={`material-symbols-outlined ${item.iconColor}`}>
                     {item.icon}
                   </span>
                 </div>
+                {item.hint && (
+                  <span className="text-xs font-bold text-secondary bg-secondary-container/30 px-2 py-1 rounded-full">
+                    {item.hint}
+                  </span>
+                )}
               </div>
               <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">
                 {item.label}
@@ -518,9 +804,123 @@ export default function Dashboard() {
                 {item.value}
               </p>
             </div>
-          ))}
+          ))
+        )}
+      </div>
+
+      {extraTiles.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {loading ? (
+            <>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </>
+          ) : (
+            extraTiles.map((item) => (
+              <div
+                key={item.label}
+                className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div
+                    className={`p-2.5 ${item.iconBg} rounded-lg group-hover:scale-110 transition-transform`}
+                  >
+                    <span
+                      className={`material-symbols-outlined ${item.iconColor}`}
+                    >
+                      {item.icon}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">
+                  {item.label}
+                </p>
+                <p className="text-2xl font-bold text-on-surface mt-1">
+                  {item.value}
+                </p>
+              </div>
+            ))
+          )}
         </div>
       )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+            <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
+              <div className="w-16" />
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Orders Due for Delivery</h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm">7 Days</span>
+            </div>
+            <div className="p-4 h-56">
+              {loading ? (
+                <Skeleton className="w-full h-full rounded-lg" />
+              ) : (
+                <Bar
+                  data={dueDeliveryData}
+                  options={{
+                    ...chartOptions,
+                    plugins: { ...chartOptions.plugins, legend: { display: false } }
+                  }}
+                />
+              )}
+            </div>
+          </div>
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+            <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
+              <div className="w-16" />
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Day wise Orders Placed</h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm">30 Days</span>
+            </div>
+            <div className="p-4 h-56">
+              {loading ? (
+                <Skeleton className="w-full h-full rounded-lg" />
+              ) : (
+                <Bar
+                  data={dayWiseData}
+                  options={{
+                    ...chartOptions,
+                    plugins: { ...chartOptions.plugins, legend: { display: false } }
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+            <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
+              <div className="w-24" />
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Revenue - Service Category</h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm whitespace-nowrap">Current Month</span>
+            </div>
+            <div className="p-4 h-56">
+              {loading ? (
+                <Skeleton className="w-full h-full rounded-lg flex items-center justify-center" />
+              ) : (
+                <Pie data={revenuePieData} options={pieOptions} />
+              )}
+            </div>
+          </div>
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+            <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
+              <div className="w-24" />
+              <h3 className="text-sm font-semibold text-on-surface text-center flex-1">Customers</h3>
+              <span className="px-3 py-1 bg-emerald-300 text-emerald-900 text-xs font-bold rounded shadow-sm whitespace-nowrap">Current Month</span>
+            </div>
+            <div className="p-4 h-56">
+              {loading ? (
+                <Skeleton className="w-full h-full rounded-lg flex items-center justify-center" />
+              ) : (
+                <Pie data={customersPieData} options={pieOptions} />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {(statusChartData || popularChartData) && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -539,16 +939,20 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="p-5 h-72">
-                <Bar
-                  data={statusChartData}
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      legend: { display: false },
-                    },
-                  }}
-                />
+                {loading ? (
+                  <Skeleton className="w-full h-full rounded-lg" />
+                ) : (
+                  <Bar
+                    data={statusChartData}
+                    options={{
+                      ...chartOptions,
+                      plugins: {
+                        ...chartOptions.plugins,
+                        legend: { display: false },
+                      },
+                    }}
+                  />
+                )}
               </div>
             </div>
           )}
@@ -566,10 +970,14 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="p-5 h-72">
-                <Bar
-                  data={popularChartData}
-                  options={popularHorizontalOptions}
-                />
+                {loading ? (
+                  <Skeleton className="w-full h-full rounded-lg" />
+                ) : (
+                  <Bar
+                    data={popularChartData}
+                    options={popularHorizontalOptions}
+                  />
+                )}
               </div>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function RiderPickupList() {
@@ -51,18 +52,31 @@ export default function RiderPickupList() {
         </button>
       </div>
 
-      <div className={`grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 ${loading ? "animate-pulse" : ""}`}>
-        {statCards.map((s) => (
-          <div key={s.label} className="glass-card rounded-xl p-4 flex items-center gap-4">
-            <div className={`p-2.5 rounded-lg ${s.color}`}><span className="material-symbols-outlined">{s.icon}</span></div>
-            <div><p className="text-xs text-on-surface-variant uppercase font-semibold">{s.label}</p><p className="text-xl font-bold text-on-surface">{s.value}</p></div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {loading ? (
+          <>
+            <Skeleton className="w-full h-20 rounded-xl" />
+            <Skeleton className="w-full h-20 rounded-xl" />
+            <Skeleton className="w-full h-20 rounded-xl" />
+            <Skeleton className="w-full h-20 rounded-xl" />
+          </>
+        ) : (
+          statCards.map((s) => (
+            <div key={s.label} className="glass-card rounded-xl p-4 flex items-center gap-4">
+              <div className={`p-2.5 rounded-lg ${s.color}`}><span className="material-symbols-outlined">{s.icon}</span></div>
+              <div><p className="text-xs text-on-surface-variant uppercase font-semibold">{s.label}</p><p className="text-xl font-bold text-on-surface">{s.value}</p></div>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-8 text-on-surface-variant">Loading pickups…</div>
+          <>
+            <Skeleton className="w-full h-24 rounded-xl" />
+            <Skeleton className="w-full h-24 rounded-xl" />
+            <Skeleton className="w-full h-24 rounded-xl" />
+          </>
         ) : pickups.length === 0 ? (
           <div className="text-center py-8 text-on-surface-variant">No pickups assigned</div>
         ) : (

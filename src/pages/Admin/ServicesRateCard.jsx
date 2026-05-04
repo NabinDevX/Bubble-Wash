@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function ServicesRateCard() {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,18 +66,15 @@ export default function ServicesRateCard() {
     color: categoryColors[name] ?? "bg-blue-50 text-primary",
   }));
 
-  async function handleAddService() {
-    const name = prompt("Service name:");
-    const category = prompt("Category (e.g. wash, premium):");
-    const pricePerKg = prompt("Price per kg:");
-    if (!name) return;
+  function handleAddService() {
+    navigate("/admin/services/new");
+  }
+
+  async function handleDelete(serviceId) {
+    if (!window.confirm("Are you sure you want to delete this service?")) return;
     try {
-      await api.post("/admin/services", {
-        name,
-        category,
-        pricePerKg: Number(pricePerKg),
-      });
-      window.location.reload();
+      await api.delete(`/admin/services/${serviceId}`);
+      setServices((prev) => prev.filter((s) => s.id !== serviceId));
     } catch (err) {
       alert(err.message);
     }
@@ -171,14 +171,13 @@ export default function ServicesRateCard() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-5 py-8 text-center text-on-surface-variant"
-                  >
-                    Loading services…
-                  </td>
-                </tr>
+                <>
+                  <SkeletonTableRow columns={5} />
+                  <SkeletonTableRow columns={5} />
+                  <SkeletonTableRow columns={5} />
+                  <SkeletonTableRow columns={5} />
+                  <SkeletonTableRow columns={5} />
+                </>
               ) : services.length === 0 ? (
                 <tr>
                   <td
@@ -220,12 +219,26 @@ export default function ServicesRateCard() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <button
-                        onClick={() => handleToggle(s.id)}
-                        className="text-xs text-secondary hover:underline font-semibold"
-                      >
-                        {s.status === "Active" ? "Pause" : "Activate"}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate(`/admin/services/edit/${s.id}`); }}
+                          className="text-xs text-primary hover:underline font-semibold"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleToggle(s.id); }}
+                          className="text-xs text-secondary hover:underline font-semibold"
+                        >
+                          {s.status === "Active" ? "Pause" : "Activate"}
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
+                          className="text-xs text-red-600 hover:underline font-semibold"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

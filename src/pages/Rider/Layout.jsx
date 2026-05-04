@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import RiderSidebar from "../../components/RiderSidebar.jsx";
+import PageLoader from "../../components/PageLoader.jsx";
+import useLenisScroll from "../../lib/useLenisScroll.js";
 
 const riderNavItems = [
   { to: "/rider", label: "Rider Dashboard", icon: "dashboard", end: true },
@@ -15,6 +17,13 @@ const riderNavItems = [
 
 export default function RiderLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const scrollWrapperRef = useRef(null);
+  const scrollContentRef = useRef(null);
+
+  useLenisScroll({
+    wrapperRef: scrollWrapperRef,
+    contentRef: scrollContentRef,
+  });
 
   function toggleSidebar() {
     setIsSidebarOpen((v) => !v);
@@ -74,8 +83,15 @@ export default function RiderLayout() {
           </div>
         </header>
 
-        <div className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl p-gutter pb-32">
-          <Outlet />
+        <div
+          ref={scrollWrapperRef}
+          className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl p-gutter pb-32"
+        >
+          <div ref={scrollContentRef}>
+            <Suspense fallback={<PageLoader title="Loading page…" />}>
+              <Outlet />
+            </Suspense>
+          </div>
         </div>
       </main>
     </div>

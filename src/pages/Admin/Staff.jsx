@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function Staff() {
@@ -93,7 +94,13 @@ export default function Staff() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="px-5 py-8 text-center text-on-surface-variant">Loading staff…</td></tr>
+                  <>
+                    <SkeletonTableRow columns={6} />
+                    <SkeletonTableRow columns={6} />
+                    <SkeletonTableRow columns={6} />
+                    <SkeletonTableRow columns={6} />
+                    <SkeletonTableRow columns={6} />
+                  </>
                 ) : employees.length === 0 ? (
                   <tr><td colSpan={6} className="px-5 py-8 text-center text-on-surface-variant">No staff found</td></tr>
                 ) : (

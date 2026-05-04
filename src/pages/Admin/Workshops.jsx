@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function Workshops() {
@@ -78,17 +79,25 @@ export default function Workshops() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stats.map((s) => (
-          <div key={s.label} className={`glass-card rounded-xl p-5 flex items-center justify-between hover:shadow-lg transition-shadow ${loading ? "animate-pulse" : ""}`}>
-            <div>
-              <p className="text-on-surface-variant text-xs font-semibold uppercase tracking-wider">{s.label}</p>
-              <p className={`text-2xl font-bold mt-1 ${s.label === 'Active' ? 'text-secondary' : s.label === 'Inactive' ? 'text-error' : 'text-on-surface'}`}>{s.value}</p>
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          stats.map((s) => (
+            <div key={s.label} className="glass-card rounded-xl p-5 flex items-center justify-between hover:shadow-lg transition-shadow">
+              <div>
+                <p className="text-on-surface-variant text-xs font-semibold uppercase tracking-wider">{s.label}</p>
+                <p className={`text-2xl font-bold mt-1 ${s.label === 'Active' ? 'text-secondary' : s.label === 'Inactive' ? 'text-error' : 'text-on-surface'}`}>{s.value}</p>
+              </div>
+              <div className={`h-12 w-12 rounded-lg ${s.iconBg} flex items-center justify-center`}>
+                <span className={`material-symbols-outlined ${s.iconColor}`}>{s.icon}</span>
+              </div>
             </div>
-            <div className={`h-12 w-12 rounded-lg ${s.iconBg} flex items-center justify-center`}>
-              <span className={`material-symbols-outlined ${s.iconColor}`}>{s.icon}</span>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -111,7 +120,11 @@ export default function Workshops() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-on-surface-variant">Loading workshops…</td></tr>
+                  <>
+                    <SkeletonTableRow columns={6} />
+                    <SkeletonTableRow columns={6} />
+                    <SkeletonTableRow columns={6} />
+                  </>
                 ) : workshops.length === 0 ? (
                   <tr><td colSpan={6} className="px-4 py-8 text-center text-on-surface-variant">No workshops found</td></tr>
                 ) : (

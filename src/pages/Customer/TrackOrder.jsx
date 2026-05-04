@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function TrackOrder() {
@@ -161,8 +162,16 @@ export default function TrackOrder() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-[60vh] text-on-surface-variant">
-        Loading order…
+      <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row gap-6 min-h-[calc(100vh-200px)]">
+          <div className="flex-1">
+             <Skeleton className="w-full h-full min-h-[420px] rounded-3xl" />
+          </div>
+          <div className="w-full md:w-96 space-y-6">
+             <Skeleton className="w-full h-64 rounded-3xl" />
+             <Skeleton className="w-full h-48 rounded-3xl" />
+          </div>
+        </div>
       </div>
     );
 

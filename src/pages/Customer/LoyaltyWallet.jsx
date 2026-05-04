@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function LoyaltyWallet() {
@@ -220,6 +221,13 @@ export default function LoyaltyWallet() {
                   </span>
                 </div>
               ))}
+              {loading ? (
+                <>
+                  <Skeleton className="w-full h-[66px] rounded-lg" />
+                  <Skeleton className="w-full h-[66px] rounded-lg" />
+                  <Skeleton className="w-full h-[66px] rounded-lg" />
+                </>
+              ) : null}
             </div>
             {!loading && activity.length === 0 ? (
               <p className="text-on-surface-variant text-sm mt-4">

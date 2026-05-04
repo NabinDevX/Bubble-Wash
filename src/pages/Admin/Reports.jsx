@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { SkeletonTableRow, Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 import {
@@ -407,8 +408,18 @@ export default function Reports() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-on-surface-variant">
-          Loading reports…
+        <div className="space-y-6">
+          <Skeleton className="w-full h-80 rounded-xl" />
+          <div className="glass-card rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40">
+              <Skeleton className="w-48 h-6" />
+            </div>
+            <div className="p-5">
+              <SkeletonTableRow columns={2} />
+              <SkeletonTableRow columns={2} />
+              <SkeletonTableRow columns={2} />
+            </div>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">

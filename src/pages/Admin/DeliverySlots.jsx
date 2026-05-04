@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SkeletonCard } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function DeliverySlots() {
@@ -92,7 +93,11 @@ export default function DeliverySlots() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-on-surface-variant">Loading slots…</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : slots.length === 0 ? (
         <div className="text-center py-12 text-on-surface-variant">No slots found</div>
       ) : (

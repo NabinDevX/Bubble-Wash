@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Suspense, useRef, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 
 import AdminSidebar from "../../components/AdminSidebar.jsx";
+import PageLoader from "../../components/PageLoader.jsx";
+import useLenisScroll from "../../lib/useLenisScroll.js";
 
 const adminNavItems = [
   { to: "/admin", label: "Dashboard", icon: "dashboard", end: true },
@@ -26,7 +28,15 @@ const adminNavItems = [
 ];
 
 export default function AdminLayout() {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const scrollWrapperRef = useRef(null);
+  const scrollContentRef = useRef(null);
+
+  useLenisScroll({
+    wrapperRef: scrollWrapperRef,
+    contentRef: scrollContentRef,
+  });
 
   function toggleSidebar() {
     setIsSidebarOpen((v) => !v);
@@ -77,6 +87,7 @@ export default function AdminLayout() {
 
             <button
               type="button"
+              onClick={() => navigate("/admin/create-order")}
               className="bg-linear-to-r from-secondary-fixed-dim to-secondary-fixed text-on-secondary px-6 py-2.5 rounded-full font-label-md text-label-md font-bold shadow-[0_4px_12px_rgba(98,250,227,0.3)] hover:shadow-[0_6px_16px_rgba(98,250,227,0.5)] hover:scale-105 transition-all duration-200 flex items-center space-x-2"
             >
               <span className="material-symbols-outlined text-body-lg">
@@ -87,8 +98,15 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        <div className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl p-gutter pb-32">
-          <Outlet />
+        <div
+          ref={scrollWrapperRef}
+          className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl p-gutter pb-32"
+        >
+          <div ref={scrollContentRef}>
+            <Suspense fallback={<PageLoader title="Loading page…" />}>
+              <Outlet />
+            </Suspense>
+          </div>
         </div>
       </main>
     </div>

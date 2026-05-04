@@ -1,20 +1,28 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import Landing from "./pages/Landing.jsx";
+import FullScreenLoader from "./components/FullScreenLoader.jsx";
+
+const Landing = lazy(() => import("./pages/Landing.jsx"));
 import AdminLayout from "./pages/Admin/Layout.jsx";
-import Dashboard from "./pages/Admin/Dashboard.jsx";
-import Customers from "./pages/Admin/Customers.jsx";
-
-import Workshops from "./pages/Admin/Workshops.jsx";
-import Staff from "./pages/Admin/Staff.jsx";
-import ServicesRateCard from "./pages/Admin/ServicesRateCard.jsx";
-import DeliverySlots from "./pages/Admin/DeliverySlots.jsx";
-import Tickets from "./pages/Admin/Tickets.jsx";
-import Riders from "./pages/Admin/Riders.jsx";
-import ServiceAreas from "./pages/Admin/ServiceAreas.jsx";
-
-import Reports from "./pages/Admin/Reports.jsx";
-import PromotionsBilling from "./pages/Admin/PromotionsBilling.jsx";
+const Dashboard = lazy(() => import("./pages/Admin/Dashboard.jsx"));
+const Customers = lazy(() => import("./pages/Admin/Customers.jsx"));
+const Workshops = lazy(() => import("./pages/Admin/Workshops.jsx"));
+const Staff = lazy(() => import("./pages/Admin/Staff.jsx"));
+const ServicesRateCard = lazy(
+  () => import("./pages/Admin/ServicesRateCard.jsx"),
+);
+const CreateService = lazy(() => import("./pages/Admin/CreateService.jsx"));
+const EditService = lazy(() => import("./pages/Admin/EditService.jsx"));
+const DeliverySlots = lazy(() => import("./pages/Admin/DeliverySlots.jsx"));
+const Tickets = lazy(() => import("./pages/Admin/Tickets.jsx"));
+const Riders = lazy(() => import("./pages/Admin/Riders.jsx"));
+const ServiceAreas = lazy(() => import("./pages/Admin/ServiceAreas.jsx"));
+const Reports = lazy(() => import("./pages/Admin/Reports.jsx"));
+const PromotionsBilling = lazy(
+  () => import("./pages/Admin/PromotionsBilling.jsx"),
+);
+const CreateOrder = lazy(() => import("./pages/Admin/CreateOrder.jsx"));
 import RiderLayout from "./pages/Rider/Layout.jsx";
 import RiderDashboard from "./pages/Rider/Dashboard.jsx";
 import RiderPickupList from "./pages/Rider/PickupList.jsx";
@@ -42,7 +50,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route
+          path="/"
+          element={
+            <Suspense fallback={<FullScreenLoader title="Loading…" />}>
+              <Landing />
+            </Suspense>
+          }
+        />
         <Route
           path="/admin"
           element={
@@ -57,6 +72,8 @@ function App() {
           <Route path="workshops" element={<Workshops />} />
           <Route path="staff" element={<Staff />} />
           <Route path="services-rate-card" element={<ServicesRateCard />} />
+          <Route path="services/new" element={<CreateService />} />
+          <Route path="services/edit/:serviceId" element={<EditService />} />
           <Route path="delivery-slots" element={<DeliverySlots />} />
           <Route path="tickets" element={<Tickets />} />
           <Route path="riders" element={<Riders />} />
@@ -64,6 +81,7 @@ function App() {
 
           <Route path="reports" element={<Reports />} />
           <Route path="promotions-billing" element={<PromotionsBilling />} />
+          <Route path="create-order" element={<CreateOrder />} />
         </Route>
         <Route
           path="/rider"

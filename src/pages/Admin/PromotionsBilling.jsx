@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 const topTabs = ["Coupon Management", "Subscription Plans"];
@@ -351,14 +352,12 @@ export default function PromotionsBilling() {
 
                   <tbody className="text-body-md text-on-surface">
                     {loadingCoupons ? (
-                      <tr>
-                        <td
-                          colSpan={9}
-                          className="p-8 text-center text-on-surface-variant"
-                        >
-                          Loading coupons…
-                        </td>
-                      </tr>
+                      <>
+                        <SkeletonTableRow columns={9} />
+                        <SkeletonTableRow columns={9} />
+                        <SkeletonTableRow columns={9} />
+                        <SkeletonTableRow columns={9} />
+                      </>
                     ) : filteredCoupons.length === 0 ? (
                       <tr>
                         <td
@@ -702,14 +701,11 @@ export default function PromotionsBilling() {
 
                 <tbody className="text-body-md text-on-surface">
                   {loadingPlans ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="p-8 text-center text-on-surface-variant"
-                      >
-                        Loading plans…
-                      </td>
-                    </tr>
+                    <>
+                      <SkeletonTableRow columns={4} />
+                      <SkeletonTableRow columns={4} />
+                      <SkeletonTableRow columns={4} />
+                    </>
                   ) : plans.length === 0 ? (
                     <tr>
                       <td

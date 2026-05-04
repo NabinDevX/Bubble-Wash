@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function Customers() {
@@ -242,33 +243,42 @@ export default function Customers() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {stats.map((item) => (
-          <div
-            key={item.label}
-            className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group ${loading ? "animate-pulse" : ""}`}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div
-                className={`p-2.5 ${item.iconBg} rounded-lg group-hover:scale-110 transition-transform`}
-              >
-                <span className={`material-symbols-outlined ${item.iconColor}`}>
-                  {item.icon}
-                </span>
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          stats.map((item) => (
+            <div
+              key={item.label}
+              className={`glass-card rounded-xl p-5 hover:shadow-lg transition-shadow group`}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div
+                  className={`p-2.5 ${item.iconBg} rounded-lg group-hover:scale-110 transition-transform`}
+                >
+                  <span className={`material-symbols-outlined ${item.iconColor}`}>
+                    {item.icon}
+                  </span>
+                </div>
+                {item.badge && (
+                  <span className="text-xs font-bold text-secondary bg-secondary-container/30 px-2 py-1 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
               </div>
-              {item.badge && (
-                <span className="text-xs font-bold text-secondary bg-secondary-container/30 px-2 py-1 rounded-full">
-                  {item.badge}
-                </span>
-              )}
+              <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">
+                {item.label}
+              </p>
+              <p className="text-2xl font-bold text-on-surface mt-1">
+                {item.value}
+              </p>
             </div>
-            <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">
-              {item.label}
-            </p>
-            <p className="text-2xl font-bold text-on-surface mt-1">
-              {item.value}
-            </p>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Customer Table */}
@@ -309,14 +319,13 @@ export default function Customers() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-5 py-8 text-center text-on-surface-variant"
-                  >
-                    Loading customers…
-                  </td>
-                </tr>
+                <>
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                  <SkeletonTableRow columns={6} />
+                </>
               ) : customers.length === 0 ? (
                 <tr>
                   <td

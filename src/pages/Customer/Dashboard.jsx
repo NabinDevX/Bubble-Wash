@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { SkeletonCard } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 
 export default function CustomerDashboard() {
-
   function getProgress(status) {
     const map = {
       pending: 10,
@@ -40,7 +40,6 @@ export default function CustomerDashboard() {
   ];
 
   useEffect(() => {
-
     async function fetchData() {
       try {
         const [ordersRes, servicesRes, walletRes] = await Promise.allSettled([
@@ -68,7 +67,7 @@ export default function CustomerDashboard() {
             points: w.points ?? 0,
           });
         }
-      } catch { }
+      } catch {}
     }
 
     fetchData();
@@ -79,8 +78,8 @@ export default function CustomerDashboard() {
   const activeOrder = orders.find(
     (o) =>
       !["delivered", "completed"].includes(
-        String(o.status ?? o.orderStatus).toLowerCase()
-      )
+        String(o.status ?? o.orderStatus).toLowerCase(),
+      ),
   );
 
   const progress = activeOrder
@@ -109,13 +108,12 @@ export default function CustomerDashboard() {
         // case: array
         else {
           isAvailable = data.some(
-            (area) => area.pincode === pincode && area.isActive
+            (area) => area.pincode === pincode && area.isActive,
           );
         }
       }
 
       setAvailable(isAvailable);
-
     } catch (err) {
       if (import.meta.env.DEV) {
         console.error("Service check error:", err);
@@ -126,7 +124,6 @@ export default function CustomerDashboard() {
 
   return (
     <div className="max-w-[1280px] mx-auto px-6 py-6 bg-[#f6f7fb] min-h-screen">
-
       {/* HEADER */}
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-semibold text-gray-800">
@@ -140,9 +137,7 @@ export default function CustomerDashboard() {
       {/* ACTIVE ORDER */}
       {activeOrder && (
         <div className="bg-[#f1f3f7] rounded-3xl p-6 flex justify-between items-center border border-gray-200 mb-6">
-
           <div className="flex-1">
-
             <div className="flex items-center gap-3 mb-2">
               <span className="text-xs bg-teal-100 text-teal-700 px-3 py-1 rounded-full font-medium">
                 ACTIVE ORDER
@@ -152,9 +147,7 @@ export default function CustomerDashboard() {
               </span>
             </div>
 
-            <h3 className="font-semibold text-lg text-gray-800">
-              In Workshop
-            </h3>
+            <h3 className="font-semibold text-lg text-gray-800">In Workshop</h3>
 
             <p className="text-sm text-gray-500">
               Precision cleaning your premium garments
@@ -178,7 +171,8 @@ export default function CustomerDashboard() {
               Est. Delivery:{" "}
               {activeOrder &&
                 new Date(
-                  new Date(activeOrder.createdAt).getTime() + 48 * 60 * 60 * 1000
+                  new Date(activeOrder.createdAt).getTime() +
+                    48 * 60 * 60 * 1000,
                 ).toLocaleString("en-IN")}
             </p>
           </div>
@@ -194,7 +188,6 @@ export default function CustomerDashboard() {
 
       {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-
         <div className="bg-[#f1f3f7] rounded-2xl p-5 flex items-center gap-4 border border-gray-200">
           <span className="material-symbols-outlined text-blue-500">
             account_balance_wallet
@@ -217,9 +210,7 @@ export default function CustomerDashboard() {
             <p className="text-xs text-gray-400 uppercase tracking-wider">
               TOTAL ORDERS
             </p>
-            <h2 className="font-semibold text-gray-800">
-              {orders.length}
-            </h2>
+            <h2 className="font-semibold text-gray-800">{orders.length}</h2>
           </div>
         </div>
 
@@ -234,14 +225,11 @@ export default function CustomerDashboard() {
             <h2 className="font-semibold text-gray-800">03</h2>
           </div>
         </div>
-
       </div>
 
       {/* SERVICE AVAILABILITY */}
       <div className="mb-10">
-
         <div className="bg-[#f1f3f7] border border-gray-200 rounded-3xl p-6 shadow-sm w-full">
-
           {/* ICON */}
           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
             <span className="material-symbols-outlined">location_on</span>
@@ -258,7 +246,6 @@ export default function CustomerDashboard() {
 
           {/* INPUT + BUTTON */}
           <div className="flex gap-2 mb-4">
-
             <input
               type="number"
               value={pincode}
@@ -270,10 +257,11 @@ export default function CustomerDashboard() {
             <button
               onClick={handleCheck}
               disabled={!pincode}
-              className={`px-4 py-2 rounded-xl transition ${pincode
-                ? "bg-[#1E7F5A] text-white hover:bg-[#166a4a]"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+              className={`px-4 py-2 rounded-xl transition ${
+                pincode
+                  ? "bg-[#1E7F5A] text-white hover:bg-[#166a4a]"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
             >
               Check
             </button>
@@ -282,7 +270,9 @@ export default function CustomerDashboard() {
           {/*  SHOW ONLY AFTER CHECK */}
           {available === true && (
             <div className="bg-green-100 text-green-700 text-sm px-4 py-2 rounded-xl flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
+              <span className="material-symbols-outlined text-sm">
+                check_circle
+              </span>
               We serve your area!
             </div>
           )}
@@ -302,24 +292,20 @@ export default function CustomerDashboard() {
                 navigate("/customer/schedule");
               }
             }}
-            className={`mt-4 w-full py-2 rounded-xl font-medium transition ${available
-              ? "bg-gradient-to-r bg-[#1E7F5A] hover:bg-[#166a4a] text-white"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+            className={`mt-4 w-full py-2 rounded-xl font-medium transition ${
+              available
+                ? "bg-gradient-to-r bg-[#1E7F5A] hover:bg-[#166a4a] text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             Continue →
           </button>
-
         </div>
-
       </div>
 
       {/* INSTANT SCHEDULING */}
       <div className="mb-10">
-
-        <h3 className="mb-4 font-semibold text-gray-800">
-          Instant Scheduling
-        </h3>
+        <h3 className="mb-4 font-semibold text-gray-800">Instant Scheduling</h3>
 
         <div className="grid md:grid-cols-3 gap-6">
           {services.slice(0, 3).map((svc, index) => (
@@ -327,7 +313,6 @@ export default function CustomerDashboard() {
               key={svc._id}
               className="bg-[#f8fafc] rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
             >
-
               {/* IMAGE */}
               <img
                 src={serviceImages[index]}
@@ -336,7 +321,6 @@ export default function CustomerDashboard() {
 
               {/* CONTENT */}
               <div className="p-5">
-
                 <h4 className="font-semibold text-gray-800 text-sm">
                   {svc.name}
                 </h4>
@@ -352,7 +336,6 @@ export default function CustomerDashboard() {
                 >
                   Schedule Now
                 </Link>
-
               </div>
             </div>
           ))}
@@ -361,16 +344,10 @@ export default function CustomerDashboard() {
 
       {/* RECENT ACTIVITY */}
       <div>
-
         <div className="flex justify-between mb-4">
-          <h3 className="font-semibold text-gray-800">
-            Recent Activity
-          </h3>
+          <h3 className="font-semibold text-gray-800">Recent Activity</h3>
 
-          <Link
-            to="/customer/orders"
-            className="text-blue-500 text-sm"
-          >
+          <Link to="/customer/orders" className="text-blue-500 text-sm">
             View All History
           </Link>
         </div>
@@ -382,7 +359,6 @@ export default function CustomerDashboard() {
               className="bg-white rounded-2xl p-4 flex justify-between items-center shadow-sm border-l-4 border-teal-400"
             >
               <div className="flex items-center gap-3">
-
                 <span className="material-symbols-outlined text-teal-500">
                   check_circle
                 </span>
@@ -391,27 +367,26 @@ export default function CustomerDashboard() {
                   <p className="font-medium text-gray-800">
                     {order.orderItems?.length > 0
                       ? order.orderItems
-                        .map((item) => item.service?.name || "Service")
-                        .join(", ")
+                          .map((item) => item.service?.name || "Service")
+                          .join(", ")
                       : "Service"}
                   </p>
 
                   <p className="text-sm text-gray-500">
-                    {new Date(order.deliveryDate || order.updatedAt || order.createdAt)
-                      .toLocaleString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    {" • "}
-                    ₹{
-                      order.finalAmount ||
+                    {new Date(
+                      order.deliveryDate || order.updatedAt || order.createdAt,
+                    ).toLocaleString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    {" • "}₹
+                    {order.finalAmount ||
                       order.grandTotal ||
                       order.totalAmount ||
-                      0
-                    }
+                      0}
                   </p>
                 </div>
               </div>
@@ -425,9 +400,7 @@ export default function CustomerDashboard() {
             </div>
           ))}
         </div>
-
       </div>
-
     </div>
   );
 }

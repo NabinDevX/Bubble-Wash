@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 export default function Riders() {
@@ -156,35 +157,44 @@ export default function Riders() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className={`glass-card rounded-xl p-5 relative overflow-hidden group hover:shadow-lg transition-shadow ${loading ? "animate-pulse" : ""}`}
-          >
-            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 80 }}
-              >
-                {s.watermark}
-              </span>
-            </div>
-            <div className="flex justify-between items-start mb-4">
-              <div className={`p-2 ${s.iconBg} rounded-lg`}>
-                <span className={`material-symbols-outlined ${s.iconColor}`}>
-                  {s.icon}
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          stats.map((s) => (
+            <div
+              key={s.label}
+              className={`glass-card rounded-xl p-5 relative overflow-hidden group hover:shadow-lg transition-shadow`}
+            >
+              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 80 }}
+                >
+                  {s.watermark}
                 </span>
               </div>
-              <span className="text-xs font-bold text-secondary bg-secondary-container/30 px-2 py-1 rounded-full">
-                {s.badge}
-              </span>
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-2 ${s.iconBg} rounded-lg`}>
+                  <span className={`material-symbols-outlined ${s.iconColor}`}>
+                    {s.icon}
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-secondary bg-secondary-container/30 px-2 py-1 rounded-full">
+                  {s.badge}
+                </span>
+              </div>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                {s.label}
+              </h4>
+              <p className="text-3xl font-bold text-on-surface mt-1">{s.value}</p>
             </div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-              {s.label}
-            </h4>
-            <p className="text-3xl font-bold text-on-surface mt-1">{s.value}</p>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Fleet Table */}
@@ -228,14 +238,13 @@ export default function Riders() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-5 py-8 text-center text-on-surface-variant"
-                  >
-                    Loading riders…
-                  </td>
-                </tr>
+                <>
+                  <SkeletonTableRow columns={7} />
+                  <SkeletonTableRow columns={7} />
+                  <SkeletonTableRow columns={7} />
+                  <SkeletonTableRow columns={7} />
+                  <SkeletonTableRow columns={7} />
+                </>
               ) : riders.length === 0 ? (
                 <tr>
                   <td

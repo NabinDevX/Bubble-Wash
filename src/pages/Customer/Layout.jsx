@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 
 import CustomerSidebar from "../../components/CustomerSidebar.jsx";
+import PageLoader from "../../components/PageLoader.jsx";
+import useLenisScroll from "../../lib/useLenisScroll.js";
 
 const navItems = [
   { to: "/customer", icon: "home", label: "Home", end: true },
@@ -15,6 +17,13 @@ const navItems = [
 export default function CustomerLayout() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const scrollWrapperRef = useRef(null);
+  const scrollContentRef = useRef(null);
+
+  useLenisScroll({
+    wrapperRef: scrollWrapperRef,
+    contentRef: scrollContentRef,
+  });
 
   function toggleSidebar() {
     setIsSidebarOpen((v) => !v);
@@ -74,8 +83,15 @@ export default function CustomerLayout() {
           </div>
         </header>
 
-        <div className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl pb-32">
-          <Outlet />
+        <div
+          ref={scrollWrapperRef}
+          className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl pb-32"
+        >
+          <div ref={scrollContentRef}>
+            <Suspense fallback={<PageLoader title="Loading page…" />}>
+              <Outlet />
+            </Suspense>
+          </div>
         </div>
       </main>
     </div>

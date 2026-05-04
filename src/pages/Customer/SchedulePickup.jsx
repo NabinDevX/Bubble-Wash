@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SkeletonCard, Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 function formatTime(time) {
@@ -26,7 +27,6 @@ function formatTime(time) {
 
   return `${String(hour).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
 }
-
 
 export default function SchedulePickup() {
   const navigate = useNavigate();
@@ -87,11 +87,7 @@ export default function SchedulePickup() {
         if (svcRes.status === "fulfilled") {
           const data = svcRes.value;
           const list =
-            data?.services ??
-            data?.data?.services ??
-            data?.data ??
-            data ??
-            [];
+            data?.services ?? data?.data?.services ?? data?.data ?? data ?? [];
           setServices(
             list.map((s) => {
               let icon = "local_laundry_service";
@@ -116,18 +112,14 @@ export default function SchedulePickup() {
                 price: s.price ?? 49,
                 unit: s.unit ?? "kg",
               };
-            })
+            }),
           );
         }
 
         if (slotRes.status === "fulfilled") {
           const data = slotRes.value;
           const list =
-            data?.slots ??
-            data?.data?.slots ??
-            data?.data ??
-            data ??
-            [];
+            data?.slots ?? data?.data?.slots ?? data?.data ?? data ?? [];
           setTimeSlots(
             Array.from(
               new Map(
@@ -136,7 +128,7 @@ export default function SchedulePickup() {
                   const end = formatTime(s.endTime);
 
                   const label =
-                    start && end ? `${start} - ${end}` : s.time ?? "—";
+                    start && end ? `${start} - ${end}` : (s.time ?? "—");
 
                   return [
                     label,
@@ -146,9 +138,9 @@ export default function SchedulePickup() {
                       available: s.isActive !== false,
                     },
                   ];
-                })
-              ).values()
-            )
+                }),
+              ).values(),
+            ),
           );
         }
 
@@ -190,9 +182,7 @@ export default function SchedulePickup() {
 
   function toggleService(id) {
     setSelectedServices((prev) =>
-      prev.includes(id)
-        ? prev.filter((s) => s !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
     );
   }
   function updateQty(id, delta) {
@@ -228,9 +218,7 @@ export default function SchedulePickup() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Address & Services */}
         <div className="lg:col-span-8 space-y-6">
-
           <div className="space-y-6">
-
             {/* HEADER */}
             {(step === 1 || step === 5) && (
               <div className="flex items-center gap-3 mb-6">
@@ -257,10 +245,11 @@ export default function SchedulePickup() {
                     <button
                       key={s.id}
                       onClick={() => toggleService(s.id)}
-                      className={`w-full flex items-center justify-between p-4 rounded-xl border ${active
-                        ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-                        : "border-gray-200 bg-white"
-                        }`}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl border ${
+                        active
+                          ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+                          : "border-gray-200 bg-white"
+                      }`}
                     >
                       <div className="flex items-center gap-4">
                         <span className="material-symbols-outlined text-2xl text-[#1E7F5A]">
@@ -268,7 +257,9 @@ export default function SchedulePickup() {
                         </span>
 
                         <div>
-                          <h3 className="font-semibold text-gray-800">{s.name}</h3>
+                          <h3 className="font-semibold text-gray-800">
+                            {s.name}
+                          </h3>
                           <p className="text-[#1E7F5A] text-sm">
                             ₹{s.price}/{s.unit}
                           </p>
@@ -276,8 +267,9 @@ export default function SchedulePickup() {
                       </div>
 
                       <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center border ${active ? "bg-[#1E7F5A] text-white" : "border-gray-300"
-                          }`}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center border ${
+                          active ? "bg-[#1E7F5A] text-white" : "border-gray-300"
+                        }`}
                       >
                         {active && "✓"}
                       </div>
@@ -338,7 +330,9 @@ export default function SchedulePickup() {
               <section className="glass-card rounded-3xl p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
-                    <span className="material-symbols-outlined">location_on</span>
+                    <span className="material-symbols-outlined">
+                      location_on
+                    </span>
                   </div>
                   <h2 className="font-headline-sm text-headline-sm">
                     Pickup Address
@@ -376,7 +370,10 @@ export default function SchedulePickup() {
                     placeholder="Delivery Instructions (Optional, e.g., 'Leave with doorman')"
                     value={address.instructions}
                     onChange={(e) =>
-                      setAddress((p) => ({ ...p, instructions: e.target.value }))
+                      setAddress((p) => ({
+                        ...p,
+                        instructions: e.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -386,7 +383,6 @@ export default function SchedulePickup() {
             {/* ================= STEP 4 → TIME ================= */}
             {step === 4 && (
               <section className="glass-card rounded-3xl p-6 md:p-8 w-full">
-
                 <div className="flex items-center gap-3 mb-6">
                   <span className="material-symbols-outlined text-[#1E7F5A]">
                     calendar_month
@@ -399,7 +395,6 @@ export default function SchedulePickup() {
                   {/* Calendar */}
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-4">
-
                       <button
                         onClick={async () => {
                           if (month === 0) {
@@ -435,7 +430,6 @@ export default function SchedulePickup() {
                           chevron_right
                         </span>
                       </button>
-
                     </div>
 
                     <div className="grid grid-cols-7 gap-1 text-center font-label-sm text-label-sm text-on-surface-variant mb-2">
@@ -453,10 +447,11 @@ export default function SchedulePickup() {
                             key={day}
                             type="button"
                             onClick={() => setSelectedDay(day)}
-                            className={`p-2 rounded-full text-sm transition-all ${isSelected
-                              ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
-                              : "hover:bg-white/40 cursor-pointer"
-                              }`}
+                            className={`p-2 rounded-full text-sm transition-all ${
+                              isSelected
+                                ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
+                                : "hover:bg-white/40 cursor-pointer"
+                            }`}
                           >
                             {day}
                           </button>
@@ -472,37 +467,38 @@ export default function SchedulePickup() {
                     <button
                       key={slot.id}
                       onClick={() => setSelectedSlot(slot.id)}
-                      className={`p-3 rounded-lg border ${slot.id === selectedSlot
-                        ? "border-secondary bg-secondary-container/20"
-                        : "border-gray-300"
-                        }`}
+                      className={`p-3 rounded-lg border ${
+                        slot.id === selectedSlot
+                          ? "border-secondary bg-secondary-container/20"
+                          : "border-gray-300"
+                      }`}
                     >
                       {slot.label}
                     </button>
                   ))}
                 </div>
-
               </section>
             )}
 
             {/* ================= STEP 5 → DELIVERY ================= */}
             {step === 5 && (
               <div className="space-y-4">
-
                 {/* STANDARD */}
                 <div
                   onClick={() => setDeliveryType("standard")}
-                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "standard"
-                    ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-                    : "border-gray-300"
-                    }`}
+                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${
+                    deliveryType === "standard"
+                      ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+                      : "border-gray-300"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "standard"
-                        ? "border-[#1E7F5A]"
-                        : "border-gray-400"
-                        }`}
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        deliveryType === "standard"
+                          ? "border-[#1E7F5A]"
+                          : "border-gray-400"
+                      }`}
                     >
                       {deliveryType === "standard" && (
                         <div className="w-2.5 h-2.5 bg-[#1E7F5A] rounded-full"></div>
@@ -511,7 +507,9 @@ export default function SchedulePickup() {
 
                     <div>
                       <h3 className="font-semibold">Standard Delivery</h3>
-                      <p className="text-sm text-gray-500">48 hours turnaround</p>
+                      <p className="text-sm text-gray-500">
+                        48 hours turnaround
+                      </p>
                     </div>
                   </div>
 
@@ -523,17 +521,19 @@ export default function SchedulePickup() {
                 {/* EXPRESS */}
                 <div
                   onClick={() => setDeliveryType("express")}
-                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "express"
-                    ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-                    : "border-gray-300"
-                    }`}
+                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${
+                    deliveryType === "express"
+                      ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+                      : "border-gray-300"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "express"
-                        ? "border-[#1E7F5A]"
-                        : "border-gray-400"
-                        }`}
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        deliveryType === "express"
+                          ? "border-[#1E7F5A]"
+                          : "border-gray-400"
+                      }`}
                     >
                       {deliveryType === "express" && (
                         <div className="w-2.5 h-2.5 bg-[#1E7F5A] rounded-full"></div>
@@ -542,7 +542,9 @@ export default function SchedulePickup() {
 
                     <div>
                       <h3 className="font-semibold">Express Delivery</h3>
-                      <p className="text-sm text-gray-500">24 hours turnaround</p>
+                      <p className="text-sm text-gray-500">
+                        24 hours turnaround
+                      </p>
                     </div>
                   </div>
 
@@ -550,14 +552,11 @@ export default function SchedulePickup() {
                     +₹49
                   </span>
                 </div>
-
               </div>
             )}
-
           </div>
 
           <div className="flex items-center mt-8">
-
             {/* BACK */}
             <button
               onClick={() => {
@@ -582,10 +581,8 @@ export default function SchedulePickup() {
                   }
                   setError("");
                   setStep(2);
-
                 } else if (step === 2) {
                   setStep(3);
-
                 } else if (step === 3) {
                   if (!address.street || !address.city || !address.zip) {
                     setError("Please fill address properly");
@@ -596,14 +593,15 @@ export default function SchedulePickup() {
                     console.log("Checking service availability for:", address);
 
                     const res = await api.get(
-                      `/users/service-areas?pincode=${address.zip}`
+                      `/users/service-areas?pincode=${address.zip}`,
                     );
 
                     console.log("API RESPONSE:", res);
 
                     const data = res?.data || res;
 
-                    const isAvailable = data && data._id && data.isActive !== false;
+                    const isAvailable =
+                      data && data._id && data.isActive !== false;
 
                     if (!isAvailable) {
                       setError("Service not available in your location");
@@ -613,14 +611,11 @@ export default function SchedulePickup() {
                     // SUCCESS
                     setError("");
                     setStep(4);
-
                   } catch (err) {
                     console.log("API ERROR:", err);
 
                     const message =
-                      err.response?.data?.message ||
-                      err.message ||
-                      "";
+                      err.response?.data?.message || err.message || "";
 
                     if (
                       err.response?.status === 404 ||
@@ -638,16 +633,17 @@ export default function SchedulePickup() {
                   }
                   setError("");
                   setStep(5);
-
                 } else if (step === 5) {
                   const selectedSlotData = timeSlots.find(
-                    (s) => s.id === selectedSlot
+                    (s) => s.id === selectedSlot,
                   );
 
                   navigate("/customer/review", {
                     state: {
                       orderItems: selectedServices.map((serviceId) => {
-                        const service = services.find((s) => s.id === serviceId);
+                        const service = services.find(
+                          (s) => s.id === serviceId,
+                        );
 
                         return {
                           service: serviceId,
@@ -663,37 +659,38 @@ export default function SchedulePickup() {
                         pincode: address.zip,
                         landmark: address.instructions || "",
                       },
-                      
+
                       pickupSlot: selectedSlotData?.label,
 
                       deliveryType,
                       subtotal,
 
-                      pickupDate: new Date(year, month, selectedDay)
-                        .toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        }),
+                      pickupDate: new Date(
+                        year,
+                        month,
+                        selectedDay,
+                      ).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      }),
                     },
                   });
                 }
               }}
               disabled={
                 (step === 1 && selectedServices.length === 0) ||
-                (step === 3 && (!address.street || !address.city || !address.zip)) ||
+                (step === 3 &&
+                  (!address.street || !address.city || !address.zip)) ||
                 (step === 4 && !selectedSlot)
               }
               className="ml-auto px-6 py-3 bg-[#1E7F5A] text-white rounded-xl shadow-md"
             >
               Continue →
             </button>
-
           </div>
-
-        </div >
-      </div >
-    </div >
-
+        </div>
+      </div>
+    </div>
   );
 }
