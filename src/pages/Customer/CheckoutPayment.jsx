@@ -336,7 +336,7 @@ export default function CheckoutPayment() {
 
                 <button
                   onClick={handleApplyCoupon}
-                  className="shrink-0 px-4 py-2 text-sm font-semibold rounded-lg bg-[#1E7F5A] text-white hover:bg-[#166a4a]"
+                  className="shrink-0 px-4 py-2 text-sm font-semibold rounded-lg text-white cta-gradient"
                 >
                   APPLY
                 </button>
@@ -391,10 +391,7 @@ export default function CheckoutPayment() {
             {/* BUTTON (ONLY GREEN CHANGE) */}
             <button
               onClick={handlePay}
-              className="w-full py-3 rounded-xl text-white font-medium 
-  bg-[#1E7F5A]
-  shadow-md hover:bg-[#166a4a] hover:shadow-lg 
-  hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="w-full py-3 rounded-xl text-white font-medium shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] cta-gradient"
             >
               Complete Payment →
             </button>

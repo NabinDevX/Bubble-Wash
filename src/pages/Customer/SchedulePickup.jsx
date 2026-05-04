@@ -245,31 +245,29 @@ export default function SchedulePickup() {
                     <button
                       key={s.id}
                       onClick={() => toggleService(s.id)}
-                      className={`w-full flex items-center justify-between p-4 rounded-xl border ${
-                        active
+                      className={`w-full flex items-center justify-between p-4 rounded-xl border ${active
                           ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
                           : "border-gray-200 bg-white"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-4">
                         <span className="material-symbols-outlined text-2xl text-[#1E7F5A]">
                           {s.icon}
                         </span>
 
-                        <div>
-                          <h3 className="font-semibold text-gray-800">
+                        <div className="flex flex-col items-start">
+                          <span className="font-semibold text-gray-800 text-sm leading-none">
                             {s.name}
-                          </h3>
-                          <p className="text-[#1E7F5A] text-sm">
+                          </span>
+                          <span className="text-[#1E7F5A] text-sm leading-none mt-1">
                             ₹{s.price}/{s.unit}
-                          </p>
+                          </span>
                         </div>
                       </div>
 
                       <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center border ${
-                          active ? "bg-[#1E7F5A] text-white" : "border-gray-300"
-                        }`}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center border ${active ? "bg-[#1E7F5A] text-white" : "border-gray-300"
+                          }`}
                       >
                         {active && "✓"}
                       </div>
@@ -447,11 +445,10 @@ export default function SchedulePickup() {
                             key={day}
                             type="button"
                             onClick={() => setSelectedDay(day)}
-                            className={`p-2 rounded-full text-sm transition-all ${
-                              isSelected
+                            className={`p-2 rounded-full text-sm transition-all ${isSelected
                                 ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
                                 : "hover:bg-white/40 cursor-pointer"
-                            }`}
+                              }`}
                           >
                             {day}
                           </button>
@@ -467,11 +464,10 @@ export default function SchedulePickup() {
                     <button
                       key={slot.id}
                       onClick={() => setSelectedSlot(slot.id)}
-                      className={`p-3 rounded-lg border ${
-                        slot.id === selectedSlot
+                      className={`p-3 rounded-lg border ${slot.id === selectedSlot
                           ? "border-secondary bg-secondary-container/20"
                           : "border-gray-300"
-                      }`}
+                        }`}
                     >
                       {slot.label}
                     </button>
@@ -486,19 +482,17 @@ export default function SchedulePickup() {
                 {/* STANDARD */}
                 <div
                   onClick={() => setDeliveryType("standard")}
-                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${
-                    deliveryType === "standard"
+                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "standard"
                       ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
                       : "border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        deliveryType === "standard"
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "standard"
                           ? "border-[#1E7F5A]"
                           : "border-gray-400"
-                      }`}
+                        }`}
                     >
                       {deliveryType === "standard" && (
                         <div className="w-2.5 h-2.5 bg-[#1E7F5A] rounded-full"></div>
@@ -521,19 +515,17 @@ export default function SchedulePickup() {
                 {/* EXPRESS */}
                 <div
                   onClick={() => setDeliveryType("express")}
-                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${
-                    deliveryType === "express"
+                  className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "express"
                       ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
                       : "border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        deliveryType === "express"
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "express"
                           ? "border-[#1E7F5A]"
                           : "border-gray-400"
-                      }`}
+                        }`}
                     >
                       {deliveryType === "express" && (
                         <div className="w-2.5 h-2.5 bg-[#1E7F5A] rounded-full"></div>
@@ -684,7 +676,7 @@ export default function SchedulePickup() {
                   (!address.street || !address.city || !address.zip)) ||
                 (step === 4 && !selectedSlot)
               }
-              className="ml-auto px-6 py-3 bg-[#1E7F5A] text-white rounded-xl shadow-md"
+              className="ml-auto px-6 py-3 rounded-xl text-white shadow-md cta-gradient"
             >
               Continue →
             </button>

@@ -67,7 +67,7 @@ export default function CustomerDashboard() {
             points: w.points ?? 0,
           });
         }
-      } catch {}
+      } catch { }
     }
 
     fetchData();
@@ -172,7 +172,7 @@ export default function CustomerDashboard() {
               {activeOrder &&
                 new Date(
                   new Date(activeOrder.createdAt).getTime() +
-                    48 * 60 * 60 * 1000,
+                  48 * 60 * 60 * 1000,
                 ).toLocaleString("en-IN")}
             </p>
           </div>
@@ -257,11 +257,10 @@ export default function CustomerDashboard() {
             <button
               onClick={handleCheck}
               disabled={!pincode}
-              className={`px-4 py-2 rounded-xl transition ${
-                pincode
-                  ? "bg-[#1E7F5A] text-white hover:bg-[#166a4a]"
+              className={`px-4 py-2 rounded-xl transition ${pincode
+                  ? "cta-gradient text-white"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               Check
             </button>
@@ -292,11 +291,10 @@ export default function CustomerDashboard() {
                 navigate("/customer/schedule");
               }
             }}
-            className={`mt-4 w-full py-2 rounded-xl font-medium transition ${
-              available
-                ? "bg-gradient-to-r bg-[#1E7F5A] hover:bg-[#166a4a] text-white"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+            className={`mt-4 w-full py-2 rounded-xl font-medium transition ${available
+              ? "cta-gradient text-white"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
           >
             Continue →
           </button>
@@ -367,8 +365,8 @@ export default function CustomerDashboard() {
                   <p className="font-medium text-gray-800">
                     {order.orderItems?.length > 0
                       ? order.orderItems
-                          .map((item) => item.service?.name || "Service")
-                          .join(", ")
+                        .map((item) => item.service?.name || "Service")
+                        .join(", ")
                       : "Service"}
                   </p>
 

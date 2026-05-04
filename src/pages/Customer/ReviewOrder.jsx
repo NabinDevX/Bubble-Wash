@@ -7,14 +7,14 @@ export default function ReviewOrder() {
   if (!state) return <div>No Data</div>;
 
   const {
-  orderItems,
-  pickupAddress,
-  slotId,     
-  pickupSlot,
-  pickupDate,
-  deliveryType,
-  subtotal,
-} = state;
+    orderItems,
+    pickupAddress,
+    slotId,
+    pickupSlot,
+    pickupDate,
+    deliveryType,
+    subtotal,
+  } = state;
 
   const deliveryCharge = deliveryType === "express" ? 49 : 0;
   const total = subtotal + deliveryCharge;
@@ -88,7 +88,7 @@ export default function ReviewOrder() {
               },
             })
           }
-          className="flex-1 bg-[#1E7F5A] text-white rounded-xl py-3 hover:bg-[#166a4a] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md"
+          className="flex-1 rounded-xl py-3 text-white shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cta-gradient"
         >
           Proceed to Pay →
         </button>
