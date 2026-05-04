@@ -66,15 +66,7 @@ export default function CustomerDashboard() {
             points: w.points ?? 0,
           });
         }
-<<<<<<< HEAD
       } catch { }
-=======
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.error("Customer dashboard load error:", err);
-        }
-      }
->>>>>>> 02a50caea3b70f3d00460d87ad42c333dc48b702
     }
 
     fetchData();

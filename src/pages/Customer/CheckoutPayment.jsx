@@ -354,15 +354,7 @@ export default function CheckoutPayment() {
             {/* BUTTON (ONLY GREEN CHANGE) */}
             <button
               onClick={handlePay}
-<<<<<<< HEAD
               className="w-full py-3 rounded-xl text-white font-medium shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] cta-gradient"
-=======
-              disabled={paying}
-              className="w-full py-3 rounded-xl text-white font-medium 
-  bg-[#1E7F5A]
-  shadow-md hover:bg-[#166a4a] hover:shadow-lg 
-  hover:scale-[1.02] active:scale-[0.98] transition-all"
->>>>>>> 02a50caea3b70f3d00460d87ad42c333dc48b702
             >
               {paying ? "Processing..." : "Complete Payment →"}
             </button>
