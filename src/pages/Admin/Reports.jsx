@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { SkeletonTableRow, Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 import {
   Chart as ChartJS,
@@ -50,9 +51,20 @@ function normalizeDaywiseOrders(list) {
 function normalizeRiderPerformance(list) {
   if (!Array.isArray(list)) return [];
   return list.map((r) => ({
-    name: r.name ?? r.riderName ?? r._id ?? "—",
+    name:
+      r.name ??
+      r.riderName ??
+      r._id ??
+      r.rider?.name ??
+      r.rider?.fullName ??
+      "—",
     deliveries: toNumber(
-      r.deliveries ?? r.totalDeliveries ?? r.completed ?? r.count ?? r.value,
+      r.deliveries ??
+        r.totalDeliveries ??
+        r.completed ??
+        r.count ??
+        r.value ??
+        r.pickups,
     ),
   }));
 }
@@ -63,6 +75,55 @@ function normalizeWorkshopPerformance(list) {
     name: r.name ?? r.workshopName ?? r._id ?? "—",
     orders: toNumber(r.orders ?? r.totalOrders ?? r.count ?? r.value),
   }));
+}
+
+function normalizeCustomerInsights(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map((r) => ({
+    name: r.name ?? r.customerName ?? r.userName ?? r._id ?? "—",
+    orders: toNumber(r.orders ?? r.totalOrders ?? r.orderCount ?? r.count),
+    spend: toNumber(r.spend ?? r.totalSpend ?? r.revenue ?? r.amount),
+    lastOrder: r.lastOrder ?? r.lastOrderAt ?? r.updatedAt ?? "—",
+  }));
+}
+
+function normalizeOrdersDue(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map((r) => ({
+    orderId: r.orderId ?? r._id ?? r.id ?? "—",
+    customer: r.customer ?? r.customerName ?? r.user?.name ?? "—",
+    status: r.status ?? r.orderStatus ?? "—",
+    dueDate: r.dueDate ?? r.deliveryDate ?? r.expectedDeliveryDate ?? "—",
+    amount: toNumber(r.amount ?? r.total ?? r.payable ?? r.totalAmount),
+  }));
+}
+
+function normalizeCollectionDue(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map((r) => ({
+    orderId: r.orderId ?? r._id ?? r.id ?? "—",
+    customer: r.customer ?? r.customerName ?? r.user?.name ?? "—",
+    amountDue: toNumber(r.amountDue ?? r.dueAmount ?? r.balance ?? r.totalDue),
+    collected: toNumber(r.collected ?? r.paidAmount ?? r.receivedAmount),
+    dueDate: r.dueDate ?? r.collectionDate ?? r.expectedCollectionDate ?? "—",
+  }));
+}
+
+function unwrapReportList(response, keys = []) {
+  const candidates = [
+    response,
+    response?.data,
+    response?.items,
+    response?.list,
+  ];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+    if (!candidate || typeof candidate !== "object") continue;
+    for (const key of keys) {
+      if (Array.isArray(candidate[key])) return candidate[key];
+    }
+  }
+  return [];
 }
 
 function readCssVar(name, fallback) {
@@ -102,37 +163,104 @@ export default function Reports() {
   const [riderData, setRiderData] = useState([]);
   const [workshopData, setWorkshopData] = useState([]);
   const [customerData, setCustomerData] = useState([]);
+  const [ordersDueData, setOrdersDueData] = useState([]);
+  const [collectionDueData, setCollectionDueData] = useState([]);
 
   useEffect(() => {
     async function fetchReports() {
       try {
-        const [rev, orders, riders, workshops, customers] =
-          await Promise.allSettled([
-            api.get("/admin/reports/revenue-by-category"),
-            api.get("/admin/reports/daywise-orders"),
-            api.get("/admin/reports/rider-performance"),
-            api.get("/admin/reports/workshop-performance"),
-            api.get("/admin/reports/customer-insights"),
-          ]);
+        const [
+          rev,
+          customers,
+          ordersDue,
+          orders,
+          riders,
+          workshops,
+          collectionDue,
+        ] = await Promise.allSettled([
+          api.get("/admin/reports/revenue-by-category"),
+          api.get("/admin/reports/customer-insights"),
+          api.get("/admin/reports/orders-due-delivery"),
+          api.get("/admin/reports/daywise-orders"),
+          api.get("/admin/reports/rider-performance"),
+          api.get("/admin/reports/workshop-performance"),
+          api.get("/admin/reports/collection-due"),
+        ]);
+
+        function extractList(result, keys = [], label = "report") {
+          if (!result || result.status !== "fulfilled") return [];
+          const v = result.value;
+          if (
+            v &&
+            typeof v === "object" &&
+            Object.prototype.hasOwnProperty.call(v, "success") &&
+            v.success === false
+          ) {
+            try {
+              notify.error(v.message || `Failed to fetch ${label}`);
+            } catch (e) {
+              // ignore notify failures
+            }
+            return [];
+          }
+          return unwrapReportList(v, keys);
+        }
 
         if (rev.status === "fulfilled") {
-          const list = rev.value?.data ?? rev.value ?? [];
+          const list = extractList(
+            rev,
+            ["revenueByCategory", "categories"],
+            "revenue",
+          );
           setRevenueData(normalizeRevenueByCategory(list));
         }
+        if (customers.status === "fulfilled") {
+          const list = extractList(
+            customers,
+            ["customers", "insights"],
+            "customer insights",
+          );
+          setCustomerData(normalizeCustomerInsights(list));
+        }
+        if (ordersDue.status === "fulfilled") {
+          const list = extractList(
+            ordersDue,
+            ["orders", "ordersDue", "dueOrders"],
+            "orders due",
+          );
+          setOrdersDueData(normalizeOrdersDue(list));
+        }
         if (orders.status === "fulfilled") {
-          const list = orders.value?.data ?? orders.value ?? [];
+          const list = extractList(
+            orders,
+            ["orders", "daywiseOrders", "data"],
+            "daywise orders",
+          );
           setOrdersData(normalizeDaywiseOrders(list));
         }
         if (riders.status === "fulfilled") {
-          const list = riders.value?.data ?? riders.value ?? [];
+          const list = extractList(
+            riders,
+            ["riders", "performance"],
+            "rider performance",
+          );
           setRiderData(normalizeRiderPerformance(list));
         }
         if (workshops.status === "fulfilled") {
-          const list = workshops.value?.data ?? workshops.value ?? [];
+          const list = extractList(
+            workshops,
+            ["workshops", "performance"],
+            "workshop performance",
+          );
           setWorkshopData(normalizeWorkshopPerformance(list));
         }
-        if (customers.status === "fulfilled") {
-          setCustomerData(customers.value?.data ?? customers.value ?? []);
+        if (collectionDue.status === "fulfilled") {
+          const list = extractList(
+            collectionDue,
+            ["collectionDue", "due", "collections"],
+            "collection due",
+          );
+          setCollectionDueData(normalizeCollectionDue(list));
         }
       } catch {
         // keep empty
@@ -146,9 +274,11 @@ export default function Reports() {
   const tabs = [
     { key: "revenue", label: "Revenue", icon: "payments" },
     { key: "orders", label: "Orders", icon: "shopping_bag" },
+    { key: "orders-due", label: "Due Delivery", icon: "pending_actions" },
     { key: "riders", label: "Riders", icon: "two_wheeler" },
     { key: "workshops", label: "Workshops", icon: "store" },
     { key: "customers", label: "Customers", icon: "group" },
+    { key: "collection-due", label: "Collection Due", icon: "payments" },
   ];
 
   function renderTable(data, columns) {
@@ -447,6 +577,23 @@ export default function Reports() {
             </div>
           )}
 
+          {activeTab === "orders-due" && (
+            <div className="glass-card rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40">
+                <h3 className="font-semibold text-on-surface">
+                  Orders Due for Delivery
+                </h3>
+              </div>
+              {renderTable(ordersDueData, [
+                "orderId",
+                "customer",
+                "status",
+                "dueDate",
+                "amount",
+              ])}
+            </div>
+          )}
+
           {activeTab === "riders" && (
             <div className="glass-card rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40">
@@ -488,7 +635,41 @@ export default function Reports() {
                   Customer Insights
                 </h3>
               </div>
-              {renderTable(customerData)}
+              {renderHorizontalBarChart(
+                customerData,
+                "name",
+                "orders",
+                "Orders",
+              )}
+              {renderTable(customerData, [
+                "name",
+                "orders",
+                "spend",
+                "lastOrder",
+              ])}
+            </div>
+          )}
+
+          {activeTab === "collection-due" && (
+            <div className="glass-card rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40">
+                <h3 className="font-semibold text-on-surface">
+                  Collection Due
+                </h3>
+              </div>
+              {renderHorizontalBarChart(
+                collectionDueData,
+                "orderId",
+                "amountDue",
+                "Amount Due",
+              )}
+              {renderTable(collectionDueData, [
+                "orderId",
+                "customer",
+                "amountDue",
+                "collected",
+                "dueDate",
+              ])}
             </div>
           )}
         </div>
