@@ -12,6 +12,7 @@ const navItems = [
   { to: "/customer/wallet", icon: "account_balance_wallet", label: "Wallet" },
   { to: "/customer/support", icon: "support_agent", label: "Support" },
   { to: "/customer/feedback", icon: "rate_review", label: "Feedback" },
+  { to: "/customer/settings", icon: "settings", label: "Settings" },
 ];
 
 export default function CustomerLayout() {

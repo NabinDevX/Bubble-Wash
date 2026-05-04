@@ -47,6 +47,7 @@ import InvoiceDetails from "./pages/Customer/InvoiceDetails.jsx";
 import LoyaltyWallet from "./pages/Customer/LoyaltyWallet.jsx";
 import SupportPage from "./pages/Customer/Support.jsx";
 import FeedbackRating from "./pages/Customer/FeedbackRating.jsx";
+import Settings from "./pages/Customer/Settings.jsx";
 
 function App() {
   return (
@@ -117,6 +118,7 @@ function App() {
             <Route path="wallet" element={<LoyaltyWallet />} />
             <Route path="feedback" element={<FeedbackRating />} />
             <Route path="support" element={<SupportPage />} />
+            <Route path="/customer/settings" element={<Settings />} />
           </Route>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
