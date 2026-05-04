@@ -137,7 +137,7 @@ export default function CheckoutPayment() {
 
       setCouponResult({
         valid: true,
-        discount: res?.discountValue || 0, // ✅ FIXED
+        discount: res?.discountValue || 0,
         message: "Coupon applied successfully",
       });
 
@@ -303,9 +303,6 @@ export default function CheckoutPayment() {
                     <p className="font-medium text-gray-800">
                       {item.name} (x{item.quantity})
                     </p>
-                    <p className="text-[11px] text-gray-400 uppercase tracking-wide">
-                      ECO-FRIENDLY DETERGENT
-                    </p>
                   </div>
 
                   <span className="text-gray-800 font-medium">
@@ -360,18 +357,17 @@ export default function CheckoutPayment() {
             {/* DIVIDER */}
             <div className="border-t border-gray-200"></div>
 
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Subtotal</span>
+              <span>₹{total}</span>
+            </div>
+
             {couponResult?.valid && (
               <div className="flex justify-between text-sm text-[#1E7F5A]">
                 <span>Discount</span>
                 <span>-₹{discountAmount}</span>
               </div>
             )}
-
-            {/* SUBTOTAL */}
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Subtotal</span>
-              <span>₹{total}</span>
-            </div>
 
             {/* WALLET */}
             {useWallet && (
