@@ -4,7 +4,11 @@ import Footer from "../components/Footer.jsx";
 import { useAuth } from "../lib/AuthContext.jsx";
 
 const USER_TYPES = ["Customer", "Rider", "Admin"];
-const REDIRECT_MAP = { customer: "/customer", rider: "/rider", admin: "/admin" };
+const REDIRECT_MAP = {
+  customer: "/customer",
+  rider: "/rider",
+  admin: "/admin",
+};
 
 export default function SignIn() {
   const [userType, setUserType] = useState("Customer");
@@ -15,7 +19,7 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { signin } = useAuth();
   const navigate = useNavigate();
 
   const passwordIcon = useMemo(
@@ -28,7 +32,7 @@ export default function SignIn() {
     setError("");
     setLoading(true);
     try {
-      const res = await login(phone, password, remember);
+      const res = await signin(phone, password, remember);
       const role = (res.user?.role ?? res.role ?? userType).toLowerCase();
       navigate(REDIRECT_MAP[role] || "/customer", { replace: true });
     } catch (err) {
@@ -82,7 +86,9 @@ export default function SignIn() {
 
             {error && (
               <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-                <span className="material-symbols-outlined text-base">error</span>
+                <span className="material-symbols-outlined text-base">
+                  error
+                </span>
                 {error}
               </div>
             )}
@@ -165,12 +171,14 @@ export default function SignIn() {
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
                   />
-                  <div className="w-10 h-5 bg-surface-container-highest rounded-full 
+                  <div
+                    className="w-10 h-5 bg-surface-container-highest rounded-full 
       peer-checked:bg-secondary 
       after:content-[''] after:absolute after:top-0.5 after:left-0.5 
       after:bg-white after:rounded-full after:h-4 after:w-4 
       after:transition-all 
-      peer-checked:after:translate-x-full" />
+      peer-checked:after:translate-x-full"
+                  />
                 </div>
 
                 <span className="font-label-md text-label-md text-on-surface-variant">
@@ -193,7 +201,9 @@ export default function SignIn() {
                 ) : (
                   <>
                     Sign In
-                    <span className="material-symbols-outlined">arrow_forward</span>
+                    <span className="material-symbols-outlined">
+                      arrow_forward
+                    </span>
                   </>
                 )}
               </button>
@@ -211,8 +221,6 @@ export default function SignIn() {
               </p>
             </div>
           </div>
-
-
         </div>
       </main>
 

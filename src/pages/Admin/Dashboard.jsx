@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { SkeletonCard, Skeleton } from "../../components/Skeleton.jsx";
+import { Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 import {
@@ -268,7 +268,6 @@ export default function Dashboard() {
         if (data?.overview || data?.periodStats) {
           const overview = data?.overview ?? {};
           const periodStats = data?.periodStats ?? {};
-          const period = periodStats.period;
           setDashboard({
             overview,
             periodStats,

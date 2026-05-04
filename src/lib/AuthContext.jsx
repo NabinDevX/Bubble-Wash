@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (phone, password, remember) => {
+  const signin = useCallback(async (phone, password, remember) => {
     const res = await api.post("/auth/signin", { phone, password });
 
     const token = res?.token ?? res?.accessToken;
@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
     return res;
   }, []);
 
-  const signup = useCallback(async (name, phone, password) => {
+  const signup = useCallback(async (name, phone, password, remember = true) => {
     const res = await api.post("/auth/signup", { name, phone, password });
     const token = res?.token ?? res?.accessToken;
     if (token) setToken(token, remember);
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, signin, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

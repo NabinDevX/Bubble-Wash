@@ -28,7 +28,7 @@ export default function SignUp() {
     setError("");
     setLoading(true);
     try {
-      await signup(name, phone, password);
+      await signup(name, phone, password, true);
       navigate("/customer", { replace: true });
     } catch (err) {
       setError(err.message || "Sign up failed. Please try again.");
@@ -93,15 +93,14 @@ export default function SignUp() {
 
             {error && (
               <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-                <span className="material-symbols-outlined text-base">error</span>
+                <span className="material-symbols-outlined text-base">
+                  error
+                </span>
                 {error}
               </div>
             )}
 
-            <form
-              className="space-y-stack-sm"
-              onSubmit={handleSubmit}
-            >
+            <form className="space-y-stack-sm" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label className="font-label-md text-label-md text-on-surface ml-1">
                   Full Name
@@ -223,7 +222,9 @@ export default function SignUp() {
                 >
                   {loading ? (
                     <>
-                      <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                      <span className="material-symbols-outlined animate-spin">
+                        progress_activity
+                      </span>
                       Creating Account…
                     </>
                   ) : (

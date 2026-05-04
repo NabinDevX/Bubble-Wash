@@ -24,6 +24,7 @@ const PromotionsBilling = lazy(
   () => import("./pages/Admin/PromotionsBilling.jsx"),
 );
 const CreateOrder = lazy(() => import("./pages/Admin/CreateOrder.jsx"));
+const CreateCustomer = lazy(() => import("./pages/Admin/CreateCustomer.jsx"));
 import RiderLayout from "./pages/Rider/Layout.jsx";
 import RiderDashboard from "./pages/Rider/Dashboard.jsx";
 import RiderPickupList from "./pages/Rider/PickupList.jsx";
@@ -70,6 +71,7 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="customers/new" element={<CreateCustomer />} />
             <Route path="workshops" element={<Workshops />} />
             <Route path="staff" element={<Staff />} />
             <Route path="services-rate-card" element={<ServicesRateCard />} />
