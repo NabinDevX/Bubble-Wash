@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 import notify from "../../lib/notify.js";
@@ -153,15 +153,9 @@ export default function Staff() {
     hasPrev: false,
   });
 
-  useEffect(() => {
-    // fetchStaff is defined below and called here to run on mount and when
-    // `page` or `pageSize` change.
-    fetchStaff();
-  }, [page, pageSize]);
-
   // Top-level fetch function so we can call it after creating a new employee
   // without changing pagination logic elsewhere.
-  async function fetchStaff() {
+  const fetchStaff = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.get(`/admin/staff?page=${page}&limit=${pageSize}`);
@@ -190,7 +184,13 @@ export default function Staff() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, pageSize]);
+
+  useEffect(() => {
+    (async () => {
+      await fetchStaff();
+    })();
+  }, [fetchStaff]);
 
   const totalItems = pagination.totalStaff ?? employees.length;
   const totalPages = Math.max(1, pagination.totalPages ?? 1);

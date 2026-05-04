@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 import notify from "../../lib/notify.js";
@@ -220,7 +220,7 @@ export default function PromotionsBilling() {
   const [submittingCoupon, setSubmittingCoupon] = useState(false);
   const [submittingPlan, setSubmittingPlan] = useState(false);
 
-  async function loadCoupons(page = 1) {
+  const loadCoupons = useCallback(async (page = 1) => {
     setLoadingCoupons(true);
     try {
       const data = await api.get(
@@ -257,7 +257,7 @@ export default function PromotionsBilling() {
     } finally {
       setLoadingCoupons(false);
     }
-  }
+  }, []);
 
   async function loadPlans() {
     setLoadingPlans(true);
@@ -278,24 +278,32 @@ export default function PromotionsBilling() {
     }
   }
 
-  useEffect(() => {
-    loadPlans();
-  }, []);
+  const loadPlansCallback = useCallback(() => loadPlans(), []);
 
   useEffect(() => {
-    loadCoupons(couponPage);
-  }, [couponPage]);
+    (async () => {
+      await loadPlansCallback();
+    })();
+  }, [loadPlansCallback]);
 
   useEffect(() => {
-    const today = new Date();
-    const yyyy = today.getUTCFullYear();
-    const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
-    const dd = String(today.getUTCDate()).padStart(2, "0");
-    const todayDate = `${yyyy}-${mm}-${dd}`;
-    setCouponForm((prev) => ({
-      ...prev,
-      validFrom: prev.validFrom || todayDate,
-    }));
+    (async () => {
+      await loadCoupons(couponPage);
+    })();
+  }, [couponPage, loadCoupons]);
+
+  useEffect(() => {
+    (async () => {
+      const today = new Date();
+      const yyyy = today.getUTCFullYear();
+      const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(today.getUTCDate()).padStart(2, "0");
+      const todayDate = `${yyyy}-${mm}-${dd}`;
+      setCouponForm((prev) => ({
+        ...prev,
+        validFrom: prev.validFrom || todayDate,
+      }));
+    })();
   }, []);
 
   const filteredCoupons = useMemo(() => {
