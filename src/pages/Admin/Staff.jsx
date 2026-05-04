@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -137,13 +138,12 @@ export default function Staff() {
   const [pageSize] = useState(10);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState("");
-  const [createSuccess, setCreateSuccess] = useState("");
   const [newStaff, setNewStaff] = useState({
     name: "",
     phone: "",
     email: "",
     password: "",
+    role: "staff",
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -154,41 +154,43 @@ export default function Staff() {
   });
 
   useEffect(() => {
-    async function fetchStaff() {
-      setLoading(true);
-      try {
-        const data = await api.get(
-          `/admin/staff?page=${page}&limit=${pageSize}`,
-        );
-        const list = extractStaffArray(data);
-        const mapped = list.map((staff, index) =>
-          normalizeStaffMember(staff, index),
-        );
-        const meta = extractPagination(data);
-
-        setEmployees(mapped);
-        setPagination(meta);
-        setSelected((current) => {
-          if (!current) return null;
-          return mapped.find((staff) => staff.id === current.id) ?? null;
-        });
-      } catch {
-        setEmployees([]);
-        setSelected(null);
-        setPagination({
-          currentPage: page,
-          totalPages: 1,
-          totalStaff: 0,
-          hasNext: false,
-          hasPrev: false,
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
+    // fetchStaff is defined below and called here to run on mount and when
+    // `page` or `pageSize` change.
     fetchStaff();
   }, [page, pageSize]);
+
+  // Top-level fetch function so we can call it after creating a new employee
+  // without changing pagination logic elsewhere.
+  async function fetchStaff() {
+    setLoading(true);
+    try {
+      const data = await api.get(`/admin/staff?page=${page}&limit=${pageSize}`);
+      const list = extractStaffArray(data);
+      const mapped = list.map((staff, index) =>
+        normalizeStaffMember(staff, index),
+      );
+      const meta = extractPagination(data);
+
+      setEmployees(mapped);
+      setPagination(meta);
+      setSelected((current) => {
+        if (!current) return null;
+        return mapped.find((staff) => staff.id === current.id) ?? null;
+      });
+    } catch {
+      setEmployees([]);
+      setSelected(null);
+      setPagination({
+        currentPage: page,
+        totalPages: 1,
+        totalStaff: 0,
+        hasNext: false,
+        hasPrev: false,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const totalItems = pagination.totalStaff ?? employees.length;
   const totalPages = Math.max(1, pagination.totalPages ?? 1);
@@ -199,8 +201,6 @@ export default function Staff() {
   const hasSelectedStaff = Boolean(selected);
 
   async function handleAddStaff() {
-    setCreateError("");
-    setCreateSuccess("");
     setShowCreate(true);
   }
 
@@ -211,21 +211,24 @@ export default function Staff() {
 
   async function handleCreateSubmit(e) {
     e.preventDefault();
-    setCreateError("");
-    setCreateSuccess("");
 
     if (!newStaff.name.trim()) {
-      setCreateError("Please enter the employee name.");
+      notify.error("Please enter the employee name.");
       return;
     }
 
     if (!newStaff.phone.trim()) {
-      setCreateError("Please enter the employee phone number.");
+      notify.error("Please enter the employee phone number.");
       return;
     }
 
     if (!newStaff.password.trim() || newStaff.password.trim().length < 6) {
-      setCreateError("Please enter a password with at least 6 characters.");
+      notify.error("Please enter a password with at least 6 characters.");
+      return;
+    }
+
+    if (!newStaff.role.trim()) {
+      notify.error("Please select the employee role.");
       return;
     }
 
@@ -236,14 +239,27 @@ export default function Staff() {
         phone: newStaff.phone.trim(),
         email: newStaff.email.trim() || undefined,
         password: newStaff.password,
+        role: newStaff.role.trim(),
       });
 
-      setCreateSuccess("Employee created successfully.");
+      notify.success("Employee created successfully.");
       setShowCreate(false);
-      setNewStaff({ name: "", phone: "", email: "", password: "" });
+      setNewStaff({
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+        role: "staff",
+      });
       setPage(1);
+      // Ensure the list refreshes even if `page` was already 1.
+      await fetchStaff();
     } catch (err) {
-      setCreateError(err?.message || "Unable to create employee.");
+      notify.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Unable to create employee.",
+      );
     } finally {
       setCreating(false);
     }
@@ -309,18 +325,6 @@ export default function Staff() {
             </div>
 
             <div className="p-6 space-y-5">
-              {createError && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                  {createError}
-                </div>
-              )}
-
-              {createSuccess && (
-                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
-                  {createSuccess}
-                </div>
-              )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-on-surface mb-1">
@@ -374,6 +378,22 @@ export default function Staff() {
                     className="w-full px-4 py-2.5 rounded-lg border border-outline-variant/60 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/50"
                     required
                   />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-on-surface mb-1">
+                    Role *
+                  </label>
+                  <select
+                    name="role"
+                    value={newStaff.role}
+                    onChange={handleCreateChange}
+                    className="w-full px-4 py-2.5 rounded-lg border border-outline-variant/60 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/50"
+                    required
+                  >
+                    <option value="staff">Staff</option>
+                    <option value="store_manager">Store Manager</option>
+                    <option value="admin">Admin</option>
+                  </select>
                 </div>
               </div>
 

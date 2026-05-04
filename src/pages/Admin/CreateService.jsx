@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 export default function CreateService() {
   const navigate = useNavigate();
@@ -28,6 +29,22 @@ export default function CreateService() {
     const pricePerKg = Number(formData.pricePerKg);
     const estimatedDeliveryDays = Number(formData.estimatedDeliveryDays);
 
+    if (!formData.name.trim()) {
+      setLoading(false);
+      const msg = "Please enter the service name.";
+      notify.error(msg);
+      setError(msg);
+      return;
+    }
+
+    if (!formData.category) {
+      setLoading(false);
+      const msg = "Please select a category.";
+      notify.error(msg);
+      setError(msg);
+      return;
+    }
+
     if (!Number.isFinite(pricePerKg) || pricePerKg < 0) {
       setLoading(false);
       setError("Please enter a valid price.");
@@ -45,14 +62,21 @@ export default function CreateService() {
         name: formData.name.trim(),
         category: formData.category,
         description: formData.description.trim(),
+        // include pricePerUnit to match API message; keep per-kg and per-item for compatibility
+        pricePerUnit: pricePerKg,
         pricePerKg,
+        pricePerItem: pricePerKg,
         estimatedDeliveryDays,
       };
 
       await api.post("/admin/services", payload);
+      notify.success("Service created successfully.");
       navigate("/admin/services-rate-card");
     } catch (err) {
-      setError(err.message || "Failed to create service");
+      const msg =
+        err?.message || err?.data?.message || "Failed to create service";
+      notify.error(msg);
+      setError(msg);
     } finally {
       setLoading(false);
     }
