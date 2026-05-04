@@ -2,276 +2,323 @@ import { useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import api from "../../lib/api.js";
 
-const paymentMethods = [
-  { id: "card", icon: "credit_card", label: "Credit Card" },
-  { id: "apple", icon: "phone_iphone", label: "Apple Pay" },
-  { id: "upi", icon: "account_balance", label: "UPI" },
-];
-
 export default function CheckoutPayment() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const [method, setMethod] = useState("card");
-  const [coupon, setCoupon] = useState("");
-  const [couponResult, setCouponResult] = useState(null);
+
+  const [method, setMethod] = useState("razorpay");
+  const [useWallet, setUseWallet] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
 
   const orderId =
     location.state?.orderId ||
     searchParams.get("orderId") ||
-    searchParams.get("id") ||
     null;
 
+  const orderItems = location.state?.orderItems || [];
+  const subtotal = location.state?.subtotal || 0;
+
+  const deliveryCharge =
+    location.state?.deliveryType === "express" ? 49 : 0;
+
+  const serviceTax = Math.round(subtotal * 0.08); // approx like UI
+  const total = subtotal + deliveryCharge + serviceTax;
+
+  const walletBalance = 142.5;
+  const walletUsed = useWallet ? Math.min(walletBalance, total) : 0;
+  const finalPayable = total - walletUsed;
+
   const paymentMethod = useMemo(() => {
-    // Backend expects e.g. 'razorpay', 'upi', 'cod'
-    if (method === "upi") return "upi";
-    // Treat card/apple as gateway payments
+    if (method === "cod") return "cod";
     return "razorpay";
   }, [method]);
-
-  async function handleValidateCoupon() {
-    if (!coupon.trim()) return;
-    try {
-      const res = await api.post("/coupons/validate", { code: coupon });
-      setCouponResult({
-        valid: true,
-        discount: res.discount ?? res.discountPercent ?? 0,
-        message: res.message ?? "Coupon applied!",
-      });
-    } catch (err) {
-      setCouponResult({
-        valid: false,
-        message: err.message || "Invalid coupon",
-      });
-    }
-  }
 
   async function handlePay() {
     setError("");
     setPaying(true);
 
     try {
-      if (!orderId) {
-        setError("Order not found. Please create order again.");
-        return;
-      }
-
-      console.log("INITIATING PAYMENT:", { orderId, paymentMethod });
-
-      await api.post("/payments/initiate", {
+      const response = await api.post("/payments/initiate", {
         orderId,
         paymentMethod,
-        cartItems: location.state?.orderItems || [],
-        pickupAddress: location.state?.pickupAddress || {},
-        pickupSlot: location.state?.pickupSlot || null,
       });
 
       const res = response?.data ?? response;
 
-      console.log("PAYMENT RESPONSE:", res);
-
-      if (!res) {
-        throw new Error("Invalid payment response");
+      if (res?.paymentUrl) {
+        window.location.href = res.paymentUrl;
+      } else {
+        window.location.href = `/customer/feedback?orderId=${orderId}`;
       }
-
-      //  Gateway redirect
-      if (res?.paymentUrl || res?.gatewayUrl) {
-        window.location.href = res.paymentUrl ?? res.gatewayUrl;
-        return;
-      }
-
-      //  Instant success flow
-      if (res?.paymentId) {
-        await api.get(`/payments/${res.paymentId}`);
-      }
-
-      //  Final fallback success
-      window.location.href = `/customer/feedback?orderId=${orderId}`;
 
     } catch (err) {
-      console.error("PAYMENT ERROR:", err.response?.data || err.message);
-
-      setError(
-        err.response?.data?.message ||
-        err.message ||
-        "Payment could not be initiated"
-      );
+      setError("Payment failed");
     } finally {
       setPaying(false);
     }
   }
 
   return (
-    <div className="space-y-6 px-4 md:px-8 py-6 max-w-6xl mx-auto">
-      <header className="text-center md:text-left">
-        <h1 className="font-display-lg text-display-lg text-on-surface mb-2">
-          Secure Checkout
-        </h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant">
-          Complete your premium laundry service booking.
-        </p>
-      </header>
+    <div className="min-h-screen bg-[#f4f7f6] px-4 md:px-10 py-10">
 
-      {error && (
-        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-          <span className="material-symbols-outlined text-base">error</span>{" "}
-          {error}
-        </div>
-      )}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7 xl:col-span-8">
-          <section className="glass-card rounded-3xl p-6 md:p-8 relative overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-secondary-container/20 rounded-full blur-[60px] pointer-events-none" />
-            <h2 className="font-headline-sm text-headline-sm text-on-surface mb-6 flex items-center gap-3 relative z-10">
-              <span className="material-symbols-outlined text-secondary-container bg-primary-container p-2 rounded-full text-sm">
-                payment
+        {/* LEFT */}
+        <div className="lg:col-span-7 space-y-6">
+
+          <div>
+            <h1 className="text-3xl font-bold">Select Payment Method</h1>
+            <p className="text-gray-500">
+              Choose your preferred way to pay
+            </p>
+          </div>
+
+          {/* WALLET */}
+          <div className="bg-white p-5 rounded-xl flex justify-between items-center border">
+            <div className="flex gap-3 items-center">
+              <span className="material-symbols-outlined text-[#1E7F5A]">
+                account_balance_wallet
               </span>
-              Payment Method
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 relative z-10">
-              {paymentMethods.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setMethod(m.id)}
-                  className={`p-4 rounded-lg flex flex-col items-center gap-2 text-center transition-all ${method === m.id ? "border border-secondary-container/50 bg-primary-container text-on-primary shadow-[0_0_15px_rgba(98,250,227,0.15)] ring-1 ring-secondary-container" : "border border-outline-variant bg-surface-container-lowest text-on-surface hover:border-secondary-container/50"}`}
-                >
-                  <span
-                    className={`material-symbols-outlined ${method === m.id ? "text-secondary-container" : "text-on-surface-variant"}`}
-                  >
-                    {m.icon}
-                  </span>
-                  <span className="font-label-md text-label-md">{m.label}</span>
-                </button>
-              ))}
+              <div>
+                <h3 className="font-semibold">Bubble Wallet</h3>
+                <p className="text-sm text-gray-500">
+                  Available Balance: ₹{walletBalance}
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-5 relative z-10">
-              <div>
-                <label className="block font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">
-                  Cardholder Name
-                </label>
-                <input
-                  className="w-full bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary-container focus:ring-0 px-4 py-3 text-on-surface placeholder:text-outline transition-all rounded-t-md outline-none backdrop-blur-sm"
-                  placeholder="John Doe"
-                />
-              </div>
-              <div>
-                <label className="block font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">
-                  Card Number
-                </label>
-                <div className="relative">
-                  <input
-                    className="w-full bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary-container focus:ring-0 pl-12 pr-4 py-3 text-on-surface placeholder:text-outline transition-all rounded-t-md outline-none backdrop-blur-sm"
-                    placeholder="0000 0000 0000 0000"
-                  />
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">
-                    credit_card
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">
-                    Expiry Date
-                  </label>
-                  <input
-                    className="w-full bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary-container focus:ring-0 px-4 py-3 text-on-surface placeholder:text-outline transition-all rounded-t-md outline-none backdrop-blur-sm"
-                    placeholder="MM/YY"
-                  />
-                </div>
-                <div>
-                  <label className="block font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">
-                    CVC
-                  </label>
-                  <input
-                    className="w-full bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary-container focus:ring-0 px-4 py-3 text-on-surface placeholder:text-outline transition-all rounded-t-md outline-none backdrop-blur-sm"
-                    placeholder="123"
-                  />
-                </div>
-              </div>
+            {/* TOGGLE */}
+            <div
+              onClick={() => setUseWallet(!useWallet)}
+              className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer ${useWallet ? "bg-[#1E7F5A]" : "bg-gray-300"
+                }`}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow transform ${useWallet ? "translate-x-6" : ""
+                  }`}
+              />
+            </div>
+          </div>
 
-              {/* Coupon */}
+          {/* RAZORPAY */}
+          <div
+            onClick={() => setMethod("razorpay")}
+            className={`p-5 rounded-xl border flex justify-between items-center cursor-pointer ${method === "razorpay"
+              ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+              : "bg-white"
+              }`}
+          >
+            <div className="flex gap-3 items-center">
+              <span className="material-symbols-outlined text-[#1E7F5A]">
+                security
+              </span>
               <div>
-                <label className="block font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">
-                  Coupon Code
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    className="flex-1 bg-surface-container-lowest/50 border-b border-outline-variant focus:border-secondary-container focus:ring-0 px-4 py-3 text-on-surface placeholder:text-outline transition-all rounded-t-md outline-none"
-                    placeholder="Enter code"
-                    value={coupon}
-                    onChange={(e) => setCoupon(e.target.value)}
-                  />
-                  <button
-                    onClick={handleValidateCoupon}
-                    className="px-4 py-2 bg-secondary/20 text-secondary rounded-lg text-sm font-semibold hover:bg-secondary/30 transition-colors"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {couponResult && (
-                  <p
-                    className={`mt-2 text-sm ${couponResult.valid ? "text-secondary" : "text-red-600"}`}
-                  >
-                    {couponResult.message}
-                  </p>
-                )}
+                <h3 className="font-semibold">Razorpay Secure</h3>
+                <p className="text-sm text-gray-500">
+                  Cards, UPI, Netbanking & Wallets
+                </p>
               </div>
             </div>
-          </section>
+
+            <span className="text-xs bg-[#1E7F5A] text-white px-2 py-1 rounded">
+              PRIMARY
+            </span>
+          </div>
+
+          {/* COD */}
+          <div
+            onClick={() => setMethod("cod")}
+            className={`p-5 rounded-xl border flex justify-between items-center cursor-pointer ${method === "cod"
+              ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+              : "bg-white"
+              }`}
+          >
+            <div className="flex gap-3 items-center">
+              <span className="material-symbols-outlined text-[#1E7F5A]">
+                payments
+              </span>
+              <div>
+                <h3 className="font-semibold">Cash on Delivery</h3>
+                <p className="text-sm text-gray-500">
+                  Pay at your doorstep after service
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* FEATURES */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+
+            {/* Guaranteed Care */}
+            <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-start">
+
+              <div className="w-10 h-10 rounded-full bg-[#1E7F5A]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#1E7F5A] text-lg">
+                  verified_user
+                </span>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-800">
+                  Guaranteed Care
+                </h4>
+                <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                  Our 100% satisfaction guarantee ensures your clothes are handled with precision or we re-wash for free.
+                </p>
+              </div>
+            </div>
+
+            {/* Express Processing */}
+            <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-start">
+
+              <div className="w-10 h-10 rounded-full bg-[#1E7F5A]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#1E7F5A] text-lg">
+                  bolt
+                </span>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-800">
+                  Express Processing
+                </h4>
+                <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                  Payments are cleared instantly to prioritize your order in our premium automated cleaning queue.
+                </p>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <div className="lg:col-span-5 xl:col-span-4">
-          <aside className="glass-card rounded-3xl p-6 md:p-8 sticky top-32">
-            <h3 className="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-outline-variant/30 pb-4">
+        {/* RIGHT */}
+        <div className="lg:col-span-5 space-y-6">
+
+          <div className="bg-[#f8fafc] p-6 rounded-3xl shadow-xl border border-gray-100 space-y-5">
+
+            {/* TITLE */}
+            <h3 className="text-lg font-semibold text-gray-800">
               Order Summary
             </h3>
-            <div className="space-y-4 mb-8">
-              <div className="flex justify-between items-center">
-                <span className="text-on-surface">Services</span>
-                <span className="text-on-surface">—</span>
-              </div>
-            </div>
-            <div className="border-t border-outline-variant/30 pt-4 space-y-2 mb-6">
-              <div className="flex justify-between text-on-surface-variant">
-                <span>Subtotal</span>
-                <span>—</span>
-              </div>
-              <div className="flex justify-between text-on-surface-variant">
-                <span>Service Fee</span>
-                <span>—</span>
-              </div>
-              {couponResult?.valid && (
-                <div className="flex justify-between text-secondary">
-                  <span>Discount</span>
-                  <span>-{couponResult.discount}%</span>
+
+            {/* ITEMS */}
+            <div className="space-y-4 text-sm">
+
+              {orderItems.map((item, i) => (
+                <div key={i} className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-gray-800">
+                      {item.name} (x{item.quantity})
+                    </p>
+                    <p className="text-[11px] text-gray-400 uppercase tracking-wide">
+                      ECO-FRIENDLY DETERGENT
+                    </p>
+                  </div>
+
+                  <span className="text-gray-800 font-medium">
+                    ₹{item.price * item.quantity}
+                  </span>
                 </div>
-              )}
-              <div className="flex justify-between font-headline-md text-headline-md text-on-surface mt-4 pt-4 border-t border-outline-variant/30">
-                <span>Total</span>
-                <span>—</span>
+              ))}
+
+              {/* DELIVERY */}
+              <div className="flex justify-between text-gray-600">
+                <span>Express Delivery</span>
+                <span>₹{deliveryCharge}</span>
               </div>
+
+              {/* TAX */}
+              <div className="flex justify-between text-gray-600">
+                <span>Service Tax</span>
+                <span>₹{serviceTax}</span>
+              </div>
+
             </div>
+
+            {/* DIVIDER */}
+            <div className="border-t border-gray-200"></div>
+
+            {/* SUBTOTAL */}
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Subtotal</span>
+              <span>₹{total}</span>
+            </div>
+
+            {/* WALLET */}
+            {useWallet && (
+              <div className="flex justify-between text-sm text-[#1E7F5A] font-medium">
+                <span className="flex items-center gap-1">
+                  Wallet Credit
+                  <span className="text-xs">ⓘ</span>
+                </span>
+                <span>-₹{walletUsed}</span>
+              </div>
+            )}
+
+            {/* TOTAL CARD (IMPORTANT) */}
+            <div className="bg-[#0b1324] text-white px-5 py-4 rounded-2xl flex justify-between items-center shadow-lg">
+              <span className="text-sm font-medium">Total Payable</span>
+              <span className="text-lg font-semibold text-white">
+                ₹{finalPayable}
+              </span>
+            </div>
+
+            {/* BUTTON (ONLY GREEN CHANGE) */}
             <button
               onClick={handlePay}
-              disabled={paying}
-              className="w-full py-4 rounded-lg bg-linear-to-r from-primary-container to-surface-tint text-on-primary font-label-md text-label-md tracking-widest uppercase hover:shadow-[0_0_20px_rgba(98,250,227,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60"
+              className="w-full py-3 rounded-xl text-white font-medium 
+  bg-[#1E7F5A]
+  shadow-md hover:bg-[#166a4a] hover:shadow-lg 
+  hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              <span className="material-symbols-outlined text-sm">lock</span>
-              {paying ? "Processing…" : "Pay Securely"}
+              Complete Payment →
             </button>
-            <p className="text-center mt-4 font-label-sm text-label-sm text-outline flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-xs">
-                verified_user
+
+            {/* FOOTER */}
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+
+              <span className="material-symbols-outlined text-[#1E7F5A] text-sm">
+                lock
               </span>
-              256-bit Encryption
-            </p>
-          </aside>
+
+              <span>SSL SECURE • RAZORPAY</span>
+
+            </div>
+
+          </div>
+
+          {/* IMAGE CARD */}
+          <div className="relative rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+
+            {/* IMAGE */}
+            <img
+              src="https://plus.unsplash.com/premium_photo-1764094353320-7ce84985fb8f?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              alt="Laundry"
+              className="w-full h-48 object-cover object-center"
+            />
+
+            {/* SMOOTH OVERLAY */}
+            <div className="absolute inset-0 
+    bg-gradient-to-t 
+    from-black/90 
+    via-black/40 
+    to-transparent">
+            </div>
+
+            {/* TEXT WITH GLOW */}
+            <div className="absolute bottom-4 left-5 right-5 
+    text-white text-sm font-semibold 
+    drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+
+              Trust Lumina for your most delicate fabrics.
+
+            </div>
+
+          </div>
+
+
         </div>
+
       </div>
     </div>
   );

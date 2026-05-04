@@ -663,8 +663,7 @@ export default function SchedulePickup() {
                         pincode: address.zip,
                         landmark: address.instructions || "",
                       },
-
-                      // ✅ FIXED
+                      
                       pickupSlot: selectedSlotData?.label,
 
                       deliveryType,
