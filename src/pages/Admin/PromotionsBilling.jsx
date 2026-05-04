@@ -1,9 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 const topTabs = ["Coupon Management", "Subscription Plans"];
 const modeFilters = ["All Modes", "Global", "App Only", "Web Only"];
+const COUPON_PAGE_SIZE = 10;
+
+const initialCouponForm = {
+  code: "",
+  description: "",
+  discountType: "percentage",
+  discountValue: "",
+  minOrderAmount: "0",
+  maxDiscountAmount: "0",
+  usageLimit: "0",
+  perUserLimit: "1",
+  validFrom: "",
+  validUntil: "",
+};
+
+const initialPlanForm = {
+  name: "",
+  price: "",
+  validityDays: "30",
+  benefits: "",
+};
 
 function toNumber(v) {
   const n = Number(v);
@@ -26,6 +48,11 @@ function formatDate(v) {
   });
 }
 
+function toIsoDateStart(dateValue) {
+  if (!dateValue) return null;
+  return new Date(`${dateValue}T00:00:00.000Z`).toISOString();
+}
+
 function normalizeCoupon(raw) {
   const id = raw?.id ?? raw?._id ?? raw?.couponId;
   const code = raw?.code ?? raw?.couponCode ?? raw?.name ?? "—";
@@ -33,31 +60,39 @@ function normalizeCoupon(raw) {
   const startDate = formatDate(
     raw?.startDate ?? raw?.startsAt ?? raw?.validFrom,
   );
-  const endDate = formatDate(raw?.endDate ?? raw?.endsAt ?? raw?.validTo);
+  const endDate = formatDate(
+    raw?.endDate ?? raw?.endsAt ?? raw?.validUntil ?? raw?.validTo,
+  );
   const minOrderValue =
     raw?.minOrderValue != null
       ? formatMoney(raw.minOrderValue)
       : raw?.minimumOrderAmount != null
         ? formatMoney(raw.minimumOrderAmount)
-        : raw?.minAmount != null
-          ? formatMoney(raw.minAmount)
-          : "—";
+        : raw?.minOrderAmount != null
+          ? formatMoney(raw.minOrderAmount)
+          : raw?.minAmount != null
+            ? formatMoney(raw.minAmount)
+            : "—";
 
   const discountPercent =
-    raw?.discountPercent != null
-      ? `${toNumber(raw.discountPercent)}%`
-      : raw?.percentage != null
-        ? `${toNumber(raw.percentage)}%`
-        : raw?.percent != null
-          ? `${toNumber(raw.percent)}%`
-          : "--";
+    raw?.discountType === "percentage" && raw?.discountValue != null
+      ? `${toNumber(raw.discountValue)}%`
+      : raw?.discountPercent != null
+        ? `${toNumber(raw.discountPercent)}%`
+        : raw?.percentage != null
+          ? `${toNumber(raw.percentage)}%`
+          : raw?.percent != null
+            ? `${toNumber(raw.percent)}%`
+            : "--";
 
   const discountAmount =
-    raw?.discountAmount != null
-      ? formatMoney(raw.discountAmount)
-      : raw?.amount != null
-        ? formatMoney(raw.amount)
-        : "--";
+    raw?.discountType === "fixed" && raw?.discountValue != null
+      ? formatMoney(raw.discountValue)
+      : raw?.discountAmount != null
+        ? formatMoney(raw.discountAmount)
+        : raw?.amount != null
+          ? formatMoney(raw.amount)
+          : "--";
 
   const status =
     raw?.status ??
@@ -81,7 +116,9 @@ function normalizeCoupon(raw) {
   const currentUsage = toNumber(
     raw?.currentUsage ?? raw?.usedCount ?? raw?.usageCount,
   );
-  const usagePerUser = toNumber(raw?.usagePerUser ?? raw?.limitPerUser ?? 1);
+  const usagePerUser = toNumber(
+    raw?.usagePerUser ?? raw?.perUserLimit ?? raw?.limitPerUser ?? 1,
+  );
 
   const applicability = Array.isArray(raw?.applicability)
     ? raw.applicability
@@ -130,7 +167,11 @@ function normalizePlan(raw) {
       : raw?.amount != null
         ? formatMoney(raw.amount)
         : "—";
-  const interval = raw?.interval ?? raw?.billingCycle ?? raw?.duration ?? "—";
+  const interval =
+    raw?.interval ??
+    raw?.billingCycle ??
+    (raw?.validityDays != null ? `${raw.validityDays} days` : raw?.duration) ??
+    "—";
   const status =
     raw?.status ??
     (raw?.isActive === false
@@ -164,43 +205,97 @@ export default function PromotionsBilling() {
   const [selectedCouponId, setSelectedCouponId] = useState(null);
   const [loadingCoupons, setLoadingCoupons] = useState(true);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [couponPage, setCouponPage] = useState(1);
+  const [couponPagination, setCouponPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCoupons: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [couponForm, setCouponForm] = useState(initialCouponForm);
+  const [planForm, setPlanForm] = useState(initialPlanForm);
+  const [submittingCoupon, setSubmittingCoupon] = useState(false);
+  const [submittingPlan, setSubmittingPlan] = useState(false);
+
+  async function loadCoupons(page = 1) {
+    setLoadingCoupons(true);
+    try {
+      const data = await api.get(
+        `/admin/coupons?page=${page}&limit=${COUPON_PAGE_SIZE}`,
+      );
+      const list = data.coupons ?? data.items ?? data.data ?? data ?? [];
+      const normalized = Array.isArray(list) ? list.map(normalizeCoupon) : [];
+      const pagination = data.pagination ?? {};
+
+      setCoupons(normalized);
+      setCouponPagination({
+        currentPage: toNumber(pagination.currentPage) || page,
+        totalPages: toNumber(pagination.totalPages) || 1,
+        totalCoupons: toNumber(
+          pagination.totalCoupons ?? pagination.total ?? normalized.length,
+        ),
+        hasNext: Boolean(pagination.hasNext),
+        hasPrev: Boolean(pagination.hasPrev),
+      });
+      setSelectedCouponId((prev) => {
+        if (prev && normalized.some((c) => c.id === prev)) return prev;
+        return normalized[0]?.id ?? null;
+      });
+    } catch {
+      setCoupons([]);
+      setSelectedCouponId(null);
+      setCouponPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalCoupons: 0,
+        hasNext: false,
+        hasPrev: false,
+      });
+    } finally {
+      setLoadingCoupons(false);
+    }
+  }
+
+  async function loadPlans() {
+    setLoadingPlans(true);
+    try {
+      const data = await api.get("/admin/subscriptions");
+      const list =
+        data.plans ??
+        data.subscriptions ??
+        data.items ??
+        data.data ??
+        data ??
+        [];
+      setPlans(Array.isArray(list) ? list.map(normalizePlan) : []);
+    } catch {
+      setPlans([]);
+    } finally {
+      setLoadingPlans(false);
+    }
+  }
 
   useEffect(() => {
-    async function loadCoupons() {
-      try {
-        const data = await api.get("/admin/coupons");
-        const list = data.coupons ?? data.items ?? data.data ?? data ?? [];
-        const normalized = Array.isArray(list) ? list.map(normalizeCoupon) : [];
-        setCoupons(normalized);
-        setSelectedCouponId(normalized[0]?.id ?? null);
-      } catch {
-        setCoupons([]);
-        setSelectedCouponId(null);
-      } finally {
-        setLoadingCoupons(false);
-      }
-    }
-
-    async function loadPlans() {
-      try {
-        const data = await api.get("/admin/subscriptions");
-        const list =
-          data.plans ??
-          data.subscriptions ??
-          data.items ??
-          data.data ??
-          data ??
-          [];
-        setPlans(Array.isArray(list) ? list.map(normalizePlan) : []);
-      } catch {
-        setPlans([]);
-      } finally {
-        setLoadingPlans(false);
-      }
-    }
-
-    loadCoupons();
     loadPlans();
+  }, []);
+
+  useEffect(() => {
+    loadCoupons(couponPage);
+  }, [couponPage]);
+
+  useEffect(() => {
+    const today = new Date();
+    const yyyy = today.getUTCFullYear();
+    const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(today.getUTCDate()).padStart(2, "0");
+    const todayDate = `${yyyy}-${mm}-${dd}`;
+    setCouponForm((prev) => ({
+      ...prev,
+      validFrom: prev.validFrom || todayDate,
+    }));
   }, []);
 
   const filteredCoupons = useMemo(() => {
@@ -225,8 +320,147 @@ export default function PromotionsBilling() {
     );
   }, [selectedCoupon]);
 
-  const showingStart = filteredCoupons.length === 0 ? 0 : 1;
-  const showingEnd = filteredCoupons.length;
+  const isCouponTab = activeTab === "Coupon Management";
+  const totalEntries =
+    activeModeFilter === "All Modes"
+      ? couponPagination.totalCoupons
+      : filteredCoupons.length;
+  const showingStart =
+    filteredCoupons.length === 0
+      ? 0
+      : activeModeFilter === "All Modes"
+        ? (couponPagination.currentPage - 1) * COUPON_PAGE_SIZE + 1
+        : 1;
+  const showingEnd =
+    filteredCoupons.length === 0
+      ? 0
+      : activeModeFilter === "All Modes"
+        ? Math.min(
+            couponPagination.totalCoupons,
+            showingStart + filteredCoupons.length - 1,
+          )
+        : filteredCoupons.length;
+
+  function openCreateModal() {
+    if (isCouponTab) {
+      setIsCouponModalOpen(true);
+      return;
+    }
+    setIsPlanModalOpen(true);
+  }
+
+  function closeCouponModal() {
+    setIsCouponModalOpen(false);
+    setCouponForm((prev) => ({
+      ...initialCouponForm,
+      validFrom: prev.validFrom,
+    }));
+  }
+
+  function closePlanModal() {
+    setIsPlanModalOpen(false);
+    setPlanForm(initialPlanForm);
+  }
+
+  async function handleCreateCoupon(event) {
+    event.preventDefault();
+    if (submittingCoupon) return;
+
+    const code = couponForm.code.trim().toUpperCase();
+    const discountValue = toNumber(couponForm.discountValue);
+    const validFromIso = toIsoDateStart(couponForm.validFrom);
+    const validUntilIso = toIsoDateStart(couponForm.validUntil);
+
+    if (!code) {
+      notify.error("Coupon code is required");
+      return;
+    }
+    if (discountValue <= 0) {
+      notify.error("Discount value must be greater than 0");
+      return;
+    }
+    if (couponForm.discountType === "percentage" && discountValue > 100) {
+      notify.error("Percentage discount cannot be greater than 100");
+      return;
+    }
+    if (!validUntilIso) {
+      notify.error("Valid until date is required");
+      return;
+    }
+
+    setSubmittingCoupon(true);
+    try {
+      await api.post("/admin/coupons", {
+        code,
+        description: couponForm.description.trim(),
+        discountType: couponForm.discountType,
+        discountValue,
+        minOrderAmount: toNumber(couponForm.minOrderAmount),
+        maxDiscountAmount: toNumber(couponForm.maxDiscountAmount),
+        usageLimit: toNumber(couponForm.usageLimit),
+        perUserLimit: toNumber(couponForm.perUserLimit) || 1,
+        validFrom: validFromIso,
+        validUntil: validUntilIso,
+        expiryDate: validUntilIso,
+      });
+
+      closeCouponModal();
+      setCouponPage(1);
+      await loadCoupons(1);
+      notify.success("Coupon created successfully");
+    } catch (err) {
+      notify.error(err?.message || "Failed to create coupon");
+    } finally {
+      setSubmittingCoupon(false);
+    }
+  }
+
+  async function handleCreatePlan(event) {
+    event.preventDefault();
+    if (submittingPlan) return;
+
+    const name = planForm.name.trim();
+    const price = toNumber(planForm.price);
+    const validityDays = toNumber(planForm.validityDays);
+
+    if (!name) {
+      notify.error("Plan name is required");
+      return;
+    }
+    if (price <= 0) {
+      notify.error("Plan price must be greater than 0");
+      return;
+    }
+    if (validityDays <= 0) {
+      notify.error("Validity days must be greater than 0");
+      return;
+    }
+
+    const benefits = planForm.benefits
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    setSubmittingPlan(true);
+    try {
+      await api.post("/admin/subscriptions", {
+        name,
+        price,
+        validityDays,
+        duration: validityDays,
+        benefits,
+      });
+
+      closePlanModal();
+      await loadPlans();
+      setActiveTab("Subscription Plans");
+      notify.success("Subscription plan created successfully");
+    } catch (err) {
+      notify.error(err?.message || "Failed to create subscription plan");
+    } finally {
+      setSubmittingPlan(false);
+    }
+  }
 
   return (
     <section className="w-full">
@@ -254,12 +488,13 @@ export default function PromotionsBilling() {
 
             <button
               type="button"
+              onClick={openCreateModal}
               className="inline-flex h-10 items-center gap-2 rounded bg-primary-container px-6 text-label-md font-semibold uppercase tracking-wider text-on-primary transition-colors hover:bg-primary"
             >
               <span className="material-symbols-outlined text-body-lg">
                 add
               </span>
-              <span>New Coupon</span>
+              <span>{isCouponTab ? "New Coupon" : "New Plan"}</span>
             </button>
           </div>
         </header>
@@ -302,7 +537,7 @@ export default function PromotionsBilling() {
                     value={activeModeFilter}
                     onChange={(event) => {
                       setActiveModeFilter(event.target.value);
-                      setSelectedCouponId(coupons[0]?.id ?? null);
+                      setSelectedCouponId(null);
                     }}
                     className="cursor-pointer appearance-none rounded border border-outline-variant bg-surface py-1.5 pl-8 pr-8 text-label-sm font-medium text-on-surface outline-none transition-colors focus:border-secondary-container"
                     aria-label="Filter coupons by order mode"
@@ -479,14 +714,19 @@ export default function PromotionsBilling() {
 
               <div className="flex items-center justify-between border-t border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface-variant">
                 <span>
-                  Showing {showingStart} to {showingEnd} of{" "}
-                  {filteredCoupons.length} entries
+                  Showing {showingStart} to {showingEnd} of {totalEntries}{" "}
+                  entries
                 </span>
 
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
-                    className="rounded border border-outline-variant p-1 text-outline transition-colors hover:bg-surface-container"
+                    onClick={() => {
+                      if (!couponPagination.hasPrev || loadingCoupons) return;
+                      setCouponPage((prev) => Math.max(1, prev - 1));
+                    }}
+                    disabled={!couponPagination.hasPrev || loadingCoupons}
+                    className="rounded border border-outline-variant p-1 text-outline transition-colors hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Previous page"
                   >
                     <span className="material-symbols-outlined text-[16px]">
@@ -495,7 +735,12 @@ export default function PromotionsBilling() {
                   </button>
                   <button
                     type="button"
-                    className="rounded border border-outline-variant p-1 text-outline transition-colors hover:bg-surface-container"
+                    onClick={() => {
+                      if (!couponPagination.hasNext || loadingCoupons) return;
+                      setCouponPage((prev) => prev + 1);
+                    }}
+                    disabled={!couponPagination.hasNext || loadingCoupons}
+                    className="rounded border border-outline-variant p-1 text-outline transition-colors hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Next page"
                   >
                     <span className="material-symbols-outlined text-[16px]">
@@ -752,6 +997,309 @@ export default function PromotionsBilling() {
           </section>
         )}
       </div>
+
+      {isCouponModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
+          <div className="w-full max-w-2xl rounded-xl border border-outline-variant bg-surface p-5 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-headline-sm font-semibold text-on-surface">
+                Create Coupon
+              </h3>
+              <button
+                type="button"
+                onClick={closeCouponModal}
+                className="rounded p-1 text-on-surface-variant hover:bg-surface-container"
+                aria-label="Close create coupon dialog"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCoupon} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">Code</span>
+                  <input
+                    type="text"
+                    value={couponForm.code}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        code: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                    placeholder="WELCOME10"
+                    required
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">Discount Type</span>
+                  <select
+                    value={couponForm.discountType}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        discountType: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  >
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed</option>
+                  </select>
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">
+                    Discount Value
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={couponForm.discountValue}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        discountValue: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                    required
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">
+                    Min Order Amount
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={couponForm.minOrderAmount}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        minOrderAmount: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">Valid From</span>
+                  <input
+                    type="date"
+                    value={couponForm.validFrom}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        validFrom: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">Valid Until</span>
+                  <input
+                    type="date"
+                    value={couponForm.validUntil}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        validUntil: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                    required
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">Usage Limit</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={couponForm.usageLimit}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        usageLimit: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">
+                    Per User Limit
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={couponForm.perUserLimit}
+                    onChange={(e) =>
+                      setCouponForm((prev) => ({
+                        ...prev,
+                        perUserLimit: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+
+              <label className="space-y-1 text-sm">
+                <span className="text-on-surface-variant">Description</span>
+                <textarea
+                  rows={3}
+                  value={couponForm.description}
+                  onChange={(e) =>
+                    setCouponForm((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  placeholder="Optional coupon description"
+                />
+              </label>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closeCouponModal}
+                  className="rounded border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface hover:bg-surface-container"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingCoupon}
+                  className="rounded bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submittingCoupon ? "Creating..." : "Create Coupon"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isPlanModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
+          <div className="w-full max-w-xl rounded-xl border border-outline-variant bg-surface p-5 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-headline-sm font-semibold text-on-surface">
+                Create Subscription Plan
+              </h3>
+              <button
+                type="button"
+                onClick={closePlanModal}
+                className="rounded p-1 text-on-surface-variant hover:bg-surface-container"
+                aria-label="Close create plan dialog"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleCreatePlan} className="space-y-4">
+              <label className="space-y-1 text-sm">
+                <span className="text-on-surface-variant">Plan Name</span>
+                <input
+                  type="text"
+                  value={planForm.name}
+                  onChange={(e) =>
+                    setPlanForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  placeholder="Basic Plan"
+                  required
+                />
+              </label>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">Price</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={planForm.price}
+                    onChange={(e) =>
+                      setPlanForm((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                    required
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-on-surface-variant">Validity Days</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={planForm.validityDays}
+                    onChange={(e) =>
+                      setPlanForm((prev) => ({
+                        ...prev,
+                        validityDays: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                    required
+                  />
+                </label>
+              </div>
+
+              <label className="space-y-1 text-sm">
+                <span className="text-on-surface-variant">
+                  Benefits (one per line)
+                </span>
+                <textarea
+                  rows={4}
+                  value={planForm.benefits}
+                  onChange={(e) =>
+                    setPlanForm((prev) => ({
+                      ...prev,
+                      benefits: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded border border-outline-variant bg-surface-bright px-3 py-2 text-on-surface outline-none focus:border-primary"
+                  placeholder={"5% discount on all orders\nPriority support"}
+                />
+              </label>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closePlanModal}
+                  className="rounded border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface hover:bg-surface-container"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingPlan}
+                  className="rounded bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submittingPlan ? "Creating..." : "Create Plan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

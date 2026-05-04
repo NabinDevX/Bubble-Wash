@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../lib/api";
+import notify from "../../lib/notify.js";
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState([]);
@@ -37,7 +38,7 @@ export default function SupportPage() {
   // SUBMIT
   async function handleSubmit() {
     if (!form.subject || !form.description) {
-      alert("Please fill all fields");
+      notify.error("Please fill all fields");
       return;
     }
 
@@ -59,7 +60,7 @@ export default function SupportPage() {
 
       await api.post("/tickets", payload);
 
-      alert("Ticket submitted successfully!");
+      notify.success("Ticket submitted successfully!");
 
       setForm({
         orderId: "",
@@ -69,7 +70,7 @@ export default function SupportPage() {
       });
     } catch (err) {
       console.error("FULL ERROR:", err.response?.data);
-      alert("Ticket submission failed. Please try again later.");
+      notify.error("Ticket submission failed. Please try again later.");
       console.error("Ticket API error:", err.response?.data);
     } finally {
       setSubmitting(false);

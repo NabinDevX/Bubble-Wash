@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 export default function Riders() {
   const [riders, setRiders] = useState([]);
@@ -131,7 +132,7 @@ export default function Riders() {
       await api.post("/admin/riders", { name, phone, password });
       window.location.reload();
     } catch (err) {
-      alert(err.message);
+      notify.error(err?.message || "Failed to add rider");
     }
   }
 
@@ -191,7 +192,9 @@ export default function Riders() {
               <h4 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                 {s.label}
               </h4>
-              <p className="text-3xl font-bold text-on-surface mt-1">{s.value}</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">
+                {s.value}
+              </p>
             </div>
           ))
         )}

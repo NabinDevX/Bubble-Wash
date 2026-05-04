@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 export default function Workshops() {
   const [workshops, setWorkshops] = useState([]);
@@ -17,6 +18,12 @@ export default function Workshops() {
   });
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchWorkshops() {
@@ -46,7 +53,9 @@ export default function Workshops() {
           services: w.services ?? [],
         }));
         setWorkshops(mapped);
-        if (mapped.length > 0) setSelected(mapped[0]);
+        setSelected((prev) =>
+          prev ? (mapped.find((item) => item.id === prev.id) ?? null) : null,
+        );
         setPagination({
           currentPage: Number(pag.currentPage ?? pag.page ?? page),
           totalPages: Number(
@@ -75,10 +84,18 @@ export default function Workshops() {
   const inactiveCount = workshops.length - activeCount;
 
   const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState("hub");
   const [newAddress, setNewAddress] = useState("");
   const [newCapacity, setNewCapacity] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newEmail, setNewEmail] = useState("");
+
+  const [editName, setEditName] = useState("");
+  const [editType, setEditType] = useState("hub");
+  const [editAddress, setEditAddress] = useState("");
+  const [editCapacity, setEditCapacity] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editEmail, setEditEmail] = useState("");
 
   const stats = [
     {
@@ -110,19 +127,37 @@ export default function Workshops() {
 
   async function handleCreateSubmit(e) {
     e.preventDefault();
-    if (!newName) return alert("Please provide a name");
+    if (!newName) {
+      notify.error("Please provide a workshop name");
+      return;
+    }
+    if (!newType || (newType !== "hub" && newType !== "workshop")) {
+      notify.error("Please select a valid type (Hub or Workshop)");
+      return;
+    }
+    if (!newAddress) {
+      notify.error("Please provide an address");
+      return;
+    }
+    if (!newCapacity || Number(newCapacity) < 1) {
+      notify.error("Please provide a valid capacity (minimum 1)");
+      return;
+    }
     setCreating(true);
     try {
       await api.post("/admin/workshops", {
         name: newName,
+        type: newType,
         address: newAddress,
         capacity: Number(newCapacity) || undefined,
         phone: newPhone || undefined,
         email: newEmail || undefined,
       });
       // After create, refresh current page
+      notify.success("Workshop created successfully!");
       setShowCreate(false);
       setNewName("");
+      setNewType("hub");
       setNewAddress("");
       setNewCapacity("");
       setNewPhone("");
@@ -169,10 +204,153 @@ export default function Workshops() {
         hasNext: Boolean(pag.hasNext ?? false),
         hasPrev: Boolean(pag.hasPrev ?? false),
       });
+      notify.success("Workshop created successfully!");
     } catch (err) {
-      alert(err?.message || "Create failed");
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create workshop";
+      notify.error(errorMsg);
     } finally {
       setCreating(false);
+      setLoading(false);
+    }
+  }
+
+  async function handleEditWorkshop(w) {
+    setEditingId(w.id);
+    setEditName(w.name);
+    setEditType(w.type ?? "hub");
+    setEditAddress(w.address);
+    setEditCapacity(w.capacity);
+    setEditPhone(w.mobile);
+    setEditEmail(w.email);
+    setShowEdit(true);
+  }
+
+  async function handleEditSubmit(e) {
+    e.preventDefault();
+    if (!editName) {
+      notify.error("Please provide a workshop name");
+      return;
+    }
+    if (!editType || (editType !== "hub" && editType !== "workshop")) {
+      notify.error("Please select a valid type (Hub or Workshop)");
+      return;
+    }
+    if (!editAddress) {
+      notify.error("Please provide an address");
+      return;
+    }
+    if (!editCapacity || Number(editCapacity) < 1) {
+      notify.error("Please provide a valid capacity (minimum 1)");
+      return;
+    }
+    setEditing(true);
+    try {
+      await api.put(`/admin/workshops/${editingId}`, {
+        name: editName,
+        type: editType,
+        address: editAddress,
+        capacity: Number(editCapacity),
+        phone: editPhone || undefined,
+        email: editEmail || undefined,
+      });
+      notify.success("Workshop updated successfully!");
+      setShowEdit(false);
+      setLoading(true);
+      const data = await api.get(
+        `/admin/workshops?page=${page}&limit=${pageSize}`,
+      );
+      const list =
+        data.data?.workshops ?? data.workshops ?? data.data ?? data ?? [];
+      const mapped = list.map((w, i) => ({
+        id: w._id ?? w.id ?? `WS-${String(i + 1).padStart(3, "0")}`,
+        name: w.name ?? "Unknown",
+        mobile: w.phone ?? w.mobile ?? "—",
+        joined: w.createdAt
+          ? new Date(w.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : "—",
+        status: w.isActive !== false ? "Active" : "Inactive",
+        orders: String(w.totalOrders ?? w.ordersCount ?? 0),
+        address: w.address ?? "—",
+        email: w.email ?? "—",
+        capacity: w.capacity ?? "—",
+        type: w.type ?? "—",
+        services: w.services ?? [],
+      }));
+      setWorkshops(mapped);
+      setSelected((prev) =>
+        prev ? (mapped.find((item) => item.id === prev.id) ?? null) : null,
+      );
+    } catch (err) {
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to update workshop";
+      notify.error(errorMsg);
+    } finally {
+      setEditing(false);
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteWorkshop(w) {
+    setDeleteTarget(w);
+    setShowDeleteConfirm(true);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/workshops/${deleteTarget.id}`);
+      notify.success("Workshop deleted successfully!");
+      setShowDeleteConfirm(false);
+      setDeleteTarget(null);
+      setLoading(true);
+      const data = await api.get(
+        `/admin/workshops?page=${page}&limit=${pageSize}`,
+      );
+      const list =
+        data.data?.workshops ?? data.workshops ?? data.data ?? data ?? [];
+      const mapped = list.map((w, i) => ({
+        id: w._id ?? w.id ?? `WS-${String(i + 1).padStart(3, "0")}`,
+        name: w.name ?? "Unknown",
+        mobile: w.phone ?? w.mobile ?? "—",
+        joined: w.createdAt
+          ? new Date(w.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : "—",
+        status: w.isActive !== false ? "Active" : "Inactive",
+        orders: String(w.totalOrders ?? w.ordersCount ?? 0),
+        address: w.address ?? "—",
+        email: w.email ?? "—",
+        capacity: w.capacity ?? "—",
+        type: w.type ?? "—",
+        services: w.services ?? [],
+      }));
+      setWorkshops(mapped);
+      setSelected((prev) => {
+        if (!prev) return null;
+        if (prev.id === deleteTarget.id) return null;
+        return mapped.find((item) => item.id === prev.id) ?? null;
+      });
+    } catch (err) {
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to delete workshop";
+      notify.error(errorMsg);
+    } finally {
+      setDeleting(false);
       setLoading(false);
     }
   }
@@ -295,6 +473,7 @@ export default function Workshops() {
                     "Joined Date",
                     "Status",
                     "Orders",
+                    "Actions",
                   ].map((h) => (
                     <th key={h} className="px-4 py-3 font-semibold">
                       {h}
@@ -305,14 +484,14 @@ export default function Workshops() {
               <tbody>
                 {loading ? (
                   <>
-                    <SkeletonTableRow columns={6} />
-                    <SkeletonTableRow columns={6} />
-                    <SkeletonTableRow columns={6} />
+                    <SkeletonTableRow columns={7} />
+                    <SkeletonTableRow columns={7} />
+                    <SkeletonTableRow columns={7} />
                   </>
                 ) : workshops.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-8 text-center text-on-surface-variant"
                     >
                       No workshops found
@@ -348,6 +527,32 @@ export default function Workshops() {
                       </td>
                       <td className="px-4 py-3 text-on-surface-variant">
                         {w.orders}
+                      </td>
+                      <td className="px-4 py-3 flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditWorkshop(w);
+                          }}
+                          className="p-1.5 text-secondary hover:bg-blue-100 rounded transition-colors border border-secondary/30"
+                          title="Edit workshop"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            edit
+                          </span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteWorkshop(w);
+                          }}
+                          className="p-1.5 text-error hover:bg-red-100 rounded transition-colors border border-error/30"
+                          title="Delete workshop"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            delete
+                          </span>
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -497,8 +702,8 @@ export default function Workshops() {
             </div>
 
             <p className="text-xs text-on-surface-variant mb-4">
-              Fields marked with * are required. The create workshop endpoint
-              expects name, address, and capacity.
+              Create a new workshop hub or satellite location. Name, type,
+              address, and capacity are required.
             </p>
 
             <div className="space-y-3">
@@ -512,6 +717,20 @@ export default function Workshops() {
                   className="w-full border px-3 py-2 rounded mt-1"
                   required
                 />
+              </div>
+              <div>
+                <label className="text-xs text-on-surface-variant">
+                  Type *
+                </label>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  className="w-full border px-3 py-2 rounded mt-1"
+                  required
+                >
+                  <option value="hub">Hub</option>
+                  <option value="workshop">Workshop</option>
+                </select>
               </div>
               <div>
                 <label className="text-xs text-on-surface-variant">
@@ -577,6 +796,156 @@ export default function Workshops() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Edit Workshop Modal */}
+      {showEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <form
+            onSubmit={handleEditSubmit}
+            className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">Edit Workshop</h3>
+              <button
+                type="button"
+                onClick={() => setShowEdit(false)}
+                className="text-on-surface-variant"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-on-surface-variant mb-4">
+              Update workshop details. Name, type, address, and capacity are
+              required.
+            </p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-on-surface-variant">
+                  Name *
+                </label>
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full border px-3 py-2 rounded mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs text-on-surface-variant">
+                  Type *
+                </label>
+                <select
+                  value={editType}
+                  onChange={(e) => setEditType(e.target.value)}
+                  className="w-full border px-3 py-2 rounded mt-1"
+                  required
+                >
+                  <option value="hub">Hub</option>
+                  <option value="workshop">Workshop</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-on-surface-variant">
+                  Address *
+                </label>
+                <textarea
+                  value={editAddress}
+                  onChange={(e) => setEditAddress(e.target.value)}
+                  className="w-full border px-3 py-2 rounded mt-1 min-h-24"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-on-surface-variant">
+                    Capacity *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={editCapacity}
+                    onChange={(e) => setEditCapacity(e.target.value)}
+                    className="w-full border px-3 py-2 rounded mt-1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-on-surface-variant">
+                    Phone
+                  </label>
+                  <input
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="w-full border px-3 py-2 rounded mt-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-on-surface-variant">Email</label>
+                <input
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full border px-3 py-2 rounded mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowEdit(false)}
+                className="px-4 py-2 rounded border"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editing}
+                className="px-4 py-2 rounded bg-secondary text-white"
+              >
+                {editing ? "Updating..." : "Update"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-lg">
+            <h3 className="font-semibold text-lg mb-2">Delete Workshop?</h3>
+            <p className="text-sm text-on-surface-variant mb-4">
+              Are you sure you want to delete{" "}
+              <strong>{deleteTarget.name}</strong>? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteTarget(null);
+                }}
+                className="px-4 py-2 rounded border"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="px-4 py-2 rounded bg-error text-white"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

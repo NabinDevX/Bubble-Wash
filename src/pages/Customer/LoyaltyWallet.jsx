@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 export default function LoyaltyWallet() {
   const [wallet, setWallet] = useState({
@@ -75,10 +76,10 @@ export default function LoyaltyWallet() {
               name: i.description ?? i.title ?? "Transaction",
               date: i.createdAt
                 ? new Date(i.createdAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
                 : "—",
               points: `${points > 0 ? "+" : ""}${points} pts`,
             };
@@ -267,7 +268,7 @@ export default function LoyaltyWallet() {
                     className="text-secondary hover:text-secondary-fixed-dim transition-colors p-2"
                     onClick={() => {
                       navigator.clipboard?.writeText(referral.referralCode);
-                      alert("Referral code copied!");
+                      notify.success("Referral code copied!");
                     }}
                   >
                     <span className="material-symbols-outlined">

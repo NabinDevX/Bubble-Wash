@@ -1,5 +1,7 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import FullScreenLoader from "./components/FullScreenLoader.jsx";
 import { LoadingProvider } from "./lib/LoadingContext.jsx";
@@ -123,6 +125,16 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="colored"
+        />
       </BrowserRouter>
     </LoadingProvider>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 function getFirstDefined(...values) {
   for (const value of values) {
@@ -430,7 +431,7 @@ export default function Customers() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert("Export failed");
+      notify.error("Export failed");
     }
   }
 

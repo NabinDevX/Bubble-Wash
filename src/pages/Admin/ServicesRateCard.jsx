@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 export default function ServicesRateCard() {
   const navigate = useNavigate();
@@ -76,6 +79,41 @@ export default function ServicesRateCard() {
     navigate("/admin/services/new");
   }
 
+  function handleExportRateCardPdf() {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const generatedAt = new Date().toLocaleString();
+    const tableRows = services.map((service) => [
+      service.name,
+      service.category,
+      service.price.replace("₹", "INR "),
+      service.status,
+    ]);
+
+    doc.setFontSize(18);
+    doc.text("Bubble Wash - Rate Card & Services", 40, 48);
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    doc.text(`Generated: ${generatedAt}`, 40, 68);
+
+    autoTable(doc, {
+      startY: 84,
+      head: [["Service", "Category", "Price", "Status"]],
+      body: tableRows.length
+        ? tableRows
+        : [["No services available", "-", "-", "-"]],
+      theme: "striped",
+      headStyles: {
+        fillColor: [13, 148, 136],
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 8,
+      },
+    });
+
+    doc.save("bubble-wash-rate-card.pdf");
+  }
+
   async function handleDelete(serviceId) {
     if (!window.confirm("Are you sure you want to delete this service?"))
       return;
@@ -83,7 +121,7 @@ export default function ServicesRateCard() {
       await api.delete(`/admin/services/${serviceId}`);
       setServices((prev) => prev.filter((s) => s.id !== serviceId));
     } catch (err) {
-      alert(err?.message || "Failed to delete service");
+      notify.error(err?.message || "Failed to delete service");
     }
   }
 
@@ -98,7 +136,7 @@ export default function ServicesRateCard() {
         ),
       );
     } catch (err) {
-      alert(err?.message || "Failed to change status");
+      notify.error(err?.message || "Failed to change status");
     }
   }
 
@@ -114,7 +152,11 @@ export default function ServicesRateCard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface text-sm font-medium hover:bg-white/80 transition-colors">
+          <button
+            onClick={handleExportRateCardPdf}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface text-sm font-medium hover:bg-white/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Export
           </button>
           <button

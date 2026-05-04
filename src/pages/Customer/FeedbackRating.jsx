@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../../lib/api.js";
+import notify from "../../lib/notify.js";
 
 export default function FeedbackRating() {
   const [searchParams] = useSearchParams();
@@ -40,15 +41,14 @@ export default function FeedbackRating() {
 
       await api.post("/tickets", payload);
 
-      alert("Feedback submitted successfully ✅");
+      notify.success("Feedback submitted successfully");
       window.location.href = "/customer";
-
     } catch (err) {
       console.log("FEEDBACK ERROR:", err.response?.data || err.message);
 
       setError(
         err.response?.data?.message ||
-        "Unable to submit feedback. Please try again."
+          "Unable to submit feedback. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -117,9 +117,7 @@ export default function FeedbackRating() {
         </div>
 
         {/* Error */}
-        {error && (
-          <div className="text-red-500 text-sm">{error}</div>
-        )}
+        {error && <div className="text-red-500 text-sm">{error}</div>}
 
         {/* Submit */}
         <button
@@ -130,9 +128,7 @@ export default function FeedbackRating() {
           {submitting ? "Submitting..." : "Submit Feedback"}
         </button>
 
-        <button className="text-outline">
-          Skip for now
-        </button>
+        <button className="text-outline">Skip for now</button>
       </div>
     </div>
   );
