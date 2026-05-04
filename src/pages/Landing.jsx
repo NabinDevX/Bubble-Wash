@@ -44,26 +44,26 @@ const whyUs = [
 
 const services = [
   {
-    title: "Wash & Fold",
+    title: "Wash",
     desc: "Everyday laundry washed, perfectly dried, and meticulously folded.",
-    price: "$1.50",
-    unit: "/ lb",
+    price: "₹100",
+    unit: "/ kg",
     popular: false,
     img: "/stitch/bubble-wash/service-wash-fold.jpg",
   },
   {
     title: "Dry Cleaning",
     desc: "Gentle, eco-solvent cleaning for your delicate and structured garments.",
-    price: "$6.00",
+    price: "₹120",
     unit: "/ item",
     popular: true,
     img: "/stitch/bubble-wash/service-dry-cleaning.jpg",
   },
   {
-    title: "Wash & Iron",
+    title: "Iron",
     desc: "Crisp, wrinkle-free finish for your shirts, blouses, and trousers.",
-    price: "$4.50",
-    unit: "/ item",
+    price: "₹40",
+    unit: "/ kg",
     popular: false,
     img: "/stitch/bubble-wash/service-wash-iron.jpg",
   },
@@ -102,7 +102,7 @@ export default function Landing() {
     () => [
       { id: "services", label: "Services" },
       { id: "pricing", label: "Pricing" },
-      { id: "locations", label: "Locations" },
+      { id: "testimonials", label: "Testimonials" },
       { id: "support", label: "Support" },
     ],
     [],
@@ -377,7 +377,7 @@ export default function Landing() {
 
       {/* Testimonials */}
       <section
-        id="locations"
+        id="testimonials"
         className="py-12 md:py-20 px-4 md:px-12 relative scroll-mt-28"
       >
         <div className="absolute inset-0 -z-10 overflow-hidden">
