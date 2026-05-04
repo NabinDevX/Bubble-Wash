@@ -105,8 +105,8 @@ export default function SchedulePickup() {
                 icon,
                 name: s.name,
                 desc: s.description ?? "Professional garment care.",
-                price: s.price ?? 49,
-                unit: s.unit ?? "kg",
+                price: s.pricePerUnit ?? 0,
+                unit: "kg",
               };
             }),
           );
@@ -238,8 +238,8 @@ export default function SchedulePickup() {
                       key={s.id}
                       onClick={() => toggleService(s.id)}
                       className={`w-full flex items-center justify-between p-4 rounded-xl border ${active
-                          ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-                          : "border-gray-200 bg-white"
+                        ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+                        : "border-gray-200 bg-white"
                         }`}
                     >
                       <div className="flex items-center gap-4">
@@ -458,8 +458,8 @@ export default function SchedulePickup() {
                             type="button"
                             onClick={() => setSelectedDay(day)}
                             className={`p-2 rounded-full text-sm transition-all ${isSelected
-                                ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
-                                : "hover:bg-white/40 cursor-pointer"
+                              ? "bg-secondary text-on-secondary shadow-[0_0_15px_rgba(98,250,227,0.3)]"
+                              : "hover:bg-white/40 cursor-pointer"
                               }`}
                           >
                             {day}
@@ -477,8 +477,8 @@ export default function SchedulePickup() {
                       key={slot.id}
                       onClick={() => setSelectedSlot(slot.id)}
                       className={`p-3 rounded-lg border ${slot.id === selectedSlot
-                          ? "border-secondary bg-secondary-container/20"
-                          : "border-gray-300"
+                        ? "border-secondary bg-secondary-container/20"
+                        : "border-gray-300"
                         }`}
                     >
                       {slot.label}
@@ -495,15 +495,15 @@ export default function SchedulePickup() {
                 <div
                   onClick={() => setDeliveryType("standard")}
                   className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "standard"
-                      ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-                      : "border-gray-300"
+                    ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+                    : "border-gray-300"
                     }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "standard"
-                          ? "border-[#1E7F5A]"
-                          : "border-gray-400"
+                        ? "border-[#1E7F5A]"
+                        : "border-gray-400"
                         }`}
                     >
                       {deliveryType === "standard" && (
@@ -528,15 +528,15 @@ export default function SchedulePickup() {
                 <div
                   onClick={() => setDeliveryType("express")}
                   className={`border rounded-xl p-4 flex justify-between items-center cursor-pointer transition ${deliveryType === "express"
-                      ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-                      : "border-gray-300"
+                    ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+                    : "border-gray-300"
                     }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${deliveryType === "express"
-                          ? "border-[#1E7F5A]"
-                          : "border-gray-400"
+                        ? "border-[#1E7F5A]"
+                        : "border-gray-400"
                         }`}
                     >
                       {deliveryType === "express" && (
