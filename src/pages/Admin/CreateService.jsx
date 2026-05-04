@@ -25,11 +25,28 @@ export default function CreateService() {
     setLoading(true);
     setError("");
 
+    const pricePerKg = Number(formData.pricePerKg);
+    const estimatedDeliveryDays = Number(formData.estimatedDeliveryDays);
+
+    if (!Number.isFinite(pricePerKg) || pricePerKg < 0) {
+      setLoading(false);
+      setError("Please enter a valid price.");
+      return;
+    }
+
+    if (!Number.isInteger(estimatedDeliveryDays) || estimatedDeliveryDays < 1) {
+      setLoading(false);
+      setError("Estimated delivery days must be at least 1.");
+      return;
+    }
+
     try {
       const payload = {
-        ...formData,
-        pricePerKg: Number(formData.pricePerKg),
-        estimatedDeliveryDays: Number(formData.estimatedDeliveryDays),
+        name: formData.name.trim(),
+        category: formData.category,
+        description: formData.description.trim(),
+        pricePerKg,
+        estimatedDeliveryDays,
       };
 
       await api.post("/admin/services", payload);
@@ -100,9 +117,8 @@ export default function CreateService() {
                 <option value="">Select a category</option>
                 <option value="wash">Wash</option>
                 <option value="dry_clean">Dry Clean</option>
-                <option value="iron">Ironing</option>
-                <option value="premium">Premium / Specialty</option>
-                <option value="other">Other</option>
+                <option value="wash_and_iron">Wash &amp; Iron</option>
+                <option value="iron">Iron</option>
               </select>
             </div>
           </div>
@@ -128,7 +144,7 @@ export default function CreateService() {
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium">
-                  $
+                  ₹
                 </span>
                 <input
                   type="number"

@@ -54,8 +54,8 @@ function hexToRgba(hex, alpha) {
 
 function formatMoney(amount) {
   const n = Number(amount);
-  if (!Number.isFinite(n)) return "$0";
-  return `$${n.toLocaleString()}`;
+  if (!Number.isFinite(n)) return "₹0";
+  return `₹${n.toLocaleString()}`;
 }
 
 function formatCount(value) {

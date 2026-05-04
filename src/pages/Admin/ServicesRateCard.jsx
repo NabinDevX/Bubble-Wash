@@ -19,11 +19,11 @@ export default function ServicesRateCard() {
             name: s.name ?? "Unknown",
             category: s.category ?? "—",
             price: s.pricePerKg
-              ? `$${s.pricePerKg} / kg`
+              ? `₹${s.pricePerKg} / kg`
               : s.pricePerItem
-                ? `$${s.pricePerItem} / item`
+                ? `₹${s.pricePerItem} / item`
                 : s.price
-                  ? `$${s.price}`
+                  ? `₹${s.price}`
                   : "—",
             status: s.isActive !== false ? "Active" : "Paused",
             popular: s.popular ?? false,
@@ -49,6 +49,9 @@ export default function ServicesRateCard() {
     Ironing: "iron",
     Specialty: "auto_awesome",
     wash: "local_laundry_service",
+    dry_clean: "dry_cleaning",
+    wash_and_iron: "laundry",
+    iron: "iron",
     premium: "dry_cleaning",
   };
   const categoryColors = {
@@ -57,6 +60,9 @@ export default function ServicesRateCard() {
     Ironing: "bg-amber-50 text-amber-700",
     Specialty: "bg-purple-50 text-purple-700",
     wash: "bg-blue-50 text-primary",
+    dry_clean: "bg-cyan-50 text-secondary",
+    wash_and_iron: "bg-teal-50 text-teal-700",
+    iron: "bg-amber-50 text-amber-700",
     premium: "bg-cyan-50 text-secondary",
   };
   const categories = Object.entries(categoryMap).map(([name, count]) => ({
@@ -71,12 +77,13 @@ export default function ServicesRateCard() {
   }
 
   async function handleDelete(serviceId) {
-    if (!window.confirm("Are you sure you want to delete this service?")) return;
+    if (!window.confirm("Are you sure you want to delete this service?"))
+      return;
     try {
       await api.delete(`/admin/services/${serviceId}`);
       setServices((prev) => prev.filter((s) => s.id !== serviceId));
     } catch (err) {
-      alert(err.message);
+      alert(err?.message || "Failed to delete service");
     }
   }
 
@@ -91,7 +98,7 @@ export default function ServicesRateCard() {
         ),
       );
     } catch (err) {
-      alert(err.message);
+      alert(err?.message || "Failed to change status");
     }
   }
 
@@ -191,7 +198,7 @@ export default function ServicesRateCard() {
                 services.map((s) => (
                   <tr
                     key={s.id ?? s.name}
-                    className="border-t border-outline-variant/20 hover:bg-white/30 transition-colors cursor-pointer"
+                    className="border-t border-outline-variant/20 hover:bg-white/30 transition-colors"
                   >
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
@@ -219,24 +226,55 @@ export default function ServicesRateCard() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={(e) => { e.stopPropagation(); navigate(`/admin/services/edit/${s.id}`); }}
-                          className="text-xs text-primary hover:underline font-semibold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/admin/services/edit/${s.id}`);
+                          }}
+                          className="h-8 w-8 rounded-md border border-outline-variant/50 text-primary hover:bg-white/60 transition-colors flex items-center justify-center"
+                          title="Edit service"
+                          aria-label="Edit service"
                         >
-                          Edit
+                          <span className="material-symbols-outlined text-[18px]">
+                            edit
+                          </span>
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleToggle(s.id); }}
-                          className="text-xs text-secondary hover:underline font-semibold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggle(s.id);
+                          }}
+                          className="h-8 w-8 rounded-md border border-outline-variant/50 text-secondary hover:bg-white/60 transition-colors flex items-center justify-center"
+                          title={
+                            s.status === "Active"
+                              ? "Pause service"
+                              : "Activate service"
+                          }
+                          aria-label={
+                            s.status === "Active"
+                              ? "Pause service"
+                              : "Activate service"
+                          }
                         >
-                          {s.status === "Active" ? "Pause" : "Activate"}
+                          <span className="material-symbols-outlined text-[18px]">
+                            {s.status === "Active"
+                              ? "pause_circle"
+                              : "play_circle"}
+                          </span>
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
-                          className="text-xs text-red-600 hover:underline font-semibold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(s.id);
+                          }}
+                          className="h-8 w-8 rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center"
+                          title="Delete service"
+                          aria-label="Delete service"
                         >
-                          Delete
+                          <span className="material-symbols-outlined text-[18px]">
+                            delete
+                          </span>
                         </button>
                       </div>
                     </td>

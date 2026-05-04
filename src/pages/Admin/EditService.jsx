@@ -6,7 +6,7 @@ import api from "../../lib/api.js";
 export default function EditService() {
   const navigate = useNavigate();
   const { serviceId } = useParams();
-  
+
   const [loading, setLoading] = useState(false);
   const [initialFetchLoading, setInitialFetchLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,7 +26,7 @@ export default function EditService() {
         const data = await api.get("/admin/services");
         const list = data.services ?? data.data ?? data ?? [];
         const service = list.find((s) => (s._id ?? s.id) === serviceId);
-        
+
         if (!service) {
           setError("Service not found");
         } else {
@@ -60,11 +60,28 @@ export default function EditService() {
     setLoading(true);
     setError("");
 
+    const pricePerKg = Number(formData.pricePerKg);
+    const estimatedDeliveryDays = Number(formData.estimatedDeliveryDays);
+
+    if (!Number.isFinite(pricePerKg) || pricePerKg < 0) {
+      setLoading(false);
+      setError("Please enter a valid price.");
+      return;
+    }
+
+    if (!Number.isInteger(estimatedDeliveryDays) || estimatedDeliveryDays < 1) {
+      setLoading(false);
+      setError("Estimated delivery days must be at least 1.");
+      return;
+    }
+
     try {
       const payload = {
-        ...formData,
-        pricePerKg: Number(formData.pricePerKg),
-        estimatedDeliveryDays: Number(formData.estimatedDeliveryDays),
+        name: formData.name.trim(),
+        category: formData.category,
+        description: formData.description.trim(),
+        pricePerKg,
+        estimatedDeliveryDays,
       };
 
       await api.put(`/admin/services/${serviceId}`, payload);
@@ -153,9 +170,8 @@ export default function EditService() {
                   <option value="">Select a category</option>
                   <option value="wash">Wash</option>
                   <option value="dry_clean">Dry Clean</option>
-                  <option value="iron">Ironing</option>
-                  <option value="premium">Premium / Specialty</option>
-                  <option value="other">Other</option>
+                  <option value="wash_and_iron">Wash &amp; Iron</option>
+                  <option value="iron">Iron</option>
                 </select>
               </div>
             </div>
@@ -181,7 +197,7 @@ export default function EditService() {
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium">
-                    $
+                    ₹
                   </span>
                   <input
                     type="number"
@@ -229,7 +245,9 @@ export default function EditService() {
                 {loading ? (
                   <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <span className="material-symbols-outlined text-xl">save</span>
+                  <span className="material-symbols-outlined text-xl">
+                    save
+                  </span>
                 )}
                 {loading ? "Updating..." : "Update Service"}
               </button>

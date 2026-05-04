@@ -263,7 +263,7 @@ export default function Reports() {
           callbacks: {
             label: (ctx) => {
               const v = Number(ctx.raw) || 0;
-              return `${ctx.label}: $${v.toLocaleString()}`;
+              return `${ctx.label}: ₹${v.toLocaleString()}`;
             },
           },
         },

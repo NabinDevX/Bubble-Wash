@@ -12,7 +12,7 @@ function toNumber(v) {
 
 function formatMoney(v) {
   const n = toNumber(v);
-  return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  return `₹${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 }
 
 function formatDate(v) {
