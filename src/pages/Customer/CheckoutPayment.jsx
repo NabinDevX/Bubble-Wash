@@ -1,10 +1,18 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import api from "../../lib/api.js";
 
 export default function CheckoutPayment() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
+
+  const orderData = location.state || {};
+
+  const {
+    pickupAddress = {},
+    slotId,
+    deliveryType,
+  } = orderData;
 
   const [method, setMethod] = useState("razorpay");
   const [useWallet, setUseWallet] = useState(true);
@@ -25,7 +33,20 @@ export default function CheckoutPayment() {
   const serviceTax = Math.round(subtotal * 0.08); // approx like UI
   const total = subtotal + deliveryCharge + serviceTax;
 
-  const walletBalance = 142.5;
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  useEffect(() => {
+    async function fetchWallet() {
+      try {
+        const res = await api.get("/wallet");
+        setWalletBalance(res?.balance || 0);
+      } catch {
+        setWalletBalance(0);
+      }
+    }
+    fetchWallet();
+  }, []);
+
   const walletUsed = useWallet ? Math.min(walletBalance, total) : 0;
   const finalPayable = total - walletUsed;
 
@@ -39,26 +60,52 @@ export default function CheckoutPayment() {
     setPaying(true);
 
     try {
-      const response = await api.post("/payments/initiate", {
-        orderId,
-        paymentMethod,
-      });
+      const payload = {
+        cart: orderItems.map((item) => ({
+          service: item.service,
+          weight: String(item.quantity),
+        })),
 
-      const res = response?.data ?? response;
+        pickupAddress: {
+          street: pickupAddress.street,
+          area: pickupAddress.area || "",
+          city: pickupAddress.city,
+          state: pickupAddress.state || "",
+          pincode: pickupAddress.pincode,
+          landmark: pickupAddress.landmark || "",
+        },
 
-      if (res?.paymentUrl) {
-        window.location.href = res.paymentUrl;
-      } else {
-        window.location.href = `/customer/feedback?orderId=${orderId}`;
-      }
+        pickupSlotId: slotId,
+
+        paymentMethod:
+          method === "wallet"
+            ? "wallet"
+            : method === "cod"
+              ? "cod"
+              : "razorpay",
+
+        expressOrder: deliveryType === "express",
+      };
+
+      console.log("FINAL PAYMENT PAYLOAD:", payload);
+
+      const res = await api.post("/payments/initiate", payload);
+
+      console.log("PAYMENT INIT RESPONSE:", res);
+
+      // No Razorpay → direct success redirect
+      window.location.href = "/customer/feedback";
 
     } catch (err) {
-      setError("Payment failed");
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        "Payment failed"
+      );
     } finally {
       setPaying(false);
     }
   }
-
   return (
     <div className="min-h-screen bg-[#f4f7f6] px-4 md:px-10 py-10">
 
