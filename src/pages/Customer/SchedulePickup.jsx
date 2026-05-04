@@ -640,6 +640,10 @@ export default function SchedulePickup() {
                   setStep(5);
 
                 } else if (step === 5) {
+                  const selectedSlotData = timeSlots.find(
+                    (s) => s.id === selectedSlot
+                  );
+
                   navigate("/customer/review", {
                     state: {
                       orderItems: selectedServices.map((serviceId) => {
@@ -660,9 +664,12 @@ export default function SchedulePickup() {
                         landmark: address.instructions || "",
                       },
 
-                      slotId: selectedSlot,
+                      // ✅ FIXED
+                      pickupSlot: selectedSlotData?.label,
+
                       deliveryType,
                       subtotal,
+
                       pickupDate: new Date(year, month, selectedDay)
                         .toLocaleDateString("en-IN", {
                           day: "2-digit",
