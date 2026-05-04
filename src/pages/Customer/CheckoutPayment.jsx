@@ -1,18 +1,13 @@
-import { useMemo, useState, useEffect } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../../lib/api.js";
 
 export default function CheckoutPayment() {
   const location = useLocation();
-  const [searchParams] = useSearchParams();
 
   const orderData = location.state || {};
 
-  const {
-    pickupAddress = {},
-    slotId,
-    deliveryType,
-  } = orderData;
+  const { pickupAddress = {}, slotId, deliveryType } = orderData;
 
   const [method, setMethod] = useState("razorpay");
 
@@ -22,16 +17,10 @@ export default function CheckoutPayment() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
 
-  const orderId =
-    location.state?.orderId ||
-    searchParams.get("orderId") ||
-    null;
-
   const orderItems = location.state?.orderItems || [];
   const subtotal = location.state?.subtotal || 0;
 
-  const deliveryCharge =
-    location.state?.deliveryType === "express" ? 49 : 0;
+  const deliveryCharge = location.state?.deliveryType === "express" ? 49 : 0;
 
   const serviceTax = Math.round(subtotal * 0.08); // approx like UI
   const total = subtotal + deliveryCharge + serviceTax;
@@ -61,17 +50,10 @@ export default function CheckoutPayment() {
   const afterDiscount = total - discountAmount;
 
   // Step 3: Wallet usage
-  const walletUsed = useWallet
-    ? Math.min(walletBalance, afterDiscount)
-    : 0;
+  const walletUsed = useWallet ? Math.min(walletBalance, afterDiscount) : 0;
 
   // Step 4: Final payable
   const finalPayable = afterDiscount - walletUsed;
-
-  const paymentMethod = useMemo(() => {
-    if (method === "cod") return "cod";
-    return "razorpay";
-  }, [method]);
 
   async function handlePay() {
     setError("");
@@ -113,13 +95,8 @@ export default function CheckoutPayment() {
 
       // No Razorpay → direct success redirect
       window.location.href = "/customer/feedback";
-
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        err.message ||
-        "Payment failed"
-      );
+      setError(err.response?.data?.message || err.message || "Payment failed");
     } finally {
       setPaying(false);
     }
@@ -140,31 +117,24 @@ export default function CheckoutPayment() {
         discount: res?.discountValue || 0,
         message: "Coupon applied successfully",
       });
-
     } catch (err) {
       console.log("COUPON ERROR:", err);
 
       setCouponResult({
         valid: false,
-        message:
-          err.data?.message || err.message || "Invalid coupon code",
+        message: err.data?.message || err.message || "Invalid coupon code",
       });
     }
   }
 
   return (
     <div className="min-h-screen bg-[#f4f7f6] px-4 md:px-10 py-10">
-
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-
         {/* LEFT */}
         <div className="lg:col-span-7 space-y-6">
-
           <div>
             <h1 className="text-3xl font-bold">Select Payment Method</h1>
-            <p className="text-gray-500">
-              Choose your preferred way to pay
-            </p>
+            <p className="text-gray-500">Choose your preferred way to pay</p>
           </div>
 
           {/* WALLET */}
@@ -184,12 +154,14 @@ export default function CheckoutPayment() {
             {/* TOGGLE */}
             <div
               onClick={() => setUseWallet(!useWallet)}
-              className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer ${useWallet ? "bg-[#1E7F5A]" : "bg-gray-300"
-                }`}
+              className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer ${
+                useWallet ? "bg-[#1E7F5A]" : "bg-gray-300"
+              }`}
             >
               <div
-                className={`bg-white w-4 h-4 rounded-full shadow transform ${useWallet ? "translate-x-6" : ""
-                  }`}
+                className={`bg-white w-4 h-4 rounded-full shadow transform ${
+                  useWallet ? "translate-x-6" : ""
+                }`}
               />
             </div>
           </div>
@@ -197,10 +169,11 @@ export default function CheckoutPayment() {
           {/* RAZORPAY */}
           <div
             onClick={() => setMethod("razorpay")}
-            className={`p-5 rounded-xl border flex justify-between items-center cursor-pointer ${method === "razorpay"
-              ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-              : "bg-white"
-              }`}
+            className={`p-5 rounded-xl border flex justify-between items-center cursor-pointer ${
+              method === "razorpay"
+                ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
+                : "bg-white"
+            }`}
           >
             <div className="flex gap-3 items-center">
               <span className="material-symbols-outlined text-[#1E7F5A]">
@@ -222,10 +195,9 @@ export default function CheckoutPayment() {
           {/* COD */}
           <div
             onClick={() => setMethod("cod")}
-            className={`p-5 rounded-xl border flex justify-between items-center cursor-pointer ${method === "cod"
-              ? "border-[#1E7F5A] bg-[#1E7F5A]/10"
-              : "bg-white"
-              }`}
+            className={`p-5 rounded-xl border flex justify-between items-center cursor-pointer ${
+              method === "cod" ? "border-[#1E7F5A] bg-[#1E7F5A]/10" : "bg-white"
+            }`}
           >
             <div className="flex gap-3 items-center">
               <span className="material-symbols-outlined text-[#1E7F5A]">
@@ -242,10 +214,8 @@ export default function CheckoutPayment() {
 
           {/* FEATURES */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-
             {/* Guaranteed Care */}
             <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-start">
-
               <div className="w-10 h-10 rounded-full bg-[#1E7F5A]/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[#1E7F5A] text-lg">
                   verified_user
@@ -253,18 +223,16 @@ export default function CheckoutPayment() {
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-800">
-                  Guaranteed Care
-                </h4>
+                <h4 className="font-semibold text-gray-800">Guaranteed Care</h4>
                 <p className="text-xs text-gray-500 leading-relaxed mt-1">
-                  Our 100% satisfaction guarantee ensures your clothes are handled with precision or we re-wash for free.
+                  Our 100% satisfaction guarantee ensures your clothes are
+                  handled with precision or we re-wash for free.
                 </p>
               </div>
             </div>
 
             {/* Express Processing */}
             <div className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-start">
-
               <div className="w-10 h-10 rounded-full bg-[#1E7F5A]/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-[#1E7F5A] text-lg">
                   bolt
@@ -276,19 +244,17 @@ export default function CheckoutPayment() {
                   Express Processing
                 </h4>
                 <p className="text-xs text-gray-500 leading-relaxed mt-1">
-                  Payments are cleared instantly to prioritize your order in our premium automated cleaning queue.
+                  Payments are cleared instantly to prioritize your order in our
+                  premium automated cleaning queue.
                 </p>
               </div>
             </div>
-
           </div>
         </div>
 
         {/* RIGHT */}
         <div className="lg:col-span-5 space-y-6">
-
           <div className="bg-[#f8fafc] p-6 rounded-3xl shadow-xl border border-gray-100 space-y-5">
-
             {/* TITLE */}
             <h3 className="text-lg font-semibold text-gray-800">
               Order Summary
@@ -296,7 +262,6 @@ export default function CheckoutPayment() {
 
             {/* ITEMS */}
             <div className="space-y-4 text-sm">
-
               {orderItems.map((item, i) => (
                 <div key={i} className="flex justify-between items-start">
                   <div>
@@ -325,7 +290,6 @@ export default function CheckoutPayment() {
 
               {/* COUPON */}
               <div className="flex items-center gap-2 mt-2 w-full">
-
                 <input
                   type="text"
                   placeholder="Have a code?"
@@ -340,18 +304,17 @@ export default function CheckoutPayment() {
                 >
                   APPLY
                 </button>
-
               </div>
 
               {couponResult && (
                 <p
-                  className={`text-xs mt-1 ${couponResult.valid ? "text-green-600" : "text-red-500"
-                    }`}
+                  className={`text-xs mt-1 ${
+                    couponResult.valid ? "text-green-600" : "text-red-500"
+                  }`}
                 >
                   {couponResult.message}
                 </p>
               )}
-
             </div>
 
             {/* DIVIDER */}
@@ -391,30 +354,29 @@ export default function CheckoutPayment() {
             {/* BUTTON (ONLY GREEN CHANGE) */}
             <button
               onClick={handlePay}
+              disabled={paying}
               className="w-full py-3 rounded-xl text-white font-medium 
   bg-[#1E7F5A]
   shadow-md hover:bg-[#166a4a] hover:shadow-lg 
   hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              Complete Payment →
+              {paying ? "Processing..." : "Complete Payment →"}
             </button>
+
+            {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
 
             {/* FOOTER */}
             <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-
               <span className="material-symbols-outlined text-[#1E7F5A] text-sm">
                 lock
               </span>
 
               <span>SSL SECURE • RAZORPAY</span>
-
             </div>
-
           </div>
 
           {/* IMAGE CARD */}
           <div className="relative rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
-
             {/* IMAGE */}
             <img
               src="https://plus.unsplash.com/premium_photo-1764094353320-7ce84985fb8f?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
@@ -423,27 +385,24 @@ export default function CheckoutPayment() {
             />
 
             {/* SMOOTH OVERLAY */}
-            <div className="absolute inset-0 
+            <div
+              className="absolute inset-0 
     bg-gradient-to-t 
     from-black/90 
     via-black/40 
-    to-transparent">
-            </div>
+    to-transparent"
+            ></div>
 
             {/* TEXT WITH GLOW */}
-            <div className="absolute bottom-4 left-5 right-5 
+            <div
+              className="absolute bottom-4 left-5 right-5 
     text-white text-sm font-semibold 
-    drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
-
+    drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]"
+            >
               Trust Lumina for your most delicate fabrics.
-
             </div>
-
           </div>
-
-
         </div>
-
       </div>
     </div>
   );

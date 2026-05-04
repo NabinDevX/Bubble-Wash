@@ -17,7 +17,7 @@ export default function ForgotPassword() {
       await api.post("/auth/forgot-password", { email });
       setMsg("Reset link sent to your email ✅");
     } catch (err) {
-      setError("Something went wrong");
+      setError(err?.data?.message || err?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -25,12 +25,10 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 app-green-gradient">
-
       <form
         onSubmit={handleSubmit}
         className="glass-card p-8 md:p-10 rounded-3xl w-full max-w-md space-y-6 relative overflow-hidden"
       >
-
         {/* Glow effect */}
         <div className="absolute -top-16 -right-16 w-40 h-40 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -94,7 +92,6 @@ export default function ForgotPassword() {
             Sign In
           </a>
         </p>
-
       </form>
     </div>
   );

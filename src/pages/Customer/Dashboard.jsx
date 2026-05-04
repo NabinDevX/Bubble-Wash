@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { SkeletonCard } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
@@ -67,7 +66,11 @@ export default function CustomerDashboard() {
             points: w.points ?? 0,
           });
         }
-      } catch {}
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error("Customer dashboard load error:", err);
+        }
+      }
     }
 
     fetchData();

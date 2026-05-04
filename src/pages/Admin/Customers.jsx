@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SkeletonCard, SkeletonTableRow } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
@@ -191,6 +192,7 @@ function DetailTile({ label, value }) {
 }
 
 export default function Customers() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState([
     {
       label: "Total Customers",
@@ -340,12 +342,7 @@ export default function Customers() {
   }, [page, pageSize]);
 
   useEffect(() => {
-    if (!selectedCustomerId) {
-      setSelectedCustomer(null);
-      setSelectedCustomerError("");
-      setSelectedCustomerLoading(false);
-      return;
-    }
+    if (!selectedCustomerId) return;
 
     let active = true;
 
@@ -393,7 +390,6 @@ export default function Customers() {
 
   const safePage = clampPage(page);
   const startIndex = (safePage - 1) * pageSize;
-  const endIndex = startIndex + customers.length;
   const visibleCustomers = customers;
 
   function getPageWindow() {
@@ -474,6 +470,7 @@ export default function Customers() {
           <button
             className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-linear-to-r from-secondary-fixed-dim to-secondary shadow-md hover:shadow-lg transition-all flex items-center gap-2"
             type="button"
+            onClick={() => navigate("/admin/customers/new")}
           >
             <span className="material-symbols-outlined text-base">
               person_add

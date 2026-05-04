@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { SkeletonCard, Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
 
 function formatTime(time) {
@@ -71,7 +70,6 @@ export default function SchedulePickup() {
     instructions: "",
   });
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [deliveryType, setDeliveryType] = useState("standard");
 
@@ -90,7 +88,7 @@ export default function SchedulePickup() {
             data?.services ?? data?.data?.services ?? data?.data ?? data ?? [];
           setServices(
             list.map((s) => {
-              let icon = "local_laundry_service";
+              let icon = "cleaning_services";
 
               if (s.name.toLowerCase().includes("wash")) {
                 icon = "local_laundry_service";
@@ -100,8 +98,6 @@ export default function SchedulePickup() {
                 icon = "dry_cleaning";
               } else if (s.name.toLowerCase().includes("fold")) {
                 icon = "checkroom";
-              } else {
-                icon = "cleaning_services"; // fallback
               }
 
               return {
@@ -172,13 +168,7 @@ export default function SchedulePickup() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const daysInNewMonth = new Date(year, month + 1, 0).getDate();
-
-    if (selectedDay > daysInNewMonth) {
-      setSelectedDay(daysInNewMonth);
-    }
-  }, [month, year]);
+  const effectiveSelectedDay = Math.min(selectedDay, daysInMonth);
 
   function toggleService(id) {
     setSelectedServices((prev) =>
@@ -207,6 +197,8 @@ export default function SchedulePickup() {
           When and where should we collect your items?
         </p>
       </header>
+
+      {loading && <p className="text-sm text-on-surface-variant">Loading...</p>}
 
       {error && (
         <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
@@ -398,10 +390,20 @@ export default function SchedulePickup() {
                       <button
                         onClick={async () => {
                           if (month === 0) {
-                            setMonth(11);
-                            setYear(year - 1);
+                            const nextMonth = 11;
+                            const nextYear = year - 1;
+                            const nextDays = getDaysInMonth(
+                              nextMonth,
+                              nextYear,
+                            );
+                            setMonth(nextMonth);
+                            setYear(nextYear);
+                            setSelectedDay((d) => Math.min(d, nextDays));
                           } else {
-                            setMonth(month - 1);
+                            const nextMonth = month - 1;
+                            const nextDays = getDaysInMonth(nextMonth, year);
+                            setMonth(nextMonth);
+                            setSelectedDay((d) => Math.min(d, nextDays));
                           }
                         }}
                         className="text-on-surface-variant hover:text-on-surface"
@@ -418,10 +420,20 @@ export default function SchedulePickup() {
                       <button
                         onClick={() => {
                           if (month === 11) {
-                            setMonth(0);
-                            setYear(year + 1);
+                            const nextMonth = 0;
+                            const nextYear = year + 1;
+                            const nextDays = getDaysInMonth(
+                              nextMonth,
+                              nextYear,
+                            );
+                            setMonth(nextMonth);
+                            setYear(nextYear);
+                            setSelectedDay((d) => Math.min(d, nextDays));
                           } else {
-                            setMonth(month + 1);
+                            const nextMonth = month + 1;
+                            const nextDays = getDaysInMonth(nextMonth, year);
+                            setMonth(nextMonth);
+                            setSelectedDay((d) => Math.min(d, nextDays));
                           }
                         }}
                         className="text-on-surface-variant hover:text-on-surface"
@@ -440,7 +452,7 @@ export default function SchedulePickup() {
 
                     <div className="grid grid-cols-7 gap-1 text-center">
                       {calendarDays.map((day) => {
-                        const isSelected = day === selectedDay;
+                        const isSelected = day === effectiveSelectedDay;
 
                         return (
                           <button
@@ -668,7 +680,7 @@ export default function SchedulePickup() {
                       pickupDate: new Date(
                         year,
                         month,
-                        selectedDay,
+                        effectiveSelectedDay,
                       ).toLocaleDateString("en-IN", {
                         day: "2-digit",
                         month: "short",
