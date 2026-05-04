@@ -15,6 +15,9 @@ export default function CheckoutPayment() {
   } = orderData;
 
   const [method, setMethod] = useState("razorpay");
+
+  const [coupon, setCoupon] = useState("");
+  const [couponResult, setCouponResult] = useState(null);
   const [useWallet, setUseWallet] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
@@ -33,8 +36,10 @@ export default function CheckoutPayment() {
   const serviceTax = Math.round(subtotal * 0.08); // approx like UI
   const total = subtotal + deliveryCharge + serviceTax;
 
+  // Wallet state
   const [walletBalance, setWalletBalance] = useState(0);
 
+  // Fetch wallet
   useEffect(() => {
     async function fetchWallet() {
       try {
@@ -47,8 +52,21 @@ export default function CheckoutPayment() {
     fetchWallet();
   }, []);
 
-  const walletUsed = useWallet ? Math.min(walletBalance, total) : 0;
-  const finalPayable = total - walletUsed;
+  // Step 1: Coupon discount
+  const discountAmount = couponResult?.valid
+    ? Math.round((total * couponResult.discount) / 100)
+    : 0;
+
+  // Step 2: After discount
+  const afterDiscount = total - discountAmount;
+
+  // Step 3: Wallet usage
+  const walletUsed = useWallet
+    ? Math.min(walletBalance, afterDiscount)
+    : 0;
+
+  // Step 4: Final payable
+  const finalPayable = afterDiscount - walletUsed;
 
   const paymentMethod = useMemo(() => {
     if (method === "cod") return "cod";
@@ -106,6 +124,34 @@ export default function CheckoutPayment() {
       setPaying(false);
     }
   }
+
+  async function handleApplyCoupon() {
+    if (!coupon.trim()) return;
+
+    try {
+      const res = await api.post("/coupons/validate", {
+        code: coupon,
+      });
+
+      console.log("COUPON RESPONSE:", res);
+
+      setCouponResult({
+        valid: true,
+        discount: res?.discountValue || 0, // ✅ FIXED
+        message: "Coupon applied successfully",
+      });
+
+    } catch (err) {
+      console.log("COUPON ERROR:", err);
+
+      setCouponResult({
+        valid: false,
+        message:
+          err.data?.message || err.message || "Invalid coupon code",
+      });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#f4f7f6] px-4 md:px-10 py-10">
 
@@ -280,10 +326,46 @@ export default function CheckoutPayment() {
                 <span>₹{serviceTax}</span>
               </div>
 
+              {/* COUPON */}
+              <div className="flex items-center gap-2 mt-2 w-full">
+
+                <input
+                  type="text"
+                  placeholder="Have a code?"
+                  value={coupon}
+                  onChange={(e) => setCoupon(e.target.value)}
+                  className="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none"
+                />
+
+                <button
+                  onClick={handleApplyCoupon}
+                  className="shrink-0 px-4 py-2 text-sm font-semibold rounded-lg bg-[#1E7F5A] text-white hover:bg-[#166a4a]"
+                >
+                  APPLY
+                </button>
+
+              </div>
+
+              {couponResult && (
+                <p
+                  className={`text-xs mt-1 ${couponResult.valid ? "text-green-600" : "text-red-500"
+                    }`}
+                >
+                  {couponResult.message}
+                </p>
+              )}
+
             </div>
 
             {/* DIVIDER */}
             <div className="border-t border-gray-200"></div>
+
+            {couponResult?.valid && (
+              <div className="flex justify-between text-sm text-[#1E7F5A]">
+                <span>Discount</span>
+                <span>-₹{discountAmount}</span>
+              </div>
+            )}
 
             {/* SUBTOTAL */}
             <div className="flex justify-between text-sm text-gray-600">
