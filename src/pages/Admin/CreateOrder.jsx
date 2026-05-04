@@ -37,6 +37,8 @@ export default function CreateOrder() {
     customerId: "",
     service: "",
     weight: "1",
+    paymentMethod: "cash",
+    expressOrder: "false",
     street: "",
     area: "",
     city: "",
@@ -137,13 +139,11 @@ export default function CreateOrder() {
 
     if (
       !formData.street.trim() ||
-      !formData.area.trim() ||
       !formData.city.trim() ||
-      !formData.state.trim() ||
       !formData.pincode.trim()
     ) {
       notify.error(
-        "Please fill in all required address fields (Street, Area, City, State, Pincode).",
+        "Please fill in all required address fields (Street, City, Pincode).",
       );
       return;
     }
@@ -157,7 +157,9 @@ export default function CreateOrder() {
 
     try {
       const payload = {
-        customerId: formData.customerId,
+        userId: formData.customerId,
+        paymentMethod: formData.paymentMethod,
+        paymentStatus: "success",
         orderItems: [
           {
             service: formData.service,
@@ -166,16 +168,15 @@ export default function CreateOrder() {
         ],
         pickupAddress: {
           street: formData.street.trim(),
-          area: formData.area.trim(),
           city: formData.city.trim(),
-          state: formData.state.trim(),
           pincode: formData.pincode.trim(),
-          landmark: formData.landmark.trim(),
         },
-        pickupSlot: formData.pickupSlot,
+        pickupSlotId: formData.pickupSlot,
+        expressOrder: formData.expressOrder === "true",
+        source: "walk_in",
       };
 
-      const createdOrder = await api.post("/api/v1/orders", payload);
+      const createdOrder = await api.post("/admin/orders/new", payload);
 
       const orderId =
         createdOrder?.orderId ?? createdOrder?._id ?? createdOrder?.id ?? "";
@@ -190,6 +191,8 @@ export default function CreateOrder() {
         ...prev,
         customerId: prev.customerId,
         weight: "1",
+        paymentMethod: "cash",
+        expressOrder: "false",
         street: "",
         area: "",
         city: "",
@@ -331,6 +334,39 @@ export default function CreateOrder() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-on-surface mb-1">
+                    Payment Method
+                  </label>
+                  <select
+                    name="paymentMethod"
+                    value={formData.paymentMethod}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-lg border border-outline-variant/60 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/50"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="cod">Cash on Delivery</option>
+                    <option value="card">Card</option>
+                    <option value="wallet">Wallet</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-on-surface mb-1">
+                    Express Order
+                  </label>
+                  <select
+                    name="expressOrder"
+                    value={formData.expressOrder}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-lg border border-outline-variant/60 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/50"
+                  >
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-on-surface mb-1">
                   Pickup Slot
@@ -403,7 +439,6 @@ export default function CreateOrder() {
                     value={formData.area}
                     onChange={handleChange}
                     className="w-full px-4 py-2.5 rounded-lg border border-outline-variant/60 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/50"
-                    required
                   />
                 </div>
                 <div>
@@ -445,7 +480,6 @@ export default function CreateOrder() {
                       value={formData.state}
                       onChange={handleChange}
                       className="w-full px-4 py-2.5 rounded-lg border border-outline-variant/60 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/50"
-                      required
                     />
                   </div>
                   <div>
