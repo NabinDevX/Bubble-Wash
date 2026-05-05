@@ -198,9 +198,7 @@ export default function Reports() {
           ) {
             try {
               notify.error(v.message || `Failed to fetch ${label}`);
-            } catch (e) {
-              // ignore notify failures
-            }
+            } catch {}
             return [];
           }
           return unwrapReportList(v, keys);

@@ -6,30 +6,42 @@ import notify from "../../lib/notify.js";
 export default function ServiceAreas() {
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    pincode: "",
+    city: "",
+    deliveryCharge: "",
+    minimumOrderAmount: "",
+  });
 
   useEffect(() => {
-    async function fetchAreas() {
-      try {
-        const data = await api.get("/admin/areas");
-        const list = data.areas ?? data.data ?? data ?? [];
-        setAreas(
-          list.map((a) => ({
-            id: a._id ?? a.id,
-            pin: a.pinCode ?? a.pin ?? "—",
-            area: a.areaName ?? a.name ?? a.area ?? "—",
-            city: a.city ?? "—",
-            state: a.state ?? "—",
-            active: a.isActive !== false,
-          })),
-        );
-      } catch {
-        // keep empty
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchAreas();
   }, []);
+
+  async function fetchAreas() {
+    try {
+      setLoading(true);
+      const response = await api.get("/admin/areas");
+      const list =
+        response.data?.areas ?? response.areas ?? response.data ?? [];
+      setAreas(
+        list.map((a) => ({
+          id: a._id ?? a.id,
+          pincode: a.pincode ?? a.pinCode ?? "—",
+          city: a.city ?? "—",
+          deliveryCharge: a.deliveryCharge ?? 0,
+          minimumOrderAmount: a.minimumOrderAmount ?? 0,
+          active: a.isActive !== false,
+        })),
+      );
+    } catch {
+      notify.error("Failed to fetch areas");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const activeCount = areas.filter((a) => a.active).length;
   const inactiveCount = areas.length - activeCount;
@@ -58,17 +70,75 @@ export default function ServiceAreas() {
     },
   ];
 
-  async function handleAddArea() {
-    const pinCode = prompt("Pin code:");
-    const areaName = prompt("Area name:");
-    const city = prompt("City:");
-    const state = prompt("State:");
-    if (!pinCode || !areaName) return;
+  function handleOpenModal() {
+    setEditingId(null);
+    setFormData({
+      pincode: "",
+      city: "",
+      deliveryCharge: "",
+      minimumOrderAmount: "",
+    });
+    setShowModal(true);
+  }
+
+  function handleEditArea(area) {
+    setEditingId(area.id);
+    setFormData({
+      pincode: area.pincode === "—" ? "" : area.pincode,
+      city: area.city === "—" ? "" : area.city,
+      deliveryCharge: area.deliveryCharge || "",
+      minimumOrderAmount: area.minimumOrderAmount || "",
+    });
+    setShowModal(true);
+  }
+
+  function handleCloseModal() {
+    setShowModal(false);
+    setEditingId(null);
+    setFormData({
+      pincode: "",
+      city: "",
+      deliveryCharge: "",
+      minimumOrderAmount: "",
+    });
+  }
+
+  function handleInputChange(e) {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!formData.pincode.trim() || !formData.city.trim()) {
+      notify.error("Pin code and city are required");
+      return;
+    }
+
     try {
-      await api.post("/admin/areas", { pinCode, areaName, city, state });
-      window.location.reload();
+      setSubmitting(true);
+      const payload = {
+        pincode: formData.pincode,
+        city: formData.city,
+        deliveryCharge: Number(formData.deliveryCharge) || 0,
+        minimumOrderAmount: Number(formData.minimumOrderAmount) || 0,
+      };
+
+      if (editingId) {
+        // Update existing area
+        await api.put(`/admin/areas/${editingId}`, payload);
+        notify.success("Area updated successfully");
+      } else {
+        // Create new area
+        await api.post("/admin/areas", payload);
+        notify.success("Area created successfully");
+      }
+      handleCloseModal();
+      fetchAreas();
     } catch (err) {
-      notify.error(err?.message || "Failed to create area");
+      notify.error(err?.message || "Failed to save area");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -78,6 +148,7 @@ export default function ServiceAreas() {
       setAreas((prev) =>
         prev.map((a) => (a.id === id ? { ...a, active: !a.active } : a)),
       );
+      notify.success("Area status updated");
     } catch (err) {
       notify.error(err?.message || "Failed to toggle area");
     }
@@ -88,6 +159,7 @@ export default function ServiceAreas() {
     try {
       await api.delete(`/admin/areas/${id}`);
       setAreas((prev) => prev.filter((a) => a.id !== id));
+      notify.success("Area deleted successfully");
     } catch (err) {
       notify.error(err?.message || "Failed to delete area");
     }
@@ -110,11 +182,11 @@ export default function ServiceAreas() {
             Search
           </button>
           <button
-            onClick={handleAddArea}
+            onClick={handleOpenModal}
             className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-linear-to-r from-secondary-fixed-dim to-secondary shadow-md hover:shadow-lg transition-all flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-base">add</span> New
-            Pin Code
+            Area
           </button>
         </div>
       </div>
@@ -157,9 +229,9 @@ export default function ServiceAreas() {
               <tr>
                 {[
                   "Pin Code",
-                  "Area Name",
                   "City",
-                  "State",
+                  "Delivery Charge",
+                  "Min. Order Amount",
                   "Status",
                   "Actions",
                 ].map((h) => (
@@ -195,14 +267,14 @@ export default function ServiceAreas() {
                     className="border-t border-outline-variant/20 hover:bg-white/30 transition-colors"
                   >
                     <td className="px-5 py-3.5 font-mono font-semibold text-on-surface">
-                      {a.pin}
+                      {a.pincode}
                     </td>
-                    <td className="px-5 py-3.5 text-on-surface">{a.area}</td>
+                    <td className="px-5 py-3.5 text-on-surface">{a.city}</td>
                     <td className="px-5 py-3.5 text-on-surface-variant">
-                      {a.city}
+                      ₹{a.deliveryCharge}
                     </td>
                     <td className="px-5 py-3.5 text-on-surface-variant">
-                      {a.state}
+                      ₹{a.minimumOrderAmount}
                     </td>
                     <td className="px-5 py-3.5">
                       <button
@@ -214,7 +286,10 @@ export default function ServiceAreas() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex gap-2">
-                        <button className="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/40 rounded-lg transition-all">
+                        <button
+                          onClick={() => handleEditArea(a)}
+                          className="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/40 rounded-lg transition-all"
+                        >
                           <span className="material-symbols-outlined text-lg">
                             edit
                           </span>
@@ -241,6 +316,119 @@ export default function ServiceAreas() {
           </span>
         </div>
       </div>
+
+      {/* Modal for Create/Edit Area */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30">
+              <h2 className="text-lg font-semibold text-on-surface">
+                {editingId ? "Edit Area" : "Create New Area"}
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="p-1 text-on-surface-variant hover:bg-white/40 rounded-lg transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-2">
+                  Pin Code <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="pincode"
+                  value={formData.pincode}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 700125"
+                  className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-colors"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-2">
+                  City <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Barasat"
+                  className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-colors"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-2">
+                  Delivery Charge (₹)
+                </label>
+                <input
+                  type="number"
+                  name="deliveryCharge"
+                  value={formData.deliveryCharge}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 29"
+                  min="0"
+                  step="0.01"
+                  className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-2">
+                  Minimum Order Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  name="minimumOrderAmount"
+                  value={formData.minimumOrderAmount}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 200"
+                  min="0"
+                  step="0.01"
+                  className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-colors"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 rounded-lg border border-outline-variant text-on-surface font-medium hover:bg-white/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 rounded-lg bg-secondary text-white font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-base">
+                        {editingId ? "check" : "add"}
+                      </span>
+                      {editingId ? "Update Area" : "Create Area"}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
