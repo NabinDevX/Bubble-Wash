@@ -1,5 +1,6 @@
 import { Suspense, useRef, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../../lib/AuthContext.jsx";
 
 import AdminSidebar from "../../components/AdminSidebar.jsx";
 import PageLoader from "../../components/PageLoader.jsx";
@@ -29,7 +30,6 @@ const adminNavItems = [
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollWrapperRef = useRef(null);
   const scrollContentRef = useRef(null);
@@ -47,21 +47,24 @@ export default function AdminLayout() {
     setIsSidebarOpen(false);
   }
 
-  const isServicesPage = location.pathname === "/admin/services-rate-card";
-  const newButtonTarget = isServicesPage
-    ? "/admin/services/new"
-    : "/admin/create-order";
+  const { user, logout } = useAuth();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const displayName = user?.name || user?.phone || "Admin";
+  const initial = (user?.name || user?.phone || "A")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   return (
-    <div className="app-green-gradient text-on-background font-body-md antialiased overflow-hidden flex h-screen w-full">
+    <div className="app-green-gradient text-on-background font-body-md antialiased overflow-hidden flex h-screen w-full relative">
       <AdminSidebar
         isOpen={isSidebarOpen}
         onClose={closeSidebar}
         items={adminNavItems}
       />
 
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <header className="app-shell-header h-20 shrink-0 flex items-center justify-between px-gutter border-b backdrop-blur-md z-30">
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
+        <header className="app-shell-header h-16 md:h-20 shrink-0 flex items-center justify-between px-4 md:px-gutter border-b backdrop-blur-md z-30">
           <div className="flex items-center space-x-4">
             <button
               type="button"
@@ -71,42 +74,90 @@ export default function AdminLayout() {
             >
               <span className="material-symbols-outlined">menu</span>
             </button>
-            <div>
-              <h2 className="font-headline-sm text-headline-sm text-on-surface">
+            <div className="min-w-0">
+              <h2 className="font-headline-sm text-headline-sm text-on-surface leading-tight">
                 Admin
               </h2>
-              <p className="font-body-md text-body-md text-on-surface-variant">
+              <p className="text-xs text-on-surface-variant hidden sm:block">
                 Operations &amp; Management
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            <button
-              type="button"
-              className="relative w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
-              aria-label="Notifications"
-            >
-              <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                className="relative w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                aria-label="Notifications"
+              >
+                <span className="material-symbols-outlined">notifications</span>
+                <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
+              </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => navigate(newButtonTarget)}
-              className="bg-linear-to-r from-secondary-fixed-dim to-secondary-fixed text-on-secondary px-6 py-2.5 rounded-full font-label-md text-label-md font-bold shadow-[0_4px_12px_rgba(98,250,227,0.3)] hover:shadow-[0_6px_16px_rgba(98,250,227,0.5)] hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+            <div
+              className="relative"
+              onMouseEnter={() => setProfileOpen(true)}
+              onMouseLeave={() => setProfileOpen(false)}
             >
-              <span className="material-symbols-outlined text-body-lg">
-                add
-              </span>
-              <span>New</span>
-            </button>
+              <button
+                type="button"
+                className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-fixed font-bold"
+                aria-label="Admin profile"
+              >
+                {initial}
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-outline-variant/40 bg-surface-container-high shadow-lg p-4 z-40">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-fixed font-bold">
+                      {initial}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-on-surface truncate">
+                        {displayName}
+                      </p>
+                      {user?.role && (
+                        <p className="text-sm text-on-surface-variant truncate">
+                          {String(user.role).replace(/_/g, " ")}
+                        </p>
+                      )}
+                      {user?.phone && (
+                        <p className="text-sm text-on-surface-variant truncate">
+                          {user.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button
+                      onClick={() => navigate("/admin")}
+                      className="px-3 py-1 rounded-lg border border-outline-variant"
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        logout();
+                        navigate("/signin");
+                      }}
+                      className="px-3 py-1 rounded-lg bg-red-500 text-white"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
         <div
           ref={scrollWrapperRef}
-          className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl p-gutter pb-32"
+          className="app-content-surface mx-2 md:mx-4 mt-3 mb-2 md:mb-4 flex-1 overflow-y-auto overflow-x-hidden custom-scroll rounded-2xl px-3 sm:px-5 md:px-gutter pb-12 min-w-0 max-w-full box-border"
         >
           <div ref={scrollContentRef}>
             <Suspense fallback={<PageLoader title="Loading page…" />}>

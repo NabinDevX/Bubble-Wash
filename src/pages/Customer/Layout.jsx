@@ -42,8 +42,8 @@ export default function CustomerLayout() {
         items={navItems}
       />
 
-      <main className="flex-1 flex flex-col h-full overflow-x-hidden relative">
-        <header className="app-shell-header h-20 shrink-0 flex items-center justify-between px-gutter border-b backdrop-blur-md z-30">
+      <main className="flex-1 flex flex-col h-full overflow-x-hidden relative min-w-0">
+        <header className="app-shell-header h-16 md:h-20 shrink-0 flex items-center justify-between px-4 md:px-gutter border-b backdrop-blur-md z-30">
           <div className="flex items-center space-x-4 min-w-0">
             <button
               type="button"
@@ -86,7 +86,7 @@ export default function CustomerLayout() {
 
         <div
           ref={scrollWrapperRef}
-          className="app-content-surface m-4 mt-3 flex-1 overflow-y-auto custom-scroll rounded-2xl pb-32"
+          className="app-content-surface mx-2 md:m-4 mt-3 flex-1 overflow-y-auto overflow-x-hidden custom-scroll rounded-2xl px-3 md:p-gutter pb-32 min-w-0 max-w-full box-border"
         >
           <div ref={scrollContentRef}>
             <Suspense fallback={<PageLoader title="Loading page…" />}>

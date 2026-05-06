@@ -198,7 +198,9 @@ export default function Reports() {
           ) {
             try {
               notify.error(v.message || `Failed to fetch ${label}`);
-            } catch {}
+            } catch (e) {
+              console.error(e);
+            }
             return [];
           }
           return unwrapReportList(v, keys);
@@ -260,8 +262,8 @@ export default function Reports() {
           );
           setCollectionDueData(normalizeCollectionDue(list));
         }
-      } catch {
-        // keep empty
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }

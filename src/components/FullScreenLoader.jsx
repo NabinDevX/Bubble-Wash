@@ -35,8 +35,8 @@ export default function FullScreenLoader({ title = "Loading…", subtitle }) {
   }, []);
 
   return (
-    <div className="app-green-gradient text-on-background font-body-md antialiased overflow-hidden flex h-screen w-full">
-      <div className="flex-1 flex items-center justify-center p-6">
+    <div className="app-green-gradient text-on-background font-body-md antialiased overflow-hidden flex h-screen w-full min-w-0">
+      <div className="flex-1 flex items-center justify-center p-6 min-w-0">
         <div className="w-full max-w-xl fullscreen-loader-container">
           <PageLoader title={title} subtitle={subtitle ?? "Please wait"} />
         </div>

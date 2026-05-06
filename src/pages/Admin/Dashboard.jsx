@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "../../components/Skeleton.jsx";
 import api from "../../lib/api.js";
@@ -114,58 +114,16 @@ function getStatusPill(status) {
   };
 }
 
-function buildMonthCalendar(date) {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const prevMonthDays = new Date(year, month, 0).getDate();
-  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
-
-  const actualToday = new Date();
-  const isCurrentMonth =
-    year === actualToday.getFullYear() && month === actualToday.getMonth();
-
-  return Array.from({ length: totalCells }, (_, index) => {
-    if (index < firstDay) {
-      return {
-        day: prevMonthDays - firstDay + index + 1,
-        muted: true,
-        today: false,
-        key: `prev-${index}`,
-      };
-    }
-
-    const day = index - firstDay + 1;
-    if (day <= daysInMonth) {
-      return {
-        day,
-        muted: false,
-        today: isCurrentMonth && day === actualToday.getDate(),
-        key: `current-${day}`,
-      };
-    }
-
-    return {
-      day: day - daysInMonth,
-      muted: true,
-      today: false,
-      key: `next-${index}`,
-    };
-  });
-}
 export default function Dashboard() {
   const navigate = useNavigate();
-  const calendarRef = useRef(null);
+
   const [dashboard, setDashboard] = useState(null);
   const [revenueDataRes, setRevenueDataRes] = useState(null);
   const [trendsDataRes, setTrendsDataRes] = useState(null);
   const [slaRows, setSlaRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [calendarPinned, setCalendarPinned] = useState(false);
-  const [currentMonthDate, setCurrentMonthDate] = useState(() => new Date());
+  // Calendar UI removed: state for calendar has been deleted.
 
   const chartTheme = useMemo(() => {
     const secondary = readCssVar("--color-secondary", "#0f8d65");
@@ -190,61 +148,15 @@ export default function Dashboard() {
     };
   }, []);
 
-  const todayCalendar = useMemo(
-    () => buildMonthCalendar(currentMonthDate),
-    [currentMonthDate],
-  );
-  const todayLabel = useMemo(
-    () =>
-      new Intl.DateTimeFormat(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      }).format(new Date()),
-    [],
-  );
-
+  // Calendar-related helpers and effects removed.
   const displayedMonthLabel = useMemo(
     () =>
       new Intl.DateTimeFormat(undefined, {
         month: "long",
         year: "numeric",
-      }).format(currentMonthDate),
-    [currentMonthDate],
+      }).format(new Date()),
+    [],
   );
-
-  function handlePrevMonth(e) {
-    e.stopPropagation();
-    setCurrentMonthDate(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
-    );
-  }
-
-  function handleNextMonth(e) {
-    e.stopPropagation();
-    setCurrentMonthDate(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
-    );
-  }
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-        setCalendarOpen(false);
-      }
-    }
-    function handleScroll() {
-      setCalendarOpen(false);
-    }
-    if (calendarOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      window.addEventListener("scroll", handleScroll, true);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("scroll", handleScroll, true);
-    };
-  }, [calendarOpen]);
 
   useEffect(() => {
     async function fetchData() {
@@ -677,119 +589,25 @@ export default function Dashboard() {
   }, [dashboard]);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-        setCalendarOpen(false);
-        setCalendarPinned(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("scroll", () => {
-      setCalendarOpen(false);
-      setCalendarPinned(false);
-    });
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("scroll", () => {});
-    };
+    // Calendar click/scroll handlers removed.
+    return () => {};
   }, []);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <div>
-          <h1 className="font-headline-md text-headline-md text-on-surface">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-headline-md text-headline-md text-on-surface leading-tight">
             Admin Dashboard
           </h1>
           <p className="text-on-surface-variant text-sm mt-1">
             Today at a glance
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div
-            ref={calendarRef}
-            className="relative"
-            onMouseEnter={() => setCalendarOpen(true)}
-            onMouseLeave={() => {
-              if (!calendarPinned) setCalendarOpen(false);
-            }}
-          >
-            <button
-              onClick={() => {
-                setCalendarPinned((prev) => !prev);
-                setCalendarOpen(true);
-              }}
-              className="px-4 py-2 rounded-lg border border-outline-variant bg-white/60 text-on-surface text-sm font-medium hover:bg-white/80 transition-colors flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-base">
-                calendar_today
-              </span>
-              Today
-            </button>
-
-            {calendarOpen && (
-              <div className="absolute right-0 top-full z-20 mt-3 w-80 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-[0_20px_50px_rgba(15,23,42,0.18)] overflow-hidden">
-                <div className="flex items-center justify-between border-b border-outline-variant/20 bg-white/60 px-4 py-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-on-surface-variant">
-                      Current date
-                    </p>
-                    <p className="text-sm font-semibold text-on-surface">
-                      {todayLabel}
-                    </p>
-                  </div>
-                  <span className="material-symbols-outlined text-secondary">
-                    calendar_month
-                  </span>
-                </div>
-                <div className="p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={handlePrevMonth}
-                      className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface"
-                    >
-                      <span className="material-symbols-outlined text-base">
-                        chevron_left
-                      </span>
-                    </button>
-                    <p className="text-sm font-semibold text-on-surface">
-                      {displayedMonthLabel}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleNextMonth}
-                      className="rounded-full border border-outline-variant/40 bg-white/70 p-2 text-on-surface-variant transition-colors hover:text-on-surface"
-                    >
-                      <span className="material-symbols-outlined text-base">
-                        chevron_right
-                      </span>
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
-                    {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
-                      <div key={day} className="py-1">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2 grid grid-cols-7 gap-1 text-center">
-                    {todayCalendar.map((cell) => (
-                      <div
-                        key={cell.key}
-                        className={`rounded-full py-2 text-sm transition-colors ${cell.muted ? "text-on-surface-variant/30" : cell.today ? "bg-secondary text-on-secondary shadow-[0_0_14px_rgba(98,250,227,0.28)]" : "text-on-surface hover:bg-secondary-container/20"}`}
-                      >
-                        {cell.day}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+        <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={handleCreateOrder}
-            className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-linear-to-r from-secondary-fixed-dim to-secondary shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+            className="px-5 py-2 rounded-lg text-white text-sm font-semibold bg-gradient-to-r from-secondary-fixed-dim to-secondary shadow-md hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
           >
             <span className="material-symbols-outlined text-base">add</span>
             Create Order
@@ -804,8 +622,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] items-stretch gap-4">
-        <section className="flex h-full min-h-[180px] flex-col rounded-3xl border border-outline-variant/30 bg-[#e8eef7] p-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] items-stretch gap-4">
+        <section className="flex h-full min-h-[180px] flex-col rounded-3xl border border-outline-variant/30 bg-[#e8eef7] p-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] min-w-0">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-on-surface">
@@ -820,38 +638,38 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
+          <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
             {(loading ? [0, 1] : monthOverviewTiles).map((item, index) => (
               <div
                 key={loading ? index : item.label}
-                className="min-h-[112px] rounded-2xl border border-white/60 bg-white/90 px-4 py-4 shadow-sm"
+                className="min-h-[100px] rounded-2xl border border-white/60 bg-white/90 px-4 py-4 shadow-sm min-w-0"
               >
                 {loading ? (
                   <Skeleton className="h-16 w-full rounded-xl" />
                 ) : (
-                  <div className="flex h-full items-center gap-3">
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                      <div className={`rounded-2xl ${item.iconBg} p-3`}>
+                  <div className="flex flex-col h-full gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`shrink-0 rounded-xl ${item.iconBg} p-2`}>
                         <span
-                          className={`material-symbols-outlined ${item.iconColor}`}
+                          className={`material-symbols-outlined text-[20px] ${item.iconColor}`}
                         >
                           {item.icon}
                         </span>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm text-on-surface-variant font-medium leading-tight">
-                          {item.label}
-                        </p>
-                        <p className="text-2xl font-bold text-on-surface mt-1 leading-none">
-                          {item.value}
-                        </p>
-                      </div>
+                      <p className="text-sm text-on-surface-variant font-medium leading-tight truncate min-w-0">
+                        {item.label}
+                      </p>
                     </div>
-                    {item.hint && (
-                      <span className="shrink-0 rounded-full bg-secondary-container/30 px-2.5 py-1 text-[11px] font-bold text-secondary whitespace-nowrap">
-                        {item.hint}
-                      </span>
-                    )}
+                    <div className="min-w-0 mt-auto">
+                      <p className="text-2xl font-bold text-on-surface leading-none">
+                        {item.value}
+                      </p>
+                      {item.hint && (
+                        <span className="inline-block mt-1.5 rounded-full bg-secondary-container/30 px-2 py-0.5 text-[10px] font-bold text-secondary leading-tight max-w-full truncate">
+                          {item.hint}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -859,7 +677,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="flex h-full min-h-[180px] flex-col rounded-3xl border border-outline-variant/30 bg-[#fde5d6] p-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+        <section className="flex h-full min-h-[180px] flex-col rounded-3xl border border-outline-variant/30 bg-[#fde5d6] p-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] min-w-0">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-on-surface">
@@ -874,31 +692,31 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 content-start">
+          <div className="grid flex-1 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 xl:grid-cols-4 content-start min-w-0">
             {(loading ? Array.from({ length: 8 }) : liveDataTiles).map(
               (item, index) => (
                 <div
                   key={loading ? index : item.label}
-                  className="rounded-2xl border border-white/70 bg-white/92 px-4 py-4 shadow-sm"
+                  className="rounded-2xl border border-white/70 bg-white/90 px-3 py-3.5 shadow-sm min-w-0"
                 >
                   {loading ? (
                     <Skeleton className="h-16 w-full rounded-xl" />
                   ) : (
-                    <div className="flex min-h-[72px] items-center gap-3">
+                    <div className="flex flex-col min-h-[72px]">
                       <div
-                        className={`shrink-0 rounded-xl ${item.iconBg} p-2.5`}
+                        className={`self-start rounded-xl ${item.iconBg} p-2`}
                       >
                         <span
-                          className={`material-symbols-outlined ${item.iconColor}`}
+                          className={`material-symbols-outlined text-[20px] ${item.iconColor}`}
                         >
                           {item.icon}
                         </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs uppercase tracking-wider text-on-surface-variant font-semibold leading-tight">
+                      <div className="mt-2 min-w-0">
+                        <p className="text-[11px] leading-tight text-on-surface-variant font-semibold line-clamp-2">
                           {item.label}
                         </p>
-                        <p className="text-2xl font-bold text-on-surface mt-1 leading-none">
+                        <p className="text-xl font-bold text-on-surface mt-1 leading-none">
                           {item.value}
                         </p>
                       </div>
@@ -913,7 +731,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <div className="flex flex-col gap-4">
-          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col min-w-0">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-16" />
               <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
@@ -940,7 +758,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col min-w-0">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-16" />
               <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
@@ -970,7 +788,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col min-w-0">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-24" />
               <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
@@ -988,7 +806,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <div className="glass-card rounded-xl overflow-hidden flex flex-col">
+          <div className="glass-card rounded-xl overflow-hidden flex flex-col min-w-0">
             <div className="px-5 py-3 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
               <div className="w-24" />
               <h3 className="text-sm font-semibold text-on-surface text-center flex-1">
@@ -1012,12 +830,9 @@ export default function Dashboard() {
       {(statusChartData || popularChartData) && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {statusChartData && (
-            <div className="glass-card rounded-xl overflow-hidden">
+            <div className="glass-card rounded-xl overflow-hidden min-w-0">
               <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-on-surface">
-                    Orders by Status
-                  </h3>
                   {dashboard?.periodStats?.period && (
                     <p className="text-xs text-on-surface-variant mt-0.5">
                       {dashboard.periodStats.period}
@@ -1045,7 +860,7 @@ export default function Dashboard() {
           )}
 
           {popularChartData && (
-            <div className="glass-card rounded-xl overflow-hidden">
+            <div className="glass-card rounded-xl overflow-hidden min-w-0">
               <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-on-surface">
@@ -1071,7 +886,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="glass-card rounded-xl overflow-hidden">
+      <div className="glass-card rounded-xl overflow-hidden min-w-0">
         <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
           <div>
             <h3 className="font-semibold text-on-surface">Recent Orders</h3>
@@ -1146,7 +961,7 @@ export default function Dashboard() {
       </div>
 
       {slaRows.length > 0 && (
-        <div className="glass-card rounded-xl overflow-hidden">
+        <div className="glass-card rounded-xl overflow-hidden min-w-0">
           <div className="px-5 py-4 border-b border-outline-variant/30 bg-white/40 flex items-center justify-between">
             <h3 className="font-semibold text-on-surface">
               Performance Overview

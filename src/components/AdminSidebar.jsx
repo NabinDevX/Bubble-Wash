@@ -27,18 +27,23 @@ export default function AdminSidebar({
 
       <aside
         className={
-          "app-sidebar-green w-64 shrink-0 flex flex-col h-full text-on-primary-container z-40 shadow-[4px_0_24px_0_rgba(15,23,42,0.1)] transition-transform duration-300 md:translate-x-0 absolute md:relative " +
+          "app-sidebar-green w-64 shrink-0 flex flex-col h-full text-on-primary-container z-40 shadow-[4px_0_24px_0_rgba(15,23,42,0.1)] transition-transform duration-300 md:translate-x-0 absolute md:relative overflow-hidden " +
           (isOpen ? "translate-x-0" : "-translate-x-full")
         }
         aria-label="Admin sidebar"
       >
-        <div className="p-6 pb-2 border-b border-on-primary-container/10">
-          <h1 className="text-2xl font-black bg-clip-text text-transparent bg-linear-to-r from-cyan-400 to-blue-600 tracking-tight">
-            {title}
-          </h1>
-          <p className="font-label-sm text-label-sm mt-1 text-on-primary-container/70 uppercase tracking-widest">
-            {subtitle}
-          </p>
+        <div className="px-5 py-4 pb-3 border-b border-on-primary-container/10 flex items-center gap-3 min-w-0">
+          <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-md">
+            <span className="material-symbols-outlined text-white text-base" style={{fontVariationSettings:"'FILL' 1"}}>local_laundry_service</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-[17px] font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 tracking-tight leading-tight truncate">
+              {title}
+            </h1>
+            <p className="text-[10px] mt-0.5 text-on-primary-container/60 uppercase tracking-[0.18em] truncate">
+              {subtitle}
+            </p>
+          </div>
         </div>
 
         <nav className="flex-1 overflow-y-auto custom-scroll py-6 px-4 space-y-2">
@@ -73,16 +78,16 @@ export default function AdminSidebar({
           ))}
         </nav>
 
-        <div className="p-6 border-t border-on-primary-container/10">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-fixed font-bold">
+        <div className="px-4 py-4 border-t border-on-primary-container/10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 shrink-0 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-fixed font-bold text-sm">
               A
             </div>
-            <div>
-              <p className="font-label-md text-label-md text-surface font-semibold">
+            <div className="min-w-0">
+              <p className="text-sm text-surface font-semibold truncate">
                 Admin User
               </p>
-              <p className="font-label-sm text-label-sm text-on-primary-container/70">
+              <p className="text-[11px] text-on-primary-container/60 truncate">
                 System Admin
               </p>
             </div>
